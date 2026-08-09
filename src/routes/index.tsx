@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { GiversGame } from "@/components/game/GiversGame";
+import { SwipeForceGame } from "@/components/game/SwipeForceGame";
 
 export const Route = createFileRoute("/")({
   component: Home,
 });
 
 function Home() {
-  return <GiversGame />;
+  return <SwipeForceGame />;
 }

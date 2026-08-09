@@ -172,7 +172,7 @@ type WepKey =
   | "overdrive"
   | "option";
 
-export function GiversGame() {
+export function SwipeForceGame() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -2224,7 +2224,7 @@ export function GiversGame() {
     window.addEventListener("keyup", onKeyUp);
 
     // test hook
-    (window as unknown as { __giversTest?: object }).__giversTest = {
+    (window as unknown as { __swipeForceTest?: object }).__swipeForceTest = {
       mode: () => mode,
       start: () => beginGame(),
       openShop: () => openShop(true),
