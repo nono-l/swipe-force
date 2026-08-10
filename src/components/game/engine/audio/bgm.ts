@@ -39,6 +39,7 @@ export {
   D as getBossThemeCard,
 } from "./engine";
 
+// BGM transport / session state used by recovered loop (export var in engine)
 export {
   we,
   De,
@@ -87,9 +88,12 @@ export {
   Ue,
   We,
   Ge,
-  N
+  N,
+  ye,
+  be,
+  xe,
+  Se,
+  Ce,
+  Ee,
+  nt,
 } from "./engine";
-
-// BGM transport state (declared with `export var T = …` in engine)
-export { T, ye, be, xe, Se, Ce, Te, Ee, P, nt } from "./engine";
-

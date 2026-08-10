@@ -5,7 +5,6 @@
  */
 import {
   A,
-  Ae,
   An,
   Ar,
   At,
@@ -112,7 +111,6 @@ import {
   Z,
   Ze,
   Zn,
-  Zt,
   _,
   _e,
   _n,
@@ -128,7 +126,6 @@ import {
   br,
   bt,
   c,
-  ce,
   cn,
   cr,
   ct,
@@ -170,7 +167,6 @@ import {
   kr,
   kt,
   l,
-  le,
   ln,
   lr,
   lt,
@@ -180,11 +176,9 @@ import {
   mr,
   mt,
   ne,
-  nn,
   nr,
   nt,
   oe,
-  on,
   or,
   ot,
   p,
@@ -201,12 +195,9 @@ import {
   rr,
   rt,
   s,
-  se,
-  sn,
   sr,
   st,
   te,
-  tn,
   tr,
   tt,
   u,
@@ -237,7 +228,7 @@ import {
   ze,
   zn,
   zt
-} from "./recovered-support";
+} from "./support/runtime";
 import {
   GROK_PROVIDERS,
   signIn,
@@ -260,264 +251,244 @@ import {
   noteContinue,
   noteHiScore,
 } from "@/lib/player-stats";
-import {
-  buildOptionRows,
-  formatVolumeBar,
-  formatLoadoutSummary,
-  formatShotSubSummary,
-  formatOptionValue,
-  LOADOUT_COUNT_KEYS,
-  SHOT_SUMMARY_KEYS,
-} from "./modes/options-rows";
-import {
-  buildTitleMenu,
-  titleMenuYs,
-  titleHitHeights,
-  titleMenuLen,
-  titleSelectLabel,
-} from "./modes/title-menu";
-import {
-  getSideRailButtons,
-  sideRailHints,
-} from "./modes/side-rails";
-import {
-  shopItemCost,
-  shopItemMax,
-  enemyHpMultiplier,
-  scoreHpThresholds,
-  shopUnlockTier,
-  filterShopCatalog,
-  normalCostScale,
-} from "./modes/shop-pricing";
+
 import { openAccountDialog } from "./ui/account-dialog";
 import { openSoundCommentViewer } from "./ui/sound-comment-viewer";
 import { openSoundCommentComposer } from "./ui/sound-comment-composer";
-import { listWindowStart } from "./modes/list-scroll";
+
+import { openFanmailDialog, closeFanmailDialog } from "./ui/fanmail-dialog";
+import { openThanksDialog, thanksBlockedMessage } from "./ui/thanks-dialog";
 import {
-  buildTrackCard,
-  commentKindEmoji,
-  commentKindLabel,
-  SOUND_TEST_MENU,
-} from "./modes/sound-test-meta";
-import {
+  aabbOverlap,
+  applyEnemyDamage,
+  applyOptionDelta,
+  applyShopPurchase,
+  armedLevel,
+  beamCooldownFrames,
+  bgm,
+  BOSS_CLEAR_MISSION,
+  bossClearMissionId,
+  bossFlashAlpha,
+  bossHpBar,
+  bossLocalRects,
+  buildBeams,
+  buildBossEntity,
+  buildBurstParticles,
+  buildChangelogRows,
+  buildCommentRows,
+  buildContinueSeed,
+  buildEnemyFire,
+  buildFlames,
+  buildGameOverView,
+  buildGrunt,
+  buildHudBottomChips,
+  buildHudFlags,
+  buildHudTop,
+  buildInboxDetail,
+  buildInboxListRows,
+  buildLockonHits,
+  buildMissiles,
+  buildMissionChips,
+  buildNameEntryView,
+  buildNewRunSeed,
+  buildOptionRows,
+  buildParticles,
+  buildPlayerShots,
+  buildSharePayload,
+  buildShopRows,
   buildSoundTestRootMenu,
   buildSoundTestTrackList,
-  soundTestPageSize,
-  soundTestListWindow,
-  buildCommentRows,
-  soundTestListHeader,
-  soundTestCommentsFooterHit,
-  soundTestPlayingFooterHit,
-} from "./modes/sound-test-lists";
-import {
-  buildChangelogRows,
+  buildStageSeed,
+  buildTitleMenu,
+  buildTitleMissionRows,
+  buildTrackCard,
+  buildWeaponChips,
+  bulletOutOfBounds,
+  bulletRects,
+  canAttemptMission,
+  canOpenComments,
+  changelogBackHit,
   changelogMaxScroll,
   changelogVisibleRows,
-  changelogBackHit,
-} from "./modes/changelog-rows";
-import { resolveAttractPointer } from "./modes/attract-actions";
-import { muteButtonHit, gameOverHit } from "./modes/pointer-zones";
-import {
-  shotCooldownFrames,
-  missileCooldownFrames,
-  particleCooldownFrames,
-  lockonCooldownFrames,
-  beamCooldownFrames,
-  flameCooldownFrames,
-  enemySpawnInterval,
-  playerSpeed,
-  swipeFollowFactor,
   clampPlayerPos,
-} from "./modes/combat-timing";
-import {
-  keyboardAxis,
-  normalizeAxis,
-  virtualStickAxis,
-  VSTICK_DEADZONE,
-} from "./modes/player-input";
-import { shopPointerDown } from "./modes/shop-hit";
-import { optionsRowAtY, optionsSwipeStep, OPTIONS_PAGE } from "./modes/options-hit";
-import { stepBossPosition } from "./modes/boss-motion";
-import {
-  buildPlayerShots,
-  buildMissiles,
-  buildParticles,
-  buildBeams,
-  buildFlames,
-  buildEnemyFire,
-} from "./modes/combat-projectiles";
-import { buildGrunt, buildBossEntity } from "./modes/combat-enemies";
-import { aabbOverlap, playerBulletHit, enemyPlayerHit } from "./modes/collision";
-import { buildBurstParticles, buildLockonHits } from "./modes/combat-fx";
-import { pickNearestEnemies } from "./modes/combat-targeting";
-import { bulletRects, gruntLocalRects, screenShakeOffset, starColor } from "./modes/draw-specs";
-import { bossLocalRects, bossHpBar, bossFlashAlpha } from "./modes/draw-boss";
-import {
-  PLAYER_SHIP_PATH,
-  PLAYER_SHIP_FILL,
-  playerShipLocalRects,
-  optionPodRects,
-  virtualStickLayout,
-} from "./modes/draw-player";
-import { buildWeaponChips, buildHudFlags, lifePipXs } from "./modes/hud-chips";
-import { titleMenuRowColors, titleLinkStyle, titleInboxLabels } from "./modes/title-draw";
-import {
-  buildGameOverView,
-  buildNameEntryView,
-  stageBanner,
-} from "./modes/draw-gameover";
-import {
-  buildInboxListRows,
-  buildInboxDetail,
-} from "./modes/draw-inbox";
-import {
-  buildMissionChips,
-  missionNextLine,
-  buildTitleMissionRows,
-  titleMissionFooter,
-} from "./modes/mission-hud";
-import {
-  sideRailBtnStyle,
-  muteLabel,
-  SIDE_RAIL_BRAND,
-} from "./modes/side-rail-draw";
-import { buildSharePayload } from "./modes/share-context";
-import {
-  missionClearFloats,
-  missionTooFastFloats,
+  closeShopSeed,
+  commentKindEmoji,
+  commentKindLabel,
+  commentsFooterButtons,
+  commentsReturnMode,
+  continueCoinLine,
+  countArmedWeapons,
+  decayTimers,
+  defaultSettings,
+  defaultWepLv,
+  dodgeOnlyFeedback,
+  dragScrollSteps,
+  drawRoute,
+  enemyHpHud,
+  enemyHpMultiplier,
+  enemyPlayerHit,
+  enemyReloadFrames,
+  enemyShouldDespawn,
+  enemyShouldFire,
+  enemySpawnInterval,
   fanmailGate,
   fanmailGateMessage,
-} from "./modes/mission-feedback";
-import { buildNewRunSeed, buildStageSeed } from "./modes/session-state";
-import { applyShopPurchase } from "./modes/shop-purchase";
-import { openFanmailDialog, closeFanmailDialog } from "./ui/fanmail-dialog";
-import {
-  applyOptionDelta,
-  dodgeOnlyFeedback,
-} from "./modes/options-adjust";
-import {
-  ownedLevel,
-  armedLevel,
+  fieldDrawsEntities,
+  fieldShowsHud,
+  filterShopCatalog,
+  FIRST_BOSS_MISSION,
+  firstBossMissionId,
+  flameCooldownFrames,
+  floatTextAlpha,
+  formatLoadoutSummary,
+  formatOptionValue,
+  formatShotSubSummary,
+  formatVolumeBar,
+  gameOverHit,
+  getSideRailButtons,
+  gruntLocalRects,
+  highScoreUpdate,
+  inboxPointerHit,
+  invulnBlink,
   isArmed,
-  countArmedWeapons,
-} from "./modes/loadout";
-import { loadEasyCarry, serializeEasyCarry } from "./modes/easy-carry";
-import { buildContinueSeed } from "./modes/continue-state";
-import {
-  optionsCursorStep,
+  keyboardAxis,
+  lifePipXs,
+  listWindowStart,
+  loadEasyCarry,
+  LOADOUT_COUNT_KEYS,
+  lockonAlpha,
+  lockonCooldownFrames,
+  mergeSettingsFromStorage,
+  missileCooldownFrames,
+  missionClearFloats,
+  missionNextLine,
+  missionPlaySeconds,
+  missionTooFastFloats,
+  muteButtonHit,
+  muteLabel,
+  nameEntryHit,
+  normalCostScale,
+  normalizeAxis,
+  openOptionsSeed,
+  openShopSeed,
+  optionPodRects,
+  OPTIONS_PAGE,
   optionsActivate,
   optionsBackTarget,
-} from "./modes/options-nav";
-import {
-  defaultWepLv,
-  defaultSettings,
-  mergeSettingsFromStorage,
-} from "./modes/settings-storage";
-import {
-  soundTestRowAtY,
-  soundTestMenuAction,
-  soundTestListAction,
-} from "./modes/sound-test-input";
-import { resolveKeyAction } from "./modes/keyboard-actions";
-import {
-  routePointerDown,
-  nameEntryHit,
-  playMoveFromPointer,
-} from "./modes/pointer-dispatch";
-import { inboxPointerHit } from "./modes/inbox-hit";
-import {
-  commentsFooterButtons,
-  playingFooterButtons,
-  soundTestListTop,
-} from "./modes/sound-test-draw";
-import {
-  shopHeaderChips,
-  shopFooterButtonsExact,
-  shopTierHint,
-  shopStatusLine,
-} from "./modes/shop-draw";
-import { shopPointerUp, shopEmptyConfirm } from "./modes/shop-confirm";
-import { trackCardLayout } from "./modes/track-card-draw";
-import {
-  optionsScreenTitle,
-  optionsRowColors,
+  optionsCursorStep,
   optionsHint,
-} from "./modes/options-draw";
-import { requireLinked } from "./modes/link-gate";
-import {
-  canOpenComments,
-  commentsReturnMode,
-} from "./modes/sound-comments-flow";
-import {
   optionsPointerDown,
   optionsPointerUp,
-} from "./modes/options-pointer";
-import {
-  soundTestPointerDown,
-  soundTestPointerUp,
-  dragScrollSteps,
-} from "./modes/sound-test-pointer";
-import {
+  optionsRowAtY,
+  optionsRowColors,
+  optionsScreenTitle,
+  optionsSwipeStep,
+  ownedLevel,
+  particleAlpha,
+  particleCooldownFrames,
+  pickNearestEnemies,
+  PLAYER_SHIP_FILL,
+  PLAYER_SHIP_PATH,
+  playerBulletHit,
+  playerShipLocalRects,
+  playerSpeed,
+  playingFooterButtons,
+  playMoveFromPointer,
+  playSceneBgm,
+  playBossBgm,
+  playSfx,
+  requireLinked,
+  resolveAttractPointer,
+  resolveKeyAction,
+  resolvePlayerHit,
+  routePointerDown,
+  scoreHpThresholds,
+  screenShakeOffset,
+  serializeEasyCarry,
+  sfx,
+  shieldStrokeColor,
   shopCursorMax,
   shopCursorStep,
   shopDragScroll,
-} from "./modes/shop-scroll";
-import { tickMode } from "./modes/mode-tick";
-import {
-  openShopSeed,
-  closeShopSeed,
-  openOptionsSeed,
-} from "./modes/screen-nav";
-import {
-  tickStars,
+  shopEmptyConfirm,
+  shopFooterButtonsExact,
+  shopFooterIndices,
+  shopHeaderChips,
+  shopItemCost,
+  shopItemMax,
+  shopPointerDown,
+  shopPointerUp,
+  shopStatusLine,
+  shopTierHint,
+  shopUnlockTier,
+  SHOT_SUMMARY_KEYS,
+  shotCooldownFrames,
+  SIDE_RAIL_BRAND,
+  sideRailBtnStyle,
+  sideRailHints,
+  SOUND_TEST_MENU,
+  soundTestCommentsFooterHit,
+  soundTestListAction,
+  soundTestListHeader,
+  soundTestListTop,
+  soundTestListWindow,
+  soundTestMenuAction,
+  soundTestPageSize,
+  soundTestPlayingFooterHit,
+  soundTestPointerDown,
+  soundTestPointerUp,
+  soundTestRowAtY,
+  stageBanner,
+  starColor,
+  steerMissile,
+  stepBossPosition,
+  stepEnemyMotion,
+  swipeFollowFactor,
   tickFloats,
   tickLifetimes,
+  tickMode,
   tickParticles,
-  decayTimers,
-} from "./modes/fx-tick";
-import {
-  drawRoute,
-  fieldDrawsEntities,
-  fieldShowsHud,
-} from "./modes/draw-frame";
-import { tickWeaponCds } from "./modes/weapon-cds";
-import { steerMissile, bulletOutOfBounds } from "./modes/missile-homing";
-import {
-  stepEnemyMotion,
-  enemyShouldDespawn,
-  enemyShouldFire,
-  enemyReloadFrames,
   tickSpawnTimer,
-} from "./modes/enemy-step";
-import {
+  tickStars,
+  tickWeaponCds,
+  titleFooter,
+  titleHeader,
+  titleHitHeights,
+  titleInboxLabels,
+  titleLinkStyle,
+  titleMenuLen,
+  titleMenuRowColors,
+  titleMenuYs,
+  titleMissionFooter,
   titleNoiseDot,
   titleNoiseRgb,
-  titleHeader,
-  continueCoinLine,
-  titleFooter,
-} from "./modes/title-screen";
-import {
-  shieldStrokeColor,
-  invulnBlink,
-  floatTextAlpha,
-  particleAlpha,
-  lockonAlpha,
-} from "./modes/field-draw";
+  titleSelectLabel,
+  totalHpScale,
+  trackCardLayout,
+  virtualStickAxis,
+  virtualStickLayout,
+  VSTICK_DEADZONE,
+  vstickDrawOps,
+  vstickVisible,
+  createPlayerShots,
+  createMissiles,
+  createParticles,
+  createBeams,
+  createFlames,
+  createEnemyVolley,
+  createLockonHits,
+  spawnGrunt,
+  spawnBoss,
+  toAttractDispatch,
+  routePointerMove,
+  clampSwipeFollow,
+  buildSideRailPaint,
+  stageBannerOverlay,
+  scanlineFill,
+  planWeaponFire,
+  planSpawn,
+} from "./modes/game-api";
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-import { buildShopRows, shopFooterIndices } from "./modes/shop-rows";
 
 // Auth bindings expected by recovered account UI
 const r = GROK_PROVIDERS;
@@ -535,7 +506,6 @@ const o = getBearerToken;
   Mode var: p
   Score m · PTS h · Lives _ · Stage v · Attract cursor k
 */
-
 
 function Nr() {
     let e = (0, s.useRef)(null),
@@ -654,7 +624,7 @@ function Nr() {
                 ht = wn(B);
                 It();
                 Bt();
-                w();
+                sfx.ui();
                 return V;
             } catch (err) {
                 console.warn("[SWIPE FORCE] account refresh failed", err);
@@ -706,48 +676,26 @@ function Nr() {
 
         function zt(e) {
             if (!Wn(e)) {
-                C(), xt = e.source === `thanks` ? `お礼にはお礼できません` : e.thanksSent ? `この通はお礼済み` : `ミッション完了MSGのみお礼可`, St = 80;
+                sfx.buyFail(), xt = thanksBlockedMessage(e), St = 80;
                 return
             }
             if (Lt) return;
-            Lt = !0, w();
-            let t = document.createElement(`div`);
-            t.id = `sf-mail-dlg`, t.style.cssText = [`position:absolute`, `inset:0`, `z-index:80`, `display:flex`, `align-items:center`, `justify-content:center`, `background:rgba(0,10,8,0.78)`, `padding:16px`, `box-sizing:border-box`, `font-family:system-ui,sans-serif`].join(`;`), t.innerHTML = `
-        <div style="width:min(340px,100%);background:#0a1a14;border:2px solid #ffcc66;border-radius:12px;padding:16px 14px;color:#dff;box-shadow:0 8px 32px #000;">
-          <div style="font-size:15px;font-weight:700;color:#ffcc88;margin-bottom:4px;">🙏 お礼メッセージ</div>
-          <div style="font-size:11px;color:#9a8;margin-bottom:10px;">この受信1通につき1回 · 相手のINBOXへ届きます</div>
-          <textarea id="sf-mail-input" maxlength="80" rows="3" placeholder="ありがとう！楽しかった🎉"
-            style="width:100%;box-sizing:border-box;resize:none;border-radius:8px;border:1px solid #2a6;background:#03140e;color:#efe;padding:10px;font-size:16px;line-height:1.4;"></textarea>
-          <div style="display:flex;gap:8px;margin-top:12px;">
-            <button type="button" id="sf-mail-cancel"
-              style="flex:1;padding:12px;border-radius:8px;border:1px solid #456;background:#123;color:#9ab;font-size:14px;">キャンセル</button>
-            <button type="button" id="sf-mail-send"
-              style="flex:1.2;padding:12px;border-radius:8px;border:1px solid #fc6;background:#403010;color:#ffe;font-size:14px;font-weight:700;">お礼を送る</button>
-          </div>
-          <div id="sf-mail-status" style="margin-top:8px;min-height:1.2em;font-size:12px;color:#fc8;text-align:center;"></div>
-        </div>`, n.style.position = `relative`, n.appendChild(t);
-            let r = t.querySelector(`#sf-mail-input`),
-                i = t.querySelector(`#sf-mail-status`),
-                a = t.querySelector(`#sf-mail-send`),
-                o = t.querySelector(`#sf-mail-cancel`);
-            setTimeout(() => r?.focus(), 50), t.addEventListener(`pointerdown`, e => e.stopPropagation()), o.onclick = () => {
-                vi(), w()
-            }, a.onclick = () => {
-                (async () => {
-                    let t = At(r.value || ``);
-                    if (!t.ok) {
-                        i.textContent = Nt(t.reason), C();
-                        return
-                    }
-                    a.disabled = !0, i.textContent = `送信中…`;
-                    let n = await er({
-                        playerId: B,
-                        messageId: e.id,
-                        text: t.text
-                    });
-                    n.ok ? (i.textContent = `お礼を送りました`, _e(), It(), yr(), setTimeout(() => vi(), 700)) : (i.textContent = n.reason === `already` ? `このメッセージには送信済み` : n.reason === `not_mission` ? `ミッション完了MSGのみ` : Nt(n.reason || `unsafe`), a.disabled = !1, C())
-                })()
-            }
+            Lt = !0, sfx.ui();
+            openThanksDialog({
+                host: n,
+                sanitize: (raw) => At(raw),
+                reasonText: (reason) => Nt(reason),
+                send: (text) => er({
+                    playerId: B,
+                    messageId: e.id,
+                    text
+                }),
+                onClose: () => { vi() },
+                onSent: () => { It(), yr() },
+                playOk: () => sfx.buy(),
+                playError: () => sfx.buyFail(),
+                playUi: () => sfx.ui()
+            })
         }
 
         function Bt() {
@@ -761,7 +709,7 @@ function Nr() {
             K = mergeSettingsFromStorage(localStorage.getItem(Ar));
 
         function Gt() {
-            re(K.master / 10), ie(K.bgm / 10), ae(K.sfx / 10), te(K.muted), Fe = K.muted
+            bgm.setMasterVol(K.master / 10), bgm.setBgmVol(K.bgm / 10), bgm.setSfxVol(K.sfx / 10), bgm.setMuted(K.muted), Fe = K.muted
         }
 
         function Kt() {
@@ -885,7 +833,7 @@ function Nr() {
         }
 
         function Xn() {
-            return (Ie === `normal` ? 6 : 1) * Yn()
+            return totalHpScale(Ie, m)
         }
 
         function Zn(e) {
@@ -941,7 +889,7 @@ function Nr() {
                 linkedSpecial: false
             });
             if (!result.ok) {
-                je = `PTS不足 / MAX`, Me = 60, C();
+                je = `PTS不足 / MAX`, Me = 60, sfx.buyFail();
                 return
             }
             h = result.pts, _ = result.lives, Ce = result.shieldFrames, O = result.upgrades;
@@ -949,7 +897,7 @@ function Nr() {
                 K.wepLv = result.wepLv, Kt()
             }
             if (e.id !== `life` && e.id !== `shield`) ir();
-            _e(), je = result.message, Me = 50;
+            sfx.buy(), je = result.message, Me = 50;
             // celebrate after state applied (match original)
             if (Fn() || Rn() || V.linked && (O.beam > 0 || O.flame > 0)) Pe = 90
         }
@@ -977,7 +925,7 @@ function Nr() {
             b = seed.spawnTimer, x = seed.shotCd, S = seed.missileCd, T = seed.particleCd, ye = seed.lockonCd;
             Y.length = 0, dn.length = 0, gn.length = 0;
             p = seed.mode, oe = seed.readyFrames, Se = seed.invulnFrames;
-            kn(), W(`play`, v)
+            kn(), bgm.start(`play`, v)
         }
 
         
@@ -987,18 +935,18 @@ function Nr() {
             p = seed.mode, Ne = seed.paused, D = seed.cursor, je = seed.toast, Me = seed.toastLife;
             vn = !1, kn();
             if (seed.clearEntities) Y.length = 0, dn.length = 0, gn.length = 0;
-            w(), W(`attract`)
+            sfx.ui(), bgm.start(`attract`)
         }
 
         function pr() {
             let seed = closeShopSeed(!!Ne);
             if (seed.type === `resume_play`) {
                 p = `playing`, Se = Math.max(Se, seed.invulnMin), Ne = !1;
-                De ? mt(mn(v).vibe, v) : W(`play`, v)
+                De ? bgm.boss(mn(v).vibe, v) : bgm.start(`play`, v)
             } else {
                 v++, dr()
             }
-            w()
+            sfx.ui()
         }
 
         
@@ -1006,11 +954,11 @@ function Nr() {
         function mr(e) {
             let seed = openOptionsSeed(e);
             Ze = seed.from, p = seed.mode, z = seed.submenu, R = seed.cursor;
-            Qe = ``, $e = 0, vn = !1, kn(), w(), W(`attract`)
+            Qe = ``, $e = 0, vn = !1, kn(), sfx.ui(), bgm.start(`attract`)
         }
 
         function hr() {
-            if (Kt(), w(), z === `shot` || z === `weapons`) {
+            if (Kt(), sfx.ui(), z === `shot` || z === `weapons`) {
                 let nav = optionsBackTarget(z);
                 if (nav.type === `to_weapons_from_shot`) {
                     z = `weapons`, R = 1;
@@ -1023,12 +971,12 @@ function Nr() {
                     return
                 }
             }
-            if (Ze === `shop`) p = `shop`, W(`attract`);
+            if (Ze === `shop`) p = `shop`, bgm.start(`attract`);
             else if (Ze === `play` || Ze === `playing` || Ze === `game`) {
                 p = `playing`, Se = Math.max(Se, 45), Ne = !1;
-                De ? mt(mn(v).vibe, v) : W(`play`, v);
-            } else p = `attract`, W(`attract`);
-            w()
+                De ? bgm.boss(mn(v).vibe, v) : bgm.start(`play`, v);
+            } else p = `attract`, bgm.start(`attract`);
+            sfx.ui()
         }
 
         function gr(e) {
@@ -1059,8 +1007,8 @@ function Nr() {
             });
             if (res.type === `noop`) return;
             if (res.type === `back`) { hr(); return }
-            if (res.type === `navigate_shot`) { z = `shot`, R = 1, w(); return }
-            if (res.type === `navigate_weapons`) { z = `weapons`, R = 1, w(); return }
+            if (res.type === `navigate_shot`) { z = `shot`, R = 1, sfx.ui(); return }
+            if (res.type === `navigate_weapons`) { z = `weapons`, R = 1, sfx.ui(); return }
             if (res.type === `applied`) {
                 K = res.settings;
                 if (res.clearVstick) kn();
@@ -1069,8 +1017,8 @@ function Nr() {
                     Qe = fb || res.feedback || ``, $e = res.feedbackLife || 55
                 }
                 Kt();
-                if (res.replayAttractIfUnmuted && !K.muted) W(`attract`);
-                w()
+                if (res.replayAttractIfUnmuted && !K.muted) bgm.start(`attract`);
+                sfx.ui()
             }
         }
 
@@ -1087,32 +1035,53 @@ function Nr() {
         }
 
         function Lr(e, t, n, r) {
-            if (e.hp -= t, e.flash = 6, de(), e.hp <= 0) {
-                let t = e.boss;
-                Pr(e.x, e.y, e.boss ? `#ff66ff` : `#ffaa00`, t ? 28 : 12), fe(t), m += e.score, h += e.pts, pn.push({
-                    x: e.x,
-                    y: e.y,
-                    text: `+${e.pts}`,
-                    color: `#ffff66`,
-                    life: 40
-                }), e.boss || Te++, e.boss && (gi(), p = `stageclear`, oe = 120, he(), gt(), K.shake && (we = 12));
-                let n = dn.indexOf(e);
-                n >= 0 && dn.splice(n, 1)
-            } else Pr(n, r, `#ffffff`, 3)
+            let out = applyEnemyDamage(e, t, n, r);
+            sfx.hit();
+            if (out.type === `survive`) {
+                Pr(out.spark.x, out.spark.y, out.spark.color, out.spark.count);
+                return
+            }
+            Pr(out.burst.x, out.burst.y, out.burst.color, out.burst.count);
+            sfx.explode(out.boss);
+            m += out.scoreAdd;
+            h += out.ptsAdd;
+            pn.push(out.float);
+            if (!out.boss) Te++;
+            if (out.boss) {
+                gi(), p = `stageclear`, oe = 120, sfx.stageClear(), bgm.stop();
+                if (K.shake && out.shake) we = out.shake;
+            }
+            let idx = dn.indexOf(e);
+            idx >= 0 && dn.splice(idx, 1)
         }
 
         function Rr() {
-            if (!(Se > 0)) {
-                if (Ce > 0) {
-                    Ce = 0, Se = 50, Pr(J.x, J.y, `#66ffff`, 10), pe();
-                    return
+            let out = resolvePlayerHit({
+                invulnFrames: Se,
+                shieldFrames: Ce,
+                lives: _
+            });
+            if (out.type === `blocked_invuln`) return;
+            if (out.type === `shield_break`) {
+                Ce = 0, Se = out.invulnFrames;
+                Pr(J.x, J.y, out.burst.color, out.burst.count), sfx.playerHit();
+                return
+            }
+            _ = out.lives, Se = out.invulnFrames;
+            if (K.shake) we = out.shake;
+            sfx.playerHit(), Pr(J.x, J.y, out.burst.color, out.burst.count);
+            if (out.gameover) {
+                p = `gameover`, oe = out.gameoverFrames, sfx.gameOver(), bgm.stop();
+                let hs = highScoreUpdate(m, g);
+                if (hs.dirty) {
+                    g = hs.high;
+                    localStorage.setItem(kr, String(g))
                 }
-                _--, Se = 90, K.shake && (we = 10), pe(), Pr(J.x, J.y, `#ff2244`, 16), _ < 0 && (_ = 0, p = `gameover`, oe = 150, ge(), gt(), m > g && (g = m, localStorage.setItem(kr, String(g))))
             }
         }
 
         function zr() {
-            dn.push(buildGrunt({
+            dn.push(spawnGrunt({
                 id: f++,
                 stage: v,
                 hpScale: Xn()
@@ -1121,8 +1090,8 @@ function Nr() {
 
         function Br() {
             let e = mn(v);
-            E = e.name, De = !0, p = `bossintro`, oe = 120, me(), hi(), mt(e.vibe, v);
-            dn.push(buildBossEntity({
+            E = e.name, De = !0, p = `bossintro`, oe = 120, sfx.bossWarn(), hi(), bgm.boss(e.vibe, v);
+            dn.push(spawnBoss({
                 id: f++,
                 stage: v,
                 hpScale: Xn(),
@@ -1133,19 +1102,18 @@ function Nr() {
 
         function Vr(e) {
             let atk = e.boss ? hn(e.bossId).atk : 0;
-            for (let b of buildEnemyFire(e, J.x, J.y, atk)) Y.push(b)
+            for (let b of createEnemyVolley(e, J.x, J.y, atk)) Y.push(b)
         }
 
         function Hr() {
-            let bullets = buildPlayerShots(J.x, J.y, {
+            let bullets = createPlayerShots(J.x, J.y, {
                 shot: q(`shot`),
                 overdrive: q(`overdrive`),
                 power: q(`power`),
                 option: q(`option`)
             });
             if (bullets.length) {
-                // SFX once if any main shot or option fired
-                se();
+                sfx.shoot();
                 for (let b of bullets) Y.push(b)
             }
         }
@@ -1153,8 +1121,8 @@ function Nr() {
         function Ur() {
             let e = q(`beam`);
             if (e <= 0 || !V.linked) return;
-            ue();
-            for (let b of buildBeams({
+            sfx.lockon();
+            for (let b of createBeams({
                 px: J.x,
                 py: J.y,
                 beam: e,
@@ -1166,7 +1134,7 @@ function Nr() {
         function Wr() {
             let e = q(`flame`);
             if (e <= 0 || !V.linked) return;
-            for (let b of buildFlames({
+            for (let b of createFlames({
                 px: J.x,
                 py: J.y,
                 flame: e,
@@ -1180,8 +1148,8 @@ function Nr() {
             let t = q(`cluster`),
                 n = e + (t > 0 ? t + 1 : 0),
                 r = Ir(n);
-            ce();
-            for (let b of buildMissiles({
+            sfx.missile();
+            for (let b of createMissiles({
                 px: J.x,
                 py: J.y,
                 missile: e,
@@ -1194,8 +1162,8 @@ function Nr() {
             let e = q(`particle`);
             if (e <= 0) return;
             let t = q(`overdrive`);
-            le();
-            for (let b of buildParticles({
+            sfx.particle();
+            for (let b of createParticles({
                 px: J.x,
                 py: J.y,
                 particle: e,
@@ -1208,12 +1176,12 @@ function Nr() {
             let e = q(`lockon`);
             if (e <= 0) return;
             let t = q(`hyper`),
-                hits = buildLockonHits({
+                hits = createLockonHits({
                     targets: Ir(e + (t > 0 ? t + 1 : 0)),
                     lockon: e,
                     hyper: t
                 });
-            hits.length && ue();
+            hits.length && sfx.lockon();
             for (let h of hits) {
                 gn.push(h.beam);
                 fn.push(h.spark);
@@ -1269,39 +1237,41 @@ function Nr() {
         }
 
         function Qr() {
-            Q(0, 0, Sr, Z, `#0a1a0a`), Q(wr, 0, Sr, Z, `#0a1a0a`);
-            const railBtn = (x0, y, label, sub, hot) => {
-                let st = sideRailBtnStyle(!!hot);
-                Q(x0 + 8, y, 32, 40, st.fill);
-                l.strokeStyle = st.stroke;
-                l.lineWidth = 1;
-                l.strokeRect(x0 + 8.5, y + .5, 31, 39);
-                $(label, x0 + 24, y + 10, st.labelColor, 6, `center`);
-                if (sub) $(sub, x0 + 24, y + 24, st.subColor, 5, `center`);
-            };
-            for (const x0 of [0, wr]) {
-                $(SIDE_RAIL_BRAND.lines[0], x0 + 8, 12, SIDE_RAIL_BRAND.color, 6);
-                $(SIDE_RAIL_BRAND.lines[1], x0 + 8, 22, SIDE_RAIL_BRAND.color, 6);
-            }
-            const rails = getSideRailButtons({
+            let paint = buildSideRailPaint({
                 mode: p,
                 titleSub: tSub,
-                shopPaused: !!Ne
+                shopPaused: !!Ne,
+                muted: !!Fe,
+                fieldH: Z,
+                leftW: Sr,
+                rightX: wr,
+                muteDisabled: p === `options` || p === `shop`
             });
-            for (const b of rails) {
-                railBtn(b.side === `left` ? 0 : wr, b.y, b.label, b.sub, b.hot);
+            Q(0, 0, Sr, Z, paint.railFill), Q(wr, 0, Sr, Z, paint.railFill);
+            $(paint.brand.lines[0], paint.brand.leftX, 12, paint.brand.color, 6);
+            $(paint.brand.lines[1], paint.brand.leftX, 22, paint.brand.color, 6);
+            $(paint.brand.lines[0], paint.brand.rightX, 12, paint.brand.color, 6);
+            $(paint.brand.lines[1], paint.brand.rightX, 22, paint.brand.color, 6);
+            for (let b of paint.buttons) {
+                Q(b.x, b.y, b.w, b.h, b.fill);
+                l.strokeStyle = b.stroke;
+                l.lineWidth = 1;
+                l.strokeRect(b.x + .5, b.y + .5, b.w - 1, b.h - 1);
+                $(b.label, b.x + b.w / 2, b.y + 10, b.labelColor, 6, `center`);
+                if (b.sub) $(b.sub, b.x + b.w / 2, b.y + 24, b.subColor, 5, `center`);
             }
-            const hints = sideRailHints(p);
-            if (hints.left) $(hints.left, 24, 160, `#335533`, 5, `center`);
-            if (hints.right) $(hints.right, wr + 24, 160, `#335533`, 5, `center`);
-            {
-                let m = muteLabel(!!Fe, p === `options` || p === `shop`);
-                $(m.text, 280, 378, m.color, 7);
-            }
+            if (paint.hints.left) $(paint.hints.left, 24, 160, `#335533`, 5, `center`);
+            if (paint.hints.right) $(paint.hints.right, wr + 24, 160, `#335533`, 5, `center`);
+            $(paint.mute.text, paint.mute.x, paint.mute.y, paint.mute.color, 7);
         }
 
         function $r() {
-            $(`SC ${String(m).padStart(7,`0`)}`, 52, 4, `#00ff88`, 8), $(`HI ${String(g).padStart(7,`0`)}`, 268, 4, `#ffff66`, 8, `right`), $(`PTS ${h}`, 52, 14, `#ffff66`, 8), $(`¢${ht}`, 118, 14, `#ffee88`, 8), $(`ST${v}`, 268, 14, `#88ffaa`, 8, `right`);
+            let top = buildHudTop({ score: m, high: g, pts: h, coins: ht, stage: v });
+            $(top.score, 52, 4, `#00ff88`, 8);
+            $(top.hi, 268, 4, `#ffff66`, 8, `right`);
+            $(top.pts, 52, 14, `#ffff66`, 8);
+            $(top.coins, 118, 14, `#ffee88`, 8);
+            $(top.stage, 268, 14, `#88ffaa`, 8, `right`);
             let flags = buildHudFlags({
                 weaponsEnabledCount: $t(),
                 shotArmed: Qt(`shot`),
@@ -1309,14 +1279,20 @@ function Nr() {
                 difficulty: Ie,
                 enemyHpMult: Yn()
             });
-            flags.enemyHpMult > 1 && $(`ENEMY HP×${flags.enemyHpMult}`, 52, 24, `#ff8866`, 7);
+            let ehp = enemyHpHud(flags.enemyHpMult);
+            ehp && $(ehp, 52, 24, `#ff8866`, 7);
             $(flags.diffLabel, 268, 24, flags.diffLabel === `ESY` ? `#88ff88` : `#ffaa66`, 6, `right`);
             for (let x of lifePipXs(_)) Q(x, 388, 6, 6, `#44ff88`);
+            let chips = buildHudBottomChips({
+                dodgeOnly: flags.dodgeOnly,
+                shotOff: flags.shotOff,
+                weaponLabels: buildWeaponChips(O, q).map(c => ({ label: c.label, color: c.color })),
+                frame: y
+            });
             let n = 52;
-            if (flags.dodgeOnly) $(`DODGE ONLY`, n, 376, y % 20 < 12 ? `#ff88aa` : `#aa4466`, 7), n += 56;
-            else if (flags.shotOff) $(`SHOT OFF`, n, 376, `#aa4444`, 7), n += 48;
-            for (let chip of buildWeaponChips(O, q)) {
-                $(chip.label, n, 376, chip.color, 7), n += 18
+            for (let item of chips.items) {
+                $(item.text, n, 376, item.color, 7);
+                n += item.text === `DODGE ONLY` ? 56 : item.text === `SHOT OFF` ? 48 : 18;
             }
             $(flags.controlLabel, 268, 376, `#448866`, 6, `right`), ei()
         }
@@ -1344,7 +1320,7 @@ function Nr() {
         }
 
         function ni() {
-            if (!K.vstick || p !== `playing` && p !== `ready` && p !== `bossintro`) return;
+            if (!vstickVisible(!!K.vstick, p)) return;
             let lay = virtualStickLayout({
                 active: !!xn,
                 centerX: Cn,
@@ -1352,15 +1328,24 @@ function Nr() {
                 axisX: En,
                 axisY: Dn
             });
-            l.save(), l.globalAlpha = lay.alpha, l.strokeStyle = `#44ffaa`, l.lineWidth = 2;
-            l.beginPath(), l.arc(lay.baseX, lay.baseY, lay.radius, 0, Math.PI * 2), l.stroke();
-            l.strokeStyle = `#226644`, l.beginPath(), l.arc(lay.baseX, lay.baseY, lay.innerR, 0, Math.PI * 2), l.stroke();
-            l.strokeStyle = `#338855`, l.lineWidth = 1;
-            l.beginPath(), l.moveTo(lay.baseX - lay.radius + 4, lay.baseY), l.lineTo(lay.baseX + lay.radius - 4, lay.baseY);
-            l.moveTo(lay.baseX, lay.baseY - lay.radius + 4), l.lineTo(lay.baseX, lay.baseY + lay.radius - 4), l.stroke();
-            l.globalAlpha = lay.knobAlpha, l.fillStyle = xn ? `#88ffcc` : `#44aa77`;
-            l.beginPath(), l.arc(lay.knobX, lay.knobY, lay.knobR, 0, Math.PI * 2), l.fill();
-            l.strokeStyle = `#ffffff`, l.lineWidth = 1, l.stroke(), l.restore()
+            for (let op of vstickDrawOps(lay, !!xn)) {
+                if (op.type === `save`) l.save();
+                else if (op.type === `restore`) l.restore();
+                else if (op.type === `alpha`) l.globalAlpha = op.a;
+                else if (op.type === `strokeStyle`) l.strokeStyle = op.c;
+                else if (op.type === `fillStyle`) l.fillStyle = op.c;
+                else if (op.type === `lineWidth`) l.lineWidth = op.w;
+                else if (op.type === `arc`) {
+                    l.beginPath(), l.arc(op.x, op.y, op.r, 0, Math.PI * 2);
+                    op.fill && l.fill();
+                    op.stroke && l.stroke();
+                } else if (op.type === `cross`) {
+                    l.beginPath();
+                    l.moveTo(op.x - op.r + 4, op.y), l.lineTo(op.x + op.r - 4, op.y);
+                    l.moveTo(op.x, op.y - op.r + 4), l.lineTo(op.x, op.y + op.r - 4);
+                    l.stroke();
+                }
+            }
         }
 
         function ri() {
@@ -1446,11 +1431,11 @@ function Nr() {
         
         // ── version changelog mode ──
         function ai() {
-            p = `changelog`, Le = 0, w()
+            p = `changelog`, Le = 0, sfx.ui()
         }
 
         function oi() {
-            p = `attract`, w()
+            p = `attract`, sfx.ui()
         }
 
         function si() {
@@ -1477,8 +1462,8 @@ function Nr() {
         function ui(e, t) {
             if (!Re || p !== `changelog`) return;
             let n = t - ze;
-            for (Be += n, ze = t; Be <= -14;) Le = Math.max(0, Le - 1), Be += 14, Ve = !0, w();
-            for (; Be >= 14;) Le = Math.min(si(), Le + 1), Be -= 14, Ve = !0, w()
+            for (Be += n, ze = t; Be <= -14;) Le = Math.max(0, Le - 1), Be += 14, Ve = !0, sfx.ui();
+            for (; Be >= 14;) Le = Math.min(si(), Le + 1), Be -= 14, Ve = !0, sfx.ui()
         }
 
         function di(e, t) {
@@ -1543,15 +1528,15 @@ function Nr() {
         
         // ── start run ──
         function pi() {
-            cr(), yt = performance.now(), bt = !1, Ot(), wt = 0, Tt = ``, Et = 0, ve(), dr();
+            cr(), yt = performance.now(), bt = !1, Ot(), wt = 0, Tt = ``, Et = 0, sfx.start(), dr();
             try { noteRunStart(); window.__sfPlayAcc = 0; } catch (err) {}
         }
 
         
         // ── mission progress tick ──
         function mi(e) {
-            if (!H || !U || Dt[e]) return;
-            let t = (performance.now() - yt) / 1e3,
+            if (!canAttemptMission({ sharerId: H, shareId: U, alreadyDone: !!Dt[e] })) return;
+            let t = missionPlaySeconds(yt),
                 n = Sn.find(t => t.id === e);
             Hn({
                 sharerId: H,
@@ -1568,7 +1553,7 @@ function Nr() {
                         cx: X / 2,
                         cy: Z
                     });
-                    wt = fb.bannerFrames, Tt = fb.toast, Et = fb.toastLife, he();
+                    wt = fb.bannerFrames, Tt = fb.toast, Et = fb.toastLife, sfx.stageClear();
                     for (let f of fb.floats) pn.push(f);
                     Bt()
                 } else if (!e.ok && e.reason === `too_fast`) {
@@ -1582,11 +1567,14 @@ function Nr() {
         
         // ── award / continue coin refresh ──
         function hi() {
-            bt || v === 1 && (bt = !0, mi(`m1`))
+            if (bt) return;
+            let mid = firstBossMissionId(v, bt);
+            if (mid) bt = !0, mi(mid)
         }
 
         function gi() {
-            v === 2 ? mi(`m2`) : v === 3 ? mi(`m3`) : v === 4 && mi(`m4`)
+            let mid = bossClearMissionId(v);
+            mid && mi(mid)
         }
 
         
@@ -1600,7 +1588,7 @@ function Nr() {
                 coins: ht
             }, {
                 providers: r,
-                onClose: () => w(),
+                onClose: () => sfx.ui(),
                 onSignIn: async (providerId) => {
                     await i(providerId, { callbackURL: window.location.href });
                     return await ft(!0);
@@ -1620,7 +1608,7 @@ function Nr() {
                             image: null
                         };
                         ht = wn(B);
-                        w();
+                        sfx.ui();
                     }
                 },
                 onOpenProfile: () => {
@@ -1630,14 +1618,14 @@ function Nr() {
                     try { window.__sfOpenStats?.(); } catch {}
                 },
                 onAfterLink: () => {
-                    _e();
+                    sfx.buy();
                     setTimeout(() => _i(), 200);
                 },
-                playUi: () => _e(),
-                playError: () => C()
+                playUi: () => sfx.buy(),
+                playError: () => sfx.buyFail()
             });
-            w();
-            ee();
+            sfx.ui();
+            bgm.unlock();
         }
 
         function vi() {
@@ -1656,11 +1644,11 @@ function Nr() {
             });
             if (!gate.ok) {
                 if (gate.reason === `busy`) return;
-                if (gate.reason === `no_share`) { C(); return }
-                C(), xt = fanmailGateMessage(gate.reason), St = 90;
+                if (gate.reason === `no_share`) { sfx.buyFail(); return }
+                sfx.buyFail(), xt = fanmailGateMessage(gate.reason), St = 90;
                 return
             }
-            w(), Lt = !0;
+            sfx.ui(), Lt = !0;
             openFanmailDialog({
                 host: n,
                 sanitize: (raw) => At(raw),
@@ -1671,29 +1659,29 @@ function Nr() {
                     visitorId: B,
                     text
                 }),
-                onClose: () => { vi(); w() },
+                onClose: () => { vi(); sfx.ui() },
                 onSent: () => { yr() },
-                playOk: () => _e(),
-                playError: () => C()
+                playOk: () => sfx.buy(),
+                playError: () => sfx.buyFail()
             })
         }
 
         
         // ── inbox ──
         function bi() {
-            It(), yr(), p = `inbox`, Pt = 0, Ft = !1, w()
+            It(), yr(), p = `inbox`, Pt = 0, Ft = !1, sfx.ui()
         }
         async function xi() {
             if (Ct || ht <= 0) return;
             Ct = !0;
             let e = await Un(B);
             if (ht = e.coins, Ct = !1, !e.ok) {
-                C();
+                sfx.buyFail();
                 return
             }
             let seed = buildContinueSeed({ currentShield: Ce });
             _ = seed.lives, Se = seed.invulnFrames, Ce = seed.shieldFrames;
-            p = seed.mode, oe = seed.readyFrames, _e();
+            p = seed.mode, oe = seed.readyFrames, sfx.buy();
             pn.push({
                 x: J.x,
                 y: J.y + seed.float.dy,
@@ -1701,13 +1689,13 @@ function Nr() {
                 color: seed.float.color,
                 life: seed.float.life
             });
-            De ? mt(mn(v).vibe, v) : W(`play`, v)
+            De ? bgm.boss(mn(v).vibe, v) : bgm.start(`play`, v)
         }
 
         function Si(e = `この機能`) {
             let gate = requireLinked(!!V.linked, e);
             if (gate.ok) return !0;
-            Je = gate.message, Ye = 100, xt = Je, St = 100, C();
+            Je = gate.message, Ye = 100, xt = Je, St = 100, sfx.buyFail();
             return !1
         }
 
@@ -1715,16 +1703,16 @@ function Nr() {
         // ── sound test ──
         function Ci() {
             if (!V.linked) {
-                xt = `SOUND TEST はアカウント連携特典です`, St = 90, C();
+                xt = `SOUND TEST はアカウント連携特典です`, St = 90, sfx.buyFail();
                 return
             }
-            ee(), A = `menu`, j = 0, M = ``, p = `soundtest`, W(`attract`), N = `title`, Ke = 0, M = `TITLE THEME`, Yt(`title`, B).then(e => {
+            bgm.unlock(), A = `menu`, j = 0, M = ``, p = `soundtest`, bgm.start(`attract`), N = `title`, Ke = 0, M = `TITLE THEME`, Yt(`title`, B).then(e => {
                 L = e
-            }), w()
+            }), sfx.ui()
         }
 
         function wi() {
-            p = `attract`, W(`attract`), M = ``, w()
+            p = `attract`, bgm.start(`attract`), M = ``, sfx.ui()
         }
 
         function Ti() {
@@ -1770,7 +1758,7 @@ function Nr() {
         }
         async function ki(e) {
             if (!Si(`曲の評価`)) return;
-            L = await Xt(Ti(), B, e), w()
+            L = await Xt(Ti(), B, e), sfx.ui()
         }
         async function Ai(e) {
             P = e, F = await Ut(e), qe = 0
@@ -1779,18 +1767,18 @@ function Nr() {
         function ji() {
             let can = canOpenComments(M);
             if (!can.ok) {
-                Je = can.message, Ye = 80, C();
+                Je = can.message, Ye = 80, sfx.buyFail();
                 return
             }
             Xe = commentsReturnMode(A, N);
             let e = Ti();
             Promise.all([Ai(e), Yt(e, B)]).then(([, e]) => {
-                L = e, A = `comments`, qe = 0, w()
+                L = e, A = `comments`, qe = 0, sfx.ui()
             })
         }
 
         function Mi() {
-            A = Xe, w()
+            A = Xe, sfx.ui()
         }
 
         function Ni(e) {
@@ -1801,8 +1789,8 @@ function Nr() {
                 modeIndex: Ke,
                 playerId: B,
                 linked: !!V.linked,
-                redraw: () => w(),
-                playError: () => C()
+                redraw: () => sfx.ui(),
+                playError: () => sfx.buyFail()
             })
         }
 
@@ -1817,8 +1805,8 @@ function Nr() {
                 setComposing: (v) => { I = v },
                 postComment: (trackKey, playerId, body, urls, kind) => Wt(trackKey, playerId, body, urls, kind),
                 onPosted: async (trackKey) => { F = await Ut(trackKey) },
-                playOk: () => _e(),
-                playError: () => C()
+                playOk: () => sfx.buy(),
+                playError: () => sfx.buyFail()
             })
         }
 
@@ -1831,23 +1819,23 @@ function Nr() {
         }
 
         function Li() {
-            if (ee(), A === `menu`) {
+            if (bgm.unlock(), A === `menu`) {
                 let e = Fi()[j];
                 if (!e) return;
                 let act = soundTestMenuAction(e.action);
-                if (act.type === `play_title`) Oi(`title`, 0), w();
-                else if (act.type === `open_stage`) A = `stage`, j = 0, w();
-                else if (act.type === `open_boss`) A = `boss`, j = 0, w();
-                else if (act.type === `open_legacy`) A = `legacy`, j = 0, w();
-                else if (act.type === `stop`) gt(), M = `— STOPPED —`, w();
+                if (act.type === `play_title`) Oi(`title`, 0), sfx.ui();
+                else if (act.type === `open_stage`) A = `stage`, j = 0, sfx.ui();
+                else if (act.type === `open_boss`) A = `boss`, j = 0, sfx.ui();
+                else if (act.type === `open_legacy`) A = `legacy`, j = 0, sfx.ui();
+                else if (act.type === `stop`) bgm.stop(), M = `— STOPPED —`, sfx.ui();
                 else if (act.type === `back`) wi();
                 return
             }
             if (A === `comments`) return;
             let e = Ii(A)[j];
             let act = soundTestListAction(A, e);
-            if (act.type === `back_menu`) A = `menu`, j = 0, w();
-            else if (act.type === `play`) Oi(act.list, act.index), w()
+            if (act.type === `back_menu`) A = `menu`, j = 0, sfx.ui();
+            else if (act.type === `play`) Oi(act.list, act.index), sfx.ui()
         }
 
         function Ri() {
@@ -1967,11 +1955,11 @@ function Nr() {
             Ge = !0;
             if (A === `comments`) {
                 let e = Math.max(0, F.length - 1);
-                qe = Math.max(0, Math.min(e, qe + scr.steps)), w();
+                qe = Math.max(0, Math.min(e, qe + scr.steps)), sfx.ui();
                 return
             }
             let r = A === `menu` ? Fi().length - 1 : Ii(A).length - 1;
-            j = Math.max(0, Math.min(r, j + scr.steps)), w()
+            j = Math.max(0, Math.min(r, j + scr.steps)), sfx.ui()
         }
 
         function Ui(e, t) {
@@ -2021,7 +2009,7 @@ function Nr() {
                 continueCoins: ht
             });
             Bn(B, pack.payload);
-            xt = pack.toast, St = 120, w()
+            xt = pack.toast, St = 120, sfx.ui()
         }
 
         function Gi(e, t) {
@@ -2036,25 +2024,25 @@ function Nr() {
                 difficulty: Ie
             });
             if (res.cursor != null) k = res.cursor;
-            let a = res.action;
+            let a = toAttractDispatch(res.action);
             if (a.type === `account`) { _i(); return }
-            if (a.type === `side_back_extra`) { tSub = `root`, k = 4, w(); return }
-            if (a.type === `side_back_diff`) { tSub = `root`, k = 0, w(); return }
+            if (a.type === `side_back_extra`) { tSub = `root`, k = 4, sfx.ui(); return }
+            if (a.type === `side_back_diff`) { tSub = `root`, k = 0, sfx.ui(); return }
             if (a.type === `side_options`) { mr(`attract`); return }
-            if (a.type === `side_extra`) { tSub = `extra`, k = 0, w(); return }
+            if (a.type === `side_extra`) { tSub = `extra`, k = 0, sfx.ui(); return }
             if (a.type === `sound_test`) { Ci(); return }
             if (a.type === `profile`) { try { window.__sfOpenProfile?.() } catch {} return }
             if (a.type === `stats`) { try { window.__sfOpenStats?.() } catch {} return }
-            if (a.type === `back_root`) { tSub = `root`, k = a.cursor, w(); return }
+            if (a.type === `back_root`) { tSub = `root`, k = a.cursor, sfx.ui(); return }
             if (a.type === `start_easy`) { Ie = `easy`, pi(); return }
             if (a.type === `start_normal`) { Ie = `normal`, pi(); return }
-            if (a.type === `open_diff`) { tSub = `diff`, k = a.preferNormal ? 1 : 0, w(); return }
+            if (a.type === `open_diff`) { tSub = `diff`, k = a.preferNormal ? 1 : 0, sfx.ui(); return }
             if (a.type === `share`) { Wi(); return }
             if (a.type === `inbox`) { H && jt() ? yi() : bi(); return }
             if (a.type === `options`) { mr(`attract`); return }
-            if (a.type === `open_extra`) { tSub = `extra`, k = 0, w(); return }
+            if (a.type === `open_extra`) { tSub = `extra`, k = 0, sfx.ui(); return }
             if (a.type === `changelog`) { ai(); return }
-            w()
+            sfx.ui()
         }
 
         
@@ -2113,7 +2101,7 @@ function Nr() {
             }
             if (Se > 0 && Se--, p === `playing`) {
                 {
-                    let tick = tickWeaponCds({
+                    let tick = planWeaponFire({
                         shot: x, missile: S, particle: T, lockon: ye, beam: be, flame: xe
                     }, {
                         rate: q(`rate`),
@@ -2140,10 +2128,16 @@ function Nr() {
                         else if (f === `flame`) Wr();
                     }
                 }
-                if (!De) {
-                    let sp = tickSpawnTimer(b, Te, Ee, !!De);
+                {
+                    let sp = planSpawn({
+                        bossActive: !!De,
+                        spawnCd: b,
+                        kills: Te,
+                        killTarget: Ee,
+                        stage: v
+                    });
                     b = sp.spawnCd;
-                    if (sp.spawn) zr(), b = enemySpawnInterval(v);
+                    if (sp.spawn) zr(), b = sp.afterSpawnCd;
                     if (sp.startBoss) Br();
                 }
                 for (let t = dn.length - 1; t >= 0; t--) {
@@ -2219,21 +2213,16 @@ function Nr() {
                     l.globalAlpha = 1, ni()
                 }
                 {
-                    let ban = stageBanner(p, v, E, y);
-                    if (ban?.kind === `ready`) {
-                        $(`STAGE ${ban.stage}`, X / 2, Z / 2 - 10, `#00ffaa`, 16, `center`);
-                        $(`GET READY`, X / 2, 212, `#ffffff`, 10, `center`);
-                    } else if (ban?.kind === `bossintro`) {
-                        Q(58, Z / 2 - 40, 204, 70, `#220011`);
-                        l.strokeStyle = ban.blink ? `#ff2244` : `#880000`;
-                        l.strokeRect(58.5, Z / 2 - 39.5, 203, 69);
-                        $(`WARNING!`, X / 2, Z / 2 - 28, `#ff2244`, 16, `center`);
-                        $(`BOSS APPROACHING`, X / 2, Z / 2 - 6, `#ffaa00`, 10, `center`);
-                        $(ban.name, X / 2, 214, `#ff66ff`, 12, `center`);
-                    } else if (ban?.kind === `stageclear`) {
-                        $(`STAGE CLEAR`, X / 2, Z / 2 - 8, `#ffff00`, 14, `center`);
-                        $(`BOSS DEFEATED`, X / 2, 212, `#ff66ff`, 10, `center`);
-                        $(`→ POWER SHOP`, X / 2, 228, `#ffff66`, 9, `center`);
+                    let ov = stageBannerOverlay(stageBanner(p, v, E, y), X, Z);
+                    if (ov) {
+                        for (let r of ov.rects) {
+                            if (r.fill) Q(r.x, r.y, r.w, r.h, r.fill);
+                            if (r.stroke) {
+                                l.strokeStyle = r.stroke;
+                                l.strokeRect(r.x + .5, r.y + .5, r.w - 1, r.h - 1);
+                            }
+                        }
+                        for (let t of ov.texts) $(t.text, t.x, t.y, t.color, t.size, t.align || `center`);
                     }
                 }
                 if (p === `gameover`) {
@@ -2261,29 +2250,53 @@ function Nr() {
                     }
                 }
                 if (p === `inbox`) {
-                    if (Q(56, 24, 208, 360, `#001018`), l.strokeStyle = `#66ccff`, l.strokeRect(56.5, 24.5, 207, 359), $(`INBOX`, X / 2, 32, `#88eeff`, 12, `center`), $(`消すまで残る · ミッションMSGのみお礼可`, X / 2, 46, `#446688`, 7, `center`), !G.length) $(`メッセージはありません`, X / 2, Z * .45, `#668888`, 8, `center`), $(`TAP=戻る`, X / 2, 372, `#556666`, 7, `center`);
-                    else if (Ft) {
+                    Q(56, 24, 208, 360, `#001018`), l.strokeStyle = `#66ccff`, l.strokeRect(56.5, 24.5, 207, 359);
+                    $(`INBOX`, X / 2, 32, `#88eeff`, 12, `center`);
+                    $(`消すまで残る · ミッションMSGのみお礼可`, X / 2, 46, `#446688`, 7, `center`);
+                    if (!G.length) {
+                        $(`メッセージはありません`, X / 2, Z * .45, `#668888`, 8, `center`);
+                        $(`TAP=戻る`, X / 2, 372, `#556666`, 7, `center`);
+                    } else if (Ft) {
                         let e = G[Pt];
                         if (!e) Ft = !1;
                         else {
-                            $(e.source === `thanks` ? `お礼メッセージ` : `ミッション完了メッセージ`, X / 2, 60, `#aaddff`, 9, `center`), $(`From ${e.from}`, X / 2, 78, `#88aacc`, 8, `center`);
-                            let t = e.body;
-                            $(t.slice(0, 18), X / 2, 110, `#ffffff`, 10, `center`), t.length > 18 && $(t.slice(18, 36), X / 2, 126, `#ffffff`, 10, `center`), t.length > 36 && $(t.slice(36, 40), X / 2, 142, `#ffffff`, 10, `center`), Wn(e) ? (Q(72, Z * .55, 176, 28, `#332200`), l.strokeStyle = `#ffcc66`, l.strokeRect(72.5, 220.50000000000003, 175, 27), $(`🙏 お礼を送る (1回)`, X / 2, 228.00000000000003, `#ffeeaa`, 9, `center`)) : e.source === `thanks` ? $(`お礼MSG · 返信不可`, X / 2, 228.00000000000003, `#889988`, 8, `center`) : $(`この通にはお礼送信済み`, X / 2, 228.00000000000003, `#889988`, 8, `center`), Q(72, Z * .68, 176, 26, `#220011`), l.strokeStyle = `#ff6688`, l.strokeRect(72.5, 272.5, 175, 25), $(`🗑 削除する`, X / 2, 279, `#ff99aa`, 9, `center`), Q(88, Z * .8, 144, 22, `#001820`), l.strokeStyle = `#446666`, l.strokeRect(88.5, 320.5, 143, 21), $(`◀ 一覧へ`, X / 2, 325, `#88aaaa`, 8, `center`)
+                            let d = buildInboxDetail(e, Wn(e));
+                            $(d.header, X / 2, 60, `#aaddff`, 9, `center`);
+                            $(d.fromLine, X / 2, 78, `#88aacc`, 8, `center`);
+                            d.bodyLines.forEach((line, idx) => {
+                                $(line, X / 2, 110 + idx * 16, `#ffffff`, 10, `center`);
+                            });
+                            if (d.thanksState === `can`) {
+                                Q(72, Z * .55, 176, 28, `#332200`), l.strokeStyle = `#ffcc66`, l.strokeRect(72.5, Z * .55 + .5, 175, 27);
+                                $(d.thanksLabel, X / 2, Z * .55 + 8, `#ffeeaa`, 9, `center`);
+                            } else {
+                                $(d.thanksLabel, X / 2, Z * .55 + 8, `#889988`, 8, `center`);
+                            }
+                            Q(72, Z * .68, 176, 26, `#220011`), l.strokeStyle = `#ff6688`, l.strokeRect(72.5, Z * .68 + .5, 175, 25);
+                            $(`🗑 削除する`, X / 2, Z * .68 + 7, `#ff99aa`, 9, `center`);
+                            Q(88, Z * .8, 144, 22, `#001820`), l.strokeStyle = `#446666`, l.strokeRect(88.5, Z * .8 + .5, 143, 21);
+                            $(`◀ 一覧へ`, X / 2, Z * .8 + 5, `#88aaaa`, 8, `center`);
                         }
                     } else {
-                        let e = Math.max(0, Math.min(Pt, Math.max(0, G.length - 5)));
-                        for (let t = 0; t < Math.min(5, G.length - e); t++) {
-                            let n = G[e + t],
-                                r = 58 + t * 48;
-                            e + t === Pt && Q(62, r - 2, 196, 44, `#002233`), $(`${n.source===`thanks`?`お礼`:`完走`} From ${n.from.slice(0,8)}`, 66, r, n.source === `thanks` ? `#ffcc88` : `#88aacc`, 7), $(n.body.slice(0, 20), 66, r + 12, `#ffffff`, 9), $(Wn(n) ? `お礼可` : n.source === `thanks` ? `受信お礼` : n.thanksSent ? `お礼済` : `—`, 258, r + 12, Wn(n) ? `#ffcc66` : `#668866`, 7, `right`), $(n.source === `mission` ? `完走MSG` : `お礼MSG`, 66, r + 26, `#445566`, 6)
+                        let { rows } = buildInboxListRows({
+                            messages: G,
+                            cursor: Pt,
+                            canThanks: Wn
+                        });
+                        for (let row of rows) {
+                            row.selected && Q(62, row.y - 2, 196, 44, `#002233`);
+                            $(row.fromLine, 66, row.y, row.kindColor, 7);
+                            $(row.bodyPreview, 66, row.y + 12, `#ffffff`, 9);
+                            $(row.status, 258, row.y + 12, row.statusColor, 7, `right`);
+                            $(row.sourceTag, 66, row.y + 26, `#445566`, 6);
                         }
-                        $(`選択TAP→詳細  下端=戻る`, X / 2, 372, `#556666`, 7, `center`)
+                        $(`選択TAP→詳細  下端=戻る`, X / 2, 372, `#556666`, 7, `center`);
                     }
                 }
                 fieldShowsHud(p) && $r()
             }
             if (l.restore(), Qr(), K.scanlines) {
-                l.fillStyle = `rgba(0,0,0,0.12)`;
+                l.fillStyle = scanlineFill();
                 for (let e = 0; e < Z; e += 2) l.fillRect(Cr, e, Tr, 1)
             }
         }
@@ -2325,7 +2338,7 @@ function Nr() {
             if (act.type === `header_opt` || act.type === `footer_opt`) { D = n.length + 1, mr(`shop`); return }
             if (act.type === `footer_go`) { D = n.length, pr(); return }
             if (act.type === `buy`) { D = act.index, sr(n[act.index]); return }
-            if (act.type === `select`) { D = act.index, w(); return }
+            if (act.type === `select`) { D = act.index, sfx.ui(); return }
             if (act.type === `empty_confirm`) $i()
         }
 
@@ -2343,7 +2356,7 @@ function Nr() {
         }
 
         function ta(e) {
-            D = shopCursorStep(D, e, Kn().length), w()
+            D = shopCursorStep(D, e, Kn().length), sfx.ui()
         }
 
         function na(e, t) {
@@ -2413,8 +2426,8 @@ function Nr() {
             let n = e - tt,
                 r = t - nt;
             if (Math.abs(r) > Math.abs(n) * .85) {
-                for (it += r, tt = e, nt = t; it <= -15;) R = oa(R, -1), it += 15, at = !0, w();
-                for (; it >= 15;) R = oa(R, 1), it -= 15, at = !0, w();
+                for (it += r, tt = e, nt = t; it <= -15;) R = oa(R, -1), it += 15, at = !0, sfx.ui();
+                for (; it >= 15;) R = oa(R, 1), it -= 15, at = !0, sfx.ui();
                 return
             }
             let i = an()[R];
@@ -2443,7 +2456,7 @@ function Nr() {
             R = n;
             if (act.type === `back`) { hr(); return }
             if (act.type === `submenu`) {
-                act.key === `shot` ? (z = `shot`, R = 1) : (z = `weapons`, R = 1), w();
+                act.key === `shot` ? (z = `shot`, R = 1) : (z = `weapons`, R = 1), sfx.ui();
                 return
             }
             if (act.type === `toggle` || act.type === `adjust`) {
@@ -2451,7 +2464,7 @@ function Nr() {
                 return
             }
             if (act.type === `confirm_slider`) {
-                Qe = `${act.label}  OK`, $e = 40, w();
+                Qe = `${act.label}  OK`, $e = 40, sfx.ui();
                 return
             }
         }
@@ -2472,7 +2485,7 @@ function Nr() {
             at = !1;
             if (up.type === `ignore`) return;
             if (up.type === `activate`) { la(up.cursor); return }
-            if (up.type === `select`) { R = up.cursor, w() }
+            if (up.type === `select`) { R = up.cursor, sfx.ui() }
         }
 
         function da(e, t) {
@@ -2482,7 +2495,7 @@ function Nr() {
 
         function fa(e, t) {
             let n = Xi(e, t);
-            ee(), Gt();
+            bgm.unlock(), Gt();
             let route = routePointerDown({
                 mode: p,
                 x: n.x,
@@ -2492,7 +2505,7 @@ function Nr() {
                 muteHit: muteButtonHit(n.x, n.y)
             });
             if (route.type === `mute`) {
-                Fe = ne(), K.muted = Fe, Kt(), Fe || (p === `bossintro` || p === `playing` && De ? mt(mn(v).vibe, v) : (p === `playing` || p === `ready`) && W(`play`, v)), w();
+                Fe = bgm.toggleMute(), K.muted = Fe, Kt(), Fe || (p === `bossintro` || p === `playing` && De ? bgm.boss(mn(v).vibe, v) : (p === `playing` || p === `ready`) && bgm.start(`play`, v)), sfx.ui();
                 return
             }
             if (route.type === `mode` && route.mode === `attract`) { Gi(n.x, n.y); return }
@@ -2503,19 +2516,19 @@ function Nr() {
             if (route.type === `mode` && route.mode === `gameover`) {
                 let hit = gameOverHit(n.x, n.y, Cr, wr);
                 if (hit === `side_share` || hit === `share`) { Wi(), Bt(); return }
-                if (hit === `side_title` || hit === `title`) { p = `attract`, Bt(), W(`attract`), w(); return }
+                if (hit === `side_title` || hit === `title`) { p = `attract`, Bt(), bgm.start(`attract`), sfx.ui(); return }
                 if (hit === `continue`) {
-                    ht > 0 ? xi() : (C(), xt = `コインが必要です · シェアしよう`, St = 80);
+                    ht > 0 ? xi() : (sfx.buyFail(), xt = `コインが必要です · シェアしよう`, St = 80);
                     return
                 }
                 return
             }
             if (route.type === `mode` && route.mode === `name`) {
                 let hit = nameEntryHit(n.x, X, Cr, wr);
-                if (hit === `side_back`) { p = `attract`, W(`attract`), w(); return }
+                if (hit === `side_back`) { p = `attract`, bgm.start(`attract`), sfx.ui(); return }
                 if (hit === `letter_prev`) Zi(-1);
                 else if (hit === `letter_next`) Zi(1);
-                else Oe++, Oe >= 3 && (p = `attract`, W(`attract`));
+                else Oe++, Oe >= 3 && (p = `attract`, bgm.start(`attract`));
                 return
             }
             if (route.type === `mode` && route.mode === `inbox`) {
@@ -2530,23 +2543,23 @@ function Nr() {
                     cursor: Pt
                 });
                 if (hit.type === `side_title` || hit.type === `empty_title` || hit.type === `list_back`) {
-                    p = `attract`, W(`attract`), w();
+                    p = `attract`, bgm.start(`attract`), sfx.ui();
                     return
                 }
-                if (hit.type === `open`) { Pt = hit.index, Ft = !0, w(); return }
+                if (hit.type === `open`) { Pt = hit.index, Ft = !0, sfx.ui(); return }
                 if (hit.type === `thanks`) {
                     let e = G[Pt];
                     if (!e) { Ft = !1; return }
-                    Wn(e) ? zt(e) : C();
+                    Wn(e) ? zt(e) : sfx.buyFail();
                     return
                 }
                 if (hit.type === `delete`) {
                     let e = G[Pt];
                     if (!e) { Ft = !1; return }
-                    $n({ playerId: B, messageId: e.id }).then(() => { It(), Ft = !1, w() });
+                    $n({ playerId: B, messageId: e.id }).then(() => { It(), Ft = !1, sfx.ui() });
                     return
                 }
-                if (hit.type === `to_list`) { Ft = !1, w(); return }
+                if (hit.type === `to_list`) { Ft = !1, sfx.ui(); return }
                 if (hit.type === `clear_detail`) { Ft = !1; return }
                 return
             }
@@ -2563,32 +2576,26 @@ function Nr() {
         }
 
         function pa(e, t) {
-            if (p === `options` && et) {
-                let n = Xi(e, t);
-                ca(n.x, n.y);
-                return
-            }
-            if (p === `shop` && ot) {
-                let n = Xi(e, t);
-                ra(n.x, n.y);
-                return
-            }
-            if (p === `soundtest` && He) {
-                let n = Xi(e, t);
-                Hi(n.x, n.y);
-                return
-            }
-            if (p === `changelog` && Re) {
-                let n = Xi(e, t);
-                ui(n.x, n.y);
-                return
-            }
+            let route = routePointerMove({
+                mode: p,
+                optionsDragging: !!et,
+                shopDragging: !!ot,
+                soundtestDragging: !!He,
+                changelogDragging: !!Re,
+                vstickEnabled: !!K.vstick,
+                vstickActive: !!xn,
+                swipeActive: !!vn
+            });
             let n = Xi(e, t);
-            if (K.vstick && xn) {
-                da(n.x, n.y);
-                return
+            if (route.type === `options_drag`) { ca(n.x, n.y); return }
+            if (route.type === `shop_drag`) { ra(n.x, n.y); return }
+            if (route.type === `soundtest_drag`) { Hi(n.x, n.y); return }
+            if (route.type === `changelog_drag`) { ui(n.x, n.y); return }
+            if (route.type === `vstick`) { da(n.x, n.y); return }
+            if (route.type === `swipe_follow`) {
+                let pos = clampSwipeFollow(n.x, n.y);
+                yn = pos.x, bn = pos.y
             }
-            vn && (yn = Math.max(58, Math.min(262, n.x)), bn = Math.max(36, Math.min(382, n.y)))
         }
         let ma = e => {
                 e.preventDefault(), fa(e.touches[0].clientX, e.touches[0].clientY)
@@ -2657,7 +2664,7 @@ function Nr() {
                 vn = !1, kn()
             },
             ba = e => {
-                On.add(e.key), ee();
+                On.add(e.key), bgm.unlock();
                 let act = resolveKeyAction({
                     key: e.key,
                     mode: p,
@@ -2665,12 +2672,12 @@ function Nr() {
                     shopPaused: !!Ne
                 });
                 if (act.type === `mute_toggle`) {
-                    Fe = ne(), K.muted = Fe, Kt(), Fe || (p === `shop` || p === `attract` || p === `options` ? W(`attract`) : p === `playing` && De ? mt(mn(v).vibe, v) : (p === `playing` || p === `ready`) && W(`play`, v));
+                    Fe = bgm.toggleMute(), K.muted = Fe, Kt(), Fe || (p === `shop` || p === `attract` || p === `options` ? bgm.start(`attract`) : p === `playing` && De ? bgm.boss(mn(v).vibe, v) : (p === `playing` || p === `ready`) && bgm.start(`play`, v));
                     return
                 }
                 if (p === `options`) {
-                    if (act.type === `options_up`) R = oa(R, -1), w();
-                    else if (act.type === `options_down`) R = oa(R, 1), w();
+                    if (act.type === `options_up`) R = oa(R, -1), sfx.ui();
+                    else if (act.type === `options_down`) R = oa(R, 1), sfx.ui();
                     else if (act.type === `options_left`) Nr(-1);
                     else if (act.type === `options_right`) Nr(1);
                     else if (act.type === `options_confirm`) {
@@ -2681,8 +2688,8 @@ function Nr() {
                 }
                 if (p === `soundtest`) {
                     if (A === `comments`) {
-                        if (act.type === `st_comments_up`) qe = Math.max(0, qe - 1), w();
-                        else if (act.type === `st_comments_down`) qe = Math.min(Math.max(0, F.length - 1), qe + 1), w();
+                        if (act.type === `st_comments_up`) qe = Math.max(0, qe - 1), sfx.ui();
+                        else if (act.type === `st_comments_down`) qe = Math.min(Math.max(0, F.length - 1), qe + 1), sfx.ui();
                         else if (act.type === `st_comments_write`) Pi();
                         else if (act.type === `st_comments_back`) Mi();
                         else if (act.type === `st_like`) ki(1);
@@ -2690,8 +2697,8 @@ function Nr() {
                         return
                     }
                     let t = A === `menu` ? Fi().length - 1 : Ii(A).length - 1;
-                    if (act.type === `st_up`) j = Math.max(0, j - 1), w();
-                    else if (act.type === `st_down`) j = Math.min(t, j + 1), w();
+                    if (act.type === `st_up`) j = Math.max(0, j - 1), sfx.ui();
+                    else if (act.type === `st_down`) j = Math.min(t, j + 1), sfx.ui();
                     else if (act.type === `st_confirm`) Li();
                     else if (act.type === `st_comments_open`) ji();
                     else if (act.type === `st_like`) ki(1);
@@ -2700,41 +2707,41 @@ function Nr() {
                     return
                 }
                 if (p === `attract`) {
-                    if (act.type === `attract_up`) k = (k + titleMenuLen(tSub) - 1) % titleMenuLen(tSub), w();
-                    else if (act.type === `attract_down`) k = (k + 1) % titleMenuLen(tSub), w();
+                    if (act.type === `attract_up`) k = (k + titleMenuLen(tSub) - 1) % titleMenuLen(tSub), sfx.ui();
+                    else if (act.type === `attract_down`) k = (k + 1) % titleMenuLen(tSub), sfx.ui();
                     else if (act.type === `attract_confirm`) {
                         if (tSub === `extra`) {
                             if (k === 0) Ci();
                             else if (k === 1) (typeof window.__sfOpenProfile === `function` ? window.__sfOpenProfile() : 0);
                             else if (k === 2) (typeof window.__sfOpenStats === `function` ? window.__sfOpenStats() : 0);
-                            else tSub = `root`, k = 4, w();
+                            else tSub = `root`, k = 4, sfx.ui();
                         } else if (tSub === `diff`) {
                             if (k === 0) Ie = `easy`, pi();
                             else if (k === 1) Ie = `normal`, pi();
-                            else tSub = `root`, k = 0, w();
-                        } else if (k === 0) tSub = `diff`, k = Ie === `normal` ? 1 : 0, w();
+                            else tSub = `root`, k = 0, sfx.ui();
+                        } else if (k === 0) tSub = `diff`, k = Ie === `normal` ? 1 : 0, sfx.ui();
                         else if (k === 1) Wi();
                         else if (k === 2) H && jt() ? yi() : bi();
                         else if (k === 3) mr(`attract`);
-                        else if (k === 4) tSub = `extra`, k = 0, w();
+                        else if (k === 4) tSub = `extra`, k = 0, sfx.ui();
                         else if (k === 5) ai();
-                        else w()
+                        else sfx.ui()
                     }
                     return
                 }
                 if (p === `changelog`) {
-                    if (act.type === `changelog_up`) Le = Math.max(0, Le - 1), w();
-                    else if (act.type === `changelog_down`) Le = Math.min(si(), Le + 1), w();
+                    if (act.type === `changelog_up`) Le = Math.max(0, Le - 1), sfx.ui();
+                    else if (act.type === `changelog_down`) Le = Math.min(si(), Le + 1), sfx.ui();
                     else if (act.type === `changelog_back`) oi();
                     return
                 }
                 if (p === `inbox`) {
                     if (act.type === `inbox_escape`) {
-                        Ft ? Ft = !1 : (p = `attract`, W(`attract`));
+                        Ft ? Ft = !1 : (p = `attract`, bgm.start(`attract`));
                         return
                     }
-                    if (act.type === `inbox_up` && !Ft && G.length) Pt = (Pt - 1 + G.length) % G.length, w();
-                    if (act.type === `inbox_down` && !Ft && G.length) Pt = (Pt + 1) % G.length, w();
+                    if (act.type === `inbox_up` && !Ft && G.length) Pt = (Pt - 1 + G.length) % G.length, sfx.ui();
+                    if (act.type === `inbox_down` && !Ft && G.length) Pt = (Pt + 1) % G.length, sfx.ui();
                     if (act.type === `inbox_confirm`) {
                         if (!Ft && G.length) Ft = !0;
                         else if (Ft) {
@@ -2756,7 +2763,7 @@ function Nr() {
                         return
                     }
                     if (act.type === `gameover_share`) { Wi(); return }
-                    if (act.type === `gameover_title`) { p = `attract`, Bt(), W(`attract`); return }
+                    if (act.type === `gameover_title`) { p = `attract`, Bt(), bgm.start(`attract`); return }
                 }
                 if (act.type === `pause_shop`) {
                     e.preventDefault(), fr(!0);
@@ -2790,9 +2797,9 @@ function Nr() {
                 openProfileDialog({
                   linked: !!(V && V.linked),
                   playerId: B || "",
-                  sfxUi: function(){ try{w()}catch(e){} },
-                  sfxOk: function(){ try{_e()}catch(e){} },
-                  sfxFail: function(){ try{C()}catch(e){} },
+                  sfxUi: function(){ try{sfx.ui()}catch(e){} },
+                  sfxOk: function(){ try{sfx.buy()}catch(e){} },
+                  sfxFail: function(){ try{sfx.buyFail()}catch(e){} },
                   onNeedLink: function(){ try{_i()}catch(e){} }
                 });
               } catch (err) { console.error(err); }
@@ -2801,7 +2808,7 @@ function Nr() {
                 openStatsDialog({
                   playerId: B || "",
                   linked: !!(V && V.linked),
-                  sfxUi: function(){ try{w()}catch(e){} }
+                  sfxUi: function(){ try{sfx.ui()}catch(e){} }
                 });
               } catch (err) { console.error(err); }
             }, window.__swipeForceTest = {
@@ -2827,8 +2834,8 @@ function Nr() {
             openFanmail: () => yi(),
             openInbox: () => bi(),
             share: () => Wi()
-        }, W(`attract`), () => {
-            u = !1, cancelAnimationFrame(d), Mn.disconnect(), s.removeEventListener(`touchstart`, ma), s.removeEventListener(`touchmove`, ha), s.removeEventListener(`touchend`, ga), s.removeEventListener(`mousedown`, _a), window.removeEventListener(`mousemove`, va), window.removeEventListener(`mouseup`, ya), window.removeEventListener(`keydown`, ba), window.removeEventListener(`keyup`, xa), gt()
+        }, bgm.start(`attract`), () => {
+            u = !1, cancelAnimationFrame(d), Mn.disconnect(), s.removeEventListener(`touchstart`, ma), s.removeEventListener(`touchmove`, ha), s.removeEventListener(`touchend`, ga), s.removeEventListener(`mousedown`, _a), window.removeEventListener(`mousemove`, va), window.removeEventListener(`mouseup`, ya), window.removeEventListener(`keydown`, ba), window.removeEventListener(`keyup`, xa), bgm.stop()
         }
     }, []), (0, xr.jsx)(`div`, {
         ref: e,
@@ -2846,8 +2853,6 @@ function Nr() {
 function Pr() {
     return (0, xr.jsx)(Nr, {})
 }
-
-
 
 /** React entry used by the route */
 export function SwipeForceGameCanvas() {
