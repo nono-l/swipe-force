@@ -419,6 +419,95 @@ import {
   soundTestListAction,
 } from "./modes/sound-test-input";
 import { resolveKeyAction } from "./modes/keyboard-actions";
+import {
+  routePointerDown,
+  nameEntryHit,
+  playMoveFromPointer,
+} from "./modes/pointer-dispatch";
+import { inboxPointerHit } from "./modes/inbox-hit";
+import {
+  commentsFooterButtons,
+  playingFooterButtons,
+  soundTestListTop,
+} from "./modes/sound-test-draw";
+import {
+  shopHeaderChips,
+  shopFooterButtonsExact,
+  shopTierHint,
+  shopStatusLine,
+} from "./modes/shop-draw";
+import { shopPointerUp, shopEmptyConfirm } from "./modes/shop-confirm";
+import { trackCardLayout } from "./modes/track-card-draw";
+import {
+  optionsScreenTitle,
+  optionsRowColors,
+  optionsHint,
+} from "./modes/options-draw";
+import { requireLinked } from "./modes/link-gate";
+import {
+  canOpenComments,
+  commentsReturnMode,
+} from "./modes/sound-comments-flow";
+import {
+  optionsPointerDown,
+  optionsPointerUp,
+} from "./modes/options-pointer";
+import {
+  soundTestPointerDown,
+  soundTestPointerUp,
+  dragScrollSteps,
+} from "./modes/sound-test-pointer";
+import {
+  shopCursorMax,
+  shopCursorStep,
+  shopDragScroll,
+} from "./modes/shop-scroll";
+import { tickMode } from "./modes/mode-tick";
+import {
+  openShopSeed,
+  closeShopSeed,
+  openOptionsSeed,
+} from "./modes/screen-nav";
+import {
+  tickStars,
+  tickFloats,
+  tickLifetimes,
+  tickParticles,
+  decayTimers,
+} from "./modes/fx-tick";
+import {
+  drawRoute,
+  fieldDrawsEntities,
+  fieldShowsHud,
+} from "./modes/draw-frame";
+import { tickWeaponCds } from "./modes/weapon-cds";
+import { steerMissile, bulletOutOfBounds } from "./modes/missile-homing";
+import {
+  stepEnemyMotion,
+  enemyShouldDespawn,
+  enemyShouldFire,
+  enemyReloadFrames,
+  tickSpawnTimer,
+} from "./modes/enemy-step";
+import {
+  titleNoiseDot,
+  titleNoiseRgb,
+  titleHeader,
+  continueCoinLine,
+  titleFooter,
+} from "./modes/title-screen";
+import {
+  shieldStrokeColor,
+  invulnBlink,
+  floatTextAlpha,
+  particleAlpha,
+  lockonAlpha,
+} from "./modes/field-draw";
+
+
+
+
+
 
 
 
@@ -894,17 +983,30 @@ function Nr() {
         
         // ── open shop ──
         function fr(e = !1) {
-            p = `shop`, Ne = e, D = 0, je = e ? `一時ショップ (戦闘一時停止)` : `PTSで強化せよ`, Me = 80, vn = !1, kn(), e || (Y.length = 0, dn.length = 0, gn.length = 0), w(), W(`attract`)
+            let seed = openShopSeed(!!e);
+            p = seed.mode, Ne = seed.paused, D = seed.cursor, je = seed.toast, Me = seed.toastLife;
+            vn = !1, kn();
+            if (seed.clearEntities) Y.length = 0, dn.length = 0, gn.length = 0;
+            w(), W(`attract`)
         }
 
         function pr() {
-            Ne ? (p = `playing`, Se = Math.max(Se, 45), Ne = !1, De ? mt(mn(v).vibe, v) : W(`play`, v)) : (v++, dr()), w()
+            let seed = closeShopSeed(!!Ne);
+            if (seed.type === `resume_play`) {
+                p = `playing`, Se = Math.max(Se, seed.invulnMin), Ne = !1;
+                De ? mt(mn(v).vibe, v) : W(`play`, v)
+            } else {
+                v++, dr()
+            }
+            w()
         }
 
         
         // ── open options ──
         function mr(e) {
-            Ze = e, p = `options`, z = `main`, R = 0, Qe = ``, $e = 0, vn = !1, kn(), w(), W(`attract`)
+            let seed = openOptionsSeed(e);
+            Ze = seed.from, p = seed.mode, z = seed.submenu, R = seed.cursor;
+            Qe = ``, $e = 0, vn = !1, kn(), w(), W(`attract`)
         }
 
         function hr() {
@@ -1268,7 +1370,18 @@ function Nr() {
             let foot = shopFooterIndices(e.length),
                 n = D === foot.share,
                 r = D === foot.opt;
-            Q(150, 22, 58, 20, n ? `#442200` : `#221100`), l.strokeStyle = n ? `#ffcc66` : `#aa8844`, l.lineWidth = 2, l.strokeRect(150.5, 22.5, 57, 19), $(`𝕏 SHARE`, 179, 27, n ? `#ffeeaa` : `#ccaa66`, 8, `center`), Q(212, 22, 52, 20, r ? `#004466` : `#002233`), l.strokeStyle = r ? `#66eeff` : `#33aacc`, l.strokeRect(212.5, 22.5, 51, 19), l.lineWidth = 1, $(`⚙ OPT`, 238, 27, r ? `#ffffff` : `#88ddff`, 8, `center`), $(`PTS ${h}  ·  T${zn()}  ·  ${Ie===`normal`?`NRM`:`ESY SAVE`}`, X / 2, 46, Ie === `normal` ? `#ffaa66` : `#ffff66`, 8, `center`), $(Fn() ? Rn() ? `最終強化解放済み` : `上級兵器を全MAX → TIER3解放` : `基本強化を全MAX → TIER2兵器解放`, X / 2, 56, Pe > 0 && y % 10 < 5 ? `#ff66ff` : `#66aa66`, 6, `center`);
+            for (let chip of shopHeaderChips({ shareSelected: n, optSelected: r })) {
+                Q(chip.x, chip.y, chip.w, chip.h, chip.fill);
+                l.strokeStyle = chip.stroke;
+                l.lineWidth = 2;
+                l.strokeRect(chip.x + .5, chip.y + .5, chip.w - 1, chip.h - 1);
+                $(chip.label, chip.labelX, chip.labelY, chip.labelColor, 8, `center`);
+            }
+            l.lineWidth = 1;
+            let st = shopStatusLine({ pts: h, tier: zn(), difficulty: Ie });
+            $(st.text, X / 2, 46, st.color, 8, `center`);
+            let tier = shopTierHint({ tier2: Fn(), tier3: Rn(), celebrate: Pe > 0, frame: y });
+            $(tier.text, X / 2, 56, tier.color, 6, `center`);
             for (let row of buildShopRows({
                 catalog: e,
                 cursor: D,
@@ -1286,14 +1399,25 @@ function Nr() {
                 $(row.costText, 260, row.y + 3, row.costColor, 8, `right`);
             }
             t > 0 && $(`▲`, X / 2, 60, `#00ff88`, 8, `center`), t + 10 < e.length && $(`▼`, X / 2, 336, `#00ff88`, 8, `center`);
-            let i = 200 / 3,
-                a = D === e.length;
-            Q(56, 352, i, 32, n ? `#553300` : `#2a1800`), l.strokeStyle = n ? `#ffcc66` : `#aa7744`, l.lineWidth = 2, l.strokeRect(56.5, 352.5, 65.66666666666667, 31), $(`𝕏 SHARE`, 89.33333333333334, 358, n ? `#ffeeaa` : `#ddaa66`, 8, `center`), $(`進行度つき`, 89.33333333333334, 370, `#886644`, 6, `center`), Q(126.66666666666667, 352, i, 32, r ? `#005577` : `#003344`), l.strokeStyle = r ? `#88eeff` : `#44aacc`, l.strokeRect(127.16666666666667, 352.5, 65.66666666666667, 31), $(`⚙ OPT`, 160, 362, r ? `#ffffff` : `#aaddff`, 9, `center`), Q(197.33333333333334, 352, i, 32, a ? `#007700` : `#004400`), l.strokeStyle = a ? `#ffff00` : `#00aa44`, l.strokeRect(197.83333333333334, 352.5, 65.66666666666667, 31), l.lineWidth = 1, $(Ne ? `▶ GO` : `▶ NEXT`, 230.66666666666669, 362, a ? `#ffff00` : `#88ff88`, 9, `center`), Me > 0 ? $(je, X / 2, 388, `#ffaa00`, 6, `center`) : $(Ne ? `進行中SHAREで助けを呼べます` : `上下スワイプ · 空欄タップで決定`, X / 2, 388, `#335544`, 6, `center`)
+            for (let b of shopFooterButtonsExact({ catalogLen: e.length, cursor: D, pauseShop: !!Ne, shareSelected: n, optSelected: r })) {
+                Q(b.x, b.y, b.w, b.h, b.fill);
+                l.strokeStyle = b.stroke;
+                l.lineWidth = 2;
+                l.strokeRect(b.x + .5, b.y + .5, b.w - 1, b.h - 1);
+                $(b.label, b.labelX, b.labelY, b.labelColor, b.sub ? 8 : 9, `center`);
+                b.sub && $(b.sub, b.labelX, b.subY, `#886644`, 6, `center`);
+            }
+            l.lineWidth = 1;
+            Me > 0 ? $(je, X / 2, 388, `#ffaa00`, 6, `center`) : $(Ne ? `進行中SHAREで助けを呼べます` : `上下スワイプ · 空欄タップで決定`, X / 2, 388, `#335544`, 6, `center`)
         }
 
         function ii() {
             let e = an();
-            R >= e.length && (R = Math.max(0, e.length - 1)), Q(Cr, 0, Tr, Z, `#001018`), Q(54, 18, 212, 370, `#001a22`), l.strokeStyle = z === `weapons` ? `#66ffaa` : `#00ccff`, l.strokeRect(54.5, 18.5, 211, 369), $(z === `shot` ? `SHOT TUNING` : z === `weapons` ? `WEAPON LOADOUT` : `OPTIONS`, X / 2, 22, z === `shot` || z === `weapons` ? `#88ffcc` : `#66eeff`, 11, `center`), $(z === `shot` ? `MAIN / RATE / POWER / OPTION を個別調整` : z === `weapons` ? `SHOTを開くと強化を個別ON/OFF` : `音量・操作 · 武装は下の LOADOUT へ`, X / 2, 36, `#448888`, 7, `center`);
+            R >= e.length && (R = Math.max(0, e.length - 1));
+            let scr = optionsScreenTitle(z);
+            Q(Cr, 0, Tr, Z, `#001018`), Q(54, 18, 212, 370, `#001a22`), l.strokeStyle = scr.border, l.strokeRect(54.5, 18.5, 211, 369);
+            $(scr.title, X / 2, 22, scr.titleColor, 11, `center`);
+            $(scr.subtitle, X / 2, 36, `#448888`, 7, `center`);
             let t = listWindowStart(e.length, R, 14);
             for (let n = 0; n < Math.min(14, e.length); n++) {
                 let r = n + t,
@@ -1305,12 +1429,18 @@ function Nr() {
                     continue
                 }
                 o && (Q(60, a - 1, 200, 16, `#003344`), l.strokeStyle = `#00eeff`, l.strokeRect(60.5, a - .5, 199, 15));
-                let s = i.kind === `weapon` ? q(i.key) > 0 ? o ? `#aaffcc` : `#66aa88` : o ? `#ffaaaa` : `#886666` : i.kind === `submenu` ? o ? `#aaffdd` : `#66ccaa` : o ? `#ffffff` : `#88aacc`;
-                $(i.label, 64, a + 3, s, 8);
+                let cols = optionsRowColors({
+                    kind: i.kind,
+                    selected: o,
+                    weaponOn: i.kind === `weapon` ? q(i.key) > 0 : undefined
+                });
+                $(i.label, 64, a + 3, cols.label, 8);
                 let c = xr(i);
-                c && $(c, 260, a + 3, i.kind === `weapon` ? q(i.key) > 0 ? `#66ff88` : `#ff6666` : i.kind === `submenu` ? `#88ffcc` : o ? `#ffff66` : `#668888`, 7, `right`)
+                c && $(c, 260, a + 3, cols.value, 7, `right`)
             }
-            t > 0 && $(`▲`, X / 2, 38, `#00ccff`, 7, `center`), t + 14 < e.length && $(`▼`, X / 2, 372, `#00ccff`, 7, `center`), $($e > 0 ? Qe : z === `shot` ? `上下=項目  左右=強度  空き=決定` : z === `weapons` ? `上下スワイプ  空きタップ=決定` : `上下=項目  左右=調整  空き=決定`, X / 2, 386, $e > 0 ? `#ffaa00` : `#446666`, 6, `center`)
+            t > 0 && $(`▲`, X / 2, 38, `#00ccff`, 7, `center`), t + 14 < e.length && $(`▼`, X / 2, 372, `#00ccff`, 7, `center`);
+            let hint = optionsHint({ submenu: z, feedback: Qe, feedbackActive: $e > 0 });
+            $(hint, X / 2, 386, $e > 0 ? `#ffaa00` : `#446666`, 6, `center`)
         }
 
         
@@ -1363,17 +1493,16 @@ function Nr() {
 
         function fi() {
             l.fillStyle = `#001100`, l.fillRect(Cr, 0, Tr, Z);
-            for (let e = 0; e < 400; e++) {
-                let e = Cr + Math.random() * Tr,
-                    t = Math.random() * Z,
-                    n = 100 + Math.random() * 120;
-                l.fillStyle = `rgb(0,${n|0},${n*.35|0})`, l.fillRect(e, t, 1, 1)
+            for (let i = 0; i < 400; i++) {
+                let d = titleNoiseDot(Cr, Tr, Z);
+                l.fillStyle = titleNoiseRgb(d.g), l.fillRect(d.x, d.y, 1, 1)
             }
             let e = X / 2;
-            $(`SWIPE FORCE`, e, 28, `#00ff88`, 15, `center`);
-            $(`RETRO VERTICAL SHOOTER`, e, 44, `#66aa66`, 7, `center`);
-            $(un() + ` · Grok Build iOS`, e, 56, `#88cc88`, 8, `center`);
-            $(`v1.5 · 連携特典は EXTRA へ`, e, 66, `#556666`, 6, `center`);
+            let hdr = titleHeader(un());
+            $(hdr.title, e, 28, `#00ff88`, 15, `center`);
+            $(hdr.tagline, e, 44, `#66aa66`, 7, `center`);
+            $(hdr.credit, e, 56, `#88cc88`, 8, `center`);
+            $(hdr.versionLine, e, 66, `#556666`, 6, `center`);
             {
                 let ls = titleLinkStyle(!!V.linked);
                 Q(210, 6, 56, 18, ls.fill);
@@ -1384,7 +1513,8 @@ function Nr() {
             Q(68, 76, 184, 18, `#1a1500`);
             l.strokeStyle = `#ffcc44`;
             l.strokeRect(68.5, 76.5, 183, 17);
-            $(`CONTINUE COIN  ×${ht}`, e, 80, ht > 0 ? `#ffee88` : `#887744`, 9, `center`);
+            let coin = continueCoinLine(ht);
+            $(coin.text, e, 80, coin.color, 9, `center`);
             H ? ti(e) : $(`シェア先が1面ボス到達 → コインGET`, e, 96, `#558866`, 7, `center`);
             St > 0 && $(xt, e, H ? 148 : 110, `#ffaa00`, 7, `center`);
             $(titleSelectLabel(tSub), e, Z * .385, `#ffff66`, 7, `center`);
@@ -1406,7 +1536,8 @@ function Nr() {
                 cols.fill ? (Q(62, i - 2, 196, o, cols.fill), l.strokeStyle = cols.stroke, l.strokeRect(62.5, i - 1.5, 195, o - 1)) : (l.strokeStyle = cols.stroke, l.strokeRect(62.5, i - 1.5, 195, o - 1));
                 $(r[n].title, e, i + 2, cols.title, 10, `center`), r[n].sub && $(r[n].sub, e, i + 13, cols.sub, 6, `center`)
             }
-            $(`Grok Build iOS`, 56, 386, `#335533`, 6), $(`電気通信事業者 届出済`, 266, 386, `#2a4a2a`, 6, `right`)
+            let foot = titleFooter();
+            $(foot.left, 56, 386, `#335533`, 6), $(foot.right, 266, 386, `#2a4a2a`, 6, `right`)
         }
 
         
@@ -1574,7 +1705,10 @@ function Nr() {
         }
 
         function Si(e = `この機能`) {
-            return V.linked ? !0 : (Je = `${e}はアカウント連携が必要です`, Ye = 100, xt = Je, St = 100, C(), !1)
+            let gate = requireLinked(!!V.linked, e);
+            if (gate.ok) return !0;
+            Je = gate.message, Ye = 100, xt = Je, St = 100, C();
+            return !1
         }
 
         
@@ -1611,11 +1745,22 @@ function Nr() {
 
         function Di(e, t) {
             let n = Ei(),
-                r = !!t?.compact,
-                i = r ? 28 : 36;
-            Q(58, e, 204, i, `#0a1a14`), l.strokeStyle = n.catColor, l.strokeRect(58.5, e + .5, 203, i - 1);
-            let a = N === `title` ? 44 : 56;
-            return Q(62, e + 5, a, 12, `#102820`), $(n.cat + (N === `title` ? `` : String(Ke).padStart(2, `0`)), 62 + a / 2, e + 7, n.catColor, 6, `center`), $(`この曲に対する評価・コメント`, 66 + a, e + 7, `#668877`, 6), $(n.short, 64, e + (r ? 16 : 20), `#ffeeaa`, r ? 7 : 8), r || $(`ID ${n.key}`, 258, e + 20, `#445544`, 5, `right`), i
+                lay = trackCardLayout({
+                    top: e,
+                    compact: !!t?.compact,
+                    mode: N,
+                    index: Ke,
+                    cat: n.cat
+                });
+            Q(lay.box.x, lay.box.y, lay.box.w, lay.box.h, `#0a1a14`);
+            l.strokeStyle = n.catColor;
+            l.strokeRect(lay.box.x + .5, lay.box.y + .5, lay.box.w - 1, lay.box.h - 1);
+            Q(lay.catBadge.x, lay.catBadge.y, lay.catBadge.w, lay.catBadge.h, `#102820`);
+            $(lay.catBadge.text, lay.catLabelX, lay.catLabelY, n.catColor, 6, `center`);
+            $(`この曲に対する評価・コメント`, lay.metaX, lay.metaY, `#668877`, 6);
+            $(n.short, 64, lay.titleY, `#ffeeaa`, lay.titleSize);
+            lay.showId && $(`ID ${n.key}`, 258, lay.idY, `#445544`, 5, `right`);
+            return lay.height
         }
 
         function Oi(e, t = 0) {
@@ -1624,18 +1769,20 @@ function Nr() {
             })
         }
         async function ki(e) {
-            Si(`曲の評価`) && (L = await Xt(Ti(), B, e), w())
+            if (!Si(`曲の評価`)) return;
+            L = await Xt(Ti(), B, e), w()
         }
         async function Ai(e) {
             P = e, F = await Ut(e), qe = 0
         }
 
         function ji() {
-            if (!M || M.startsWith(`—`)) {
-                Je = `先に曲を再生してください`, Ye = 80, C();
+            let can = canOpenComments(M);
+            if (!can.ok) {
+                Je = can.message, Ye = 80, C();
                 return
             }
-            Xe = A === `menu` || A === `stage` || A === `boss` || A === `legacy` ? A : N === `title` ? `menu` : N;
+            Xe = commentsReturnMode(A, N);
             let e = Ti();
             Promise.all([Ai(e), Yt(e, B)]).then(([, e]) => {
                 L = e, A = `comments`, qe = 0, w()
@@ -1719,16 +1866,25 @@ function Nr() {
                         $(row.text, 64, row.y + 4, row.selected ? `#ffffff` : `#99bbaa`, 7)
                     }
                 }
-                $(V.linked ? `👍 ${L.likes}   👎 ${L.dislikes}` : `評価・投稿はアカウント連携必須`, X / 2, 348, V.linked ? `#88aa88` : `#aa8844`, 7, `center`), Q(58, 360, 46.5, 22, L.mine === 1 ? `#204020` : `#152018`), l.strokeStyle = L.mine === 1 ? `#88ff88` : `#446644`, l.strokeRect(58.5, 360.5, 45.5, 21), $(`👍`, 82.25, 366, `#ccffcc`, 8, `center`), Q(108.5, 360, 46.5, 22, L.mine === -1 ? `#402020` : `#201518`), l.strokeStyle = L.mine === -1 ? `#ff8888` : `#664444`, l.strokeRect(109, 360.5, 45.5, 21), $(`👎`, 132.75, 366, `#ffcccc`, 8, `center`), Q(159, 360, 46.5, 22, `#1a4030`), l.strokeStyle = `#66cc88`, l.strokeRect(159.5, 360.5, 45.5, 21), $(`✍`, 183.25, 366, `#ccffdd`, 8, `center`), Q(209.5, 360, 46.5, 22, `#203040`), l.strokeStyle = `#6688aa`, l.strokeRect(210, 360.5, 45.5, 21), $(`◀`, 233.75, 366, `#aaccff`, 8, `center`), Ye > 0 && $(Je, X / 2, 388, `#ffaa66`, 6, `center`);
+                $(V.linked ? `👍 ${L.likes}   👎 ${L.dislikes}` : `評価・投稿はアカウント連携必須`, X / 2, 348, V.linked ? `#88aa88` : `#aa8844`, 7, `center`);
+                for (let b of commentsFooterButtons({ mine: L.mine })) {
+                    Q(b.x, b.y, b.w, b.h, b.fill);
+                    l.strokeStyle = b.stroke;
+                    l.strokeRect(b.x + .5, b.y + .5, b.w - 1, b.h - 1);
+                    $(b.label, b.labelX, b.labelY, b.labelColor, 8, `center`);
+                }
+                Ye > 0 && $(Je, X / 2, 388, `#ffaa66`, 6, `center`);
                 return
             }
             $(`SOUND TEST`, X / 2, 18, `#88ffee`, 11, `center`), $(`LINK PERK · 全曲試聴`, X / 2, 30, `#448866`, 6, `center`);
-            let e = 38;
-            M && !M.startsWith(`—`) ? (e = 38 + Di(36, {
-                compact: !1
-            }) + 4, $(`この曲の評価  👍${L.likes}  👎${L.dislikes}`, X / 2, e - 2, `#88aa88`, 6, `center`), e += 8) : ($(`曲を選ぶと、その曲の評価・コメントが対象になります`, X / 2, 48, `#556666`, 6, `center`), e = 58);
-            let t = soundTestPageSize(!!(M && !M.startsWith(`—`))),
-                n = e;
+            let playing = !!(M && !M.startsWith(`—`)),
+                cardH = 0;
+            if (playing) cardH = Di(36, { compact: !1 });
+            let top = soundTestListTop(playing, cardH);
+            if (playing && top.ratingY != null) $(`この曲の評価  👍${L.likes}  👎${L.dislikes}`, X / 2, top.ratingY, `#88aa88`, 6, `center`);
+            else if (top.hintY != null) $(`曲を選ぶと、その曲の評価・コメントが対象になります`, X / 2, top.hintY, `#556666`, 6, `center`);
+            let t = soundTestPageSize(playing),
+                n = top.listTop;
             if (A === `menu`) {
                 let e = Fi();
                 j >= e.length && (j = e.length - 1);
@@ -1756,7 +1912,13 @@ function Nr() {
                 r > 0 && $(`▲`, X / 2, n - 4, `#44aa88`, 7, `center`), r + t < e.length && $(`▼`, X / 2, 360, `#44aa88`, 7, `center`)
             }
             if (M && !M.startsWith(`—`)) {
-                if (Q(58, 360, 63.33333333333333, 22, L.mine === 1 ? `#204020` : `#152018`), l.strokeStyle = L.mine === 1 ? `#88ff88` : `#446644`, l.strokeRect(58.5, 360.5, 62.33333333333333, 21), $(`👍${L.likes}`, 90.66666666666666, 366, L.mine === 1 ? `#ccffcc` : `#88aa88`, 7, `center`), Q(125.33333333333333, 360, 63.33333333333333, 22, L.mine === -1 ? `#402020` : `#201518`), l.strokeStyle = L.mine === -1 ? `#ff8888` : `#664444`, l.strokeRect(125.83333333333333, 360.5, 62.33333333333333, 21), $(`👎 ${L.dislikes}`, 158, 366, L.mine === -1 ? `#ffcccc` : `#aa8888`, 7, `center`), Q(192.66666666666666, 360, 63.33333333333333, 22, `#1a3028`), l.strokeStyle = `#55aa77`, l.strokeRect(193.16666666666666, 360.5, 62.33333333333333, 21), $(`💬感想`, 225.33333333333331, 366, `#aaffee`, 7, `center`), !V.linked) $(`評価・コメントは連携必須`, X / 2, 350, `#aa8844`, 6, `center`);
+                for (let b of playingFooterButtons({ likes: L.likes, dislikes: L.dislikes, mine: L.mine })) {
+                    Q(b.x, b.y, b.w, b.h, b.fill);
+                    l.strokeStyle = b.stroke;
+                    l.strokeRect(b.x + .5, b.y + .5, b.w - 1, b.h - 1);
+                    $(b.label, b.labelX, b.labelY, b.labelColor, 7, `center`);
+                }
+                if (!V.linked) $(`評価・コメントは連携必須`, X / 2, 350, `#aa8844`, 6, `center`);
                 else {
                     let e = Ei();
                     $(`対象: ${e.cat}${N===`title`?``:Ke} ${e.short.slice(0,16)}`, X / 2, 350, `#668866`, 5, `center`)
@@ -1782,30 +1944,34 @@ function Nr() {
         }
 
         function Vi(e, t) {
-            if (e < Cr || e > wr) {
-                A === `comments` ? Mi() : wi();
-                return
-            }
-            if (He = !0, Ue = t, We = 0, Ge = !1, A === `comments`) {
-                for (let e = 0; e < F.length; e++);
-                return
-            }
-            let n = Bi(t);
-            n >= 0 && (j = n)
+            let down = soundTestPointerDown({
+                x: e,
+                y: t,
+                left: Cr,
+                right: wr,
+                mode: A,
+                rowAtY: Bi
+            });
+            if (down.type === `side_back_comments`) { Mi(); return }
+            if (down.type === `side_back_list`) { wi(); return }
+            He = !0, Ue = t, We = 0, Ge = !1;
+            if (down.selectRow != null) j = down.selectRow
         }
 
         function Hi(e, t) {
             if (!He || p !== `soundtest`) return;
             let n = t - Ue;
-            if (We += n, Ue = t, A === `comments`) {
+            let scr = dragScrollSteps(We, n, 15);
+            We = scr.accum, Ue = t;
+            if (!scr.steps) return;
+            Ge = !0;
+            if (A === `comments`) {
                 let e = Math.max(0, F.length - 1);
-                for (; We <= -15;) qe = Math.max(0, qe - 1), We += 15, Ge = !0, w();
-                for (; We >= 15;) qe = Math.min(e, qe + 1), We -= 15, Ge = !0, w();
+                qe = Math.max(0, Math.min(e, qe + scr.steps)), w();
                 return
             }
             let r = A === `menu` ? Fi().length - 1 : Ii(A).length - 1;
-            for (; We <= -15;) j = Math.max(0, j - 1), We += 15, Ge = !0, w();
-            for (; We >= 15;) j = Math.min(r, j + 1), We -= 15, Ge = !0, w()
+            j = Math.max(0, Math.min(r, j + scr.steps)), w()
         }
 
         function Ui(e, t) {
@@ -1814,24 +1980,30 @@ function Nr() {
                 Ge = !1;
                 return
             }
-            if (e < Cr || e > wr) return;
-            if (A === `comments`) {
-                let hit = soundTestCommentsFooterHit(e, t);
-                if (hit === `like`) { ki(1); return }
-                if (hit === `dislike`) { ki(-1); return }
-                if (hit === `write`) { Pi(); return }
-                if (hit === `back`) { Mi(); return }
-                F.length ? F[qe] && Ni(F[qe]) : Pi();
-                return
+            let up = soundTestPointerUp({
+                dragged: !1,
+                x: e,
+                y: t,
+                left: Cr,
+                right: wr,
+                mode: A,
+                playing: !!(M && !M.startsWith(`—`)),
+                hasComments: !!F.length,
+                commentsFooter: soundTestCommentsFooterHit,
+                playingFooter: soundTestPlayingFooterHit,
+                rowAtY: Bi
+            });
+            if (up.type === `ignore`) return;
+            if (up.type === `footer_like`) { ki(1); return }
+            if (up.type === `footer_dislike`) { ki(-1); return }
+            if (up.type === `footer_write` || up.type === `write_first`) { Pi(); return }
+            if (up.type === `footer_back`) { Mi(); return }
+            if (up.type === `footer_comments`) { ji(); return }
+            if (up.type === `open_comment`) { F[qe] && Ni(F[qe]); return }
+            if (up.type === `activate_row`) {
+                if (up.row >= 0) j = up.row;
+                Li()
             }
-            if (M && !M.startsWith(`—`)) {
-                let hit = soundTestPlayingFooterHit(e, t);
-                if (hit === `like`) { ki(1); return }
-                if (hit === `dislike`) { ki(-1); return }
-                if (hit === `comments`) { ji(); return }
-            }
-            let n = Bi(t);
-            n >= 0 && (j = n), Li()
         }
 
         
@@ -1894,152 +2066,129 @@ function Nr() {
                 if (window.__sfPlayAcc >= 1) { addPlayTime(window.__sfPlayAcc); window.__sfPlayAcc = 0; }
               }
             } catch (err) {}
-            y++, we > 0 && (we *= .85), we < .2 && (we = 0), Me > 0 && Me--, $e > 0 && $e--, Ye > 0 && Ye--, St > 0 && St--, wt > 0 && wt--, Et > 0 && Et--, Ce > 0 && Ce--, Pe > 0 && Pe--;
-            for (let e of _n) e.y += e.sp * (p === `playing` ? 1 : .3), e.y > Z && (e.y = 0, e.x = Cr + Math.random() * Tr);
-            for (let e = pn.length - 1; e >= 0; e--) pn[e].y -= .45, pn[e].life--, pn[e].life <= 0 && pn.splice(e, 1);
-            for (let e = gn.length - 1; e >= 0; e--) gn[e].life--, gn[e].life <= 0 && gn.splice(e, 1);
-            for (let e = fn.length - 1; e >= 0; e--) {
-                let t = fn[e];
-                t.x += t.vx, t.y += t.vy, t.life--, t.life <= 0 && fn.splice(e, 1)
+            y++;
+            {
+                let d = decayTimers({
+                    shake: we, shopToast: Me, optToast: $e, stToast: Ye,
+                    shareToast: St, missionBanner: wt, missionToast: Et,
+                    shield: Ce, celebrate: Pe
+                });
+                we = d.shake, Me = d.shopToast, $e = d.optToast, Ye = d.stToast;
+                St = d.shareToast, wt = d.missionBanner, Et = d.missionToast;
+                Ce = d.shield, Pe = d.celebrate;
             }
-            if (p === `attract` || p === `shop` || p === `options` || p === `soundtest` || p === `changelog`) return;
-            if (p === `ready`) oe--, oe <= 0 && (p = `playing`);
-            else if (p === `bossintro`) oe--, oe <= 0 && (p = `playing`);
-            else if (p === `stageclear`) {
-                oe--, oe <= 0 && fr(!1);
+            tickStars(_n, p, Z, Cr, Tr);
+            tickFloats(pn);
+            tickLifetimes(gn);
+            tickParticles(fn);
+
+            let mtick = tickMode({ mode: p, readyFrames: oe, frame: y });
+            if (mtick.type === `menu_idle`) return;
+            if (mtick.type === `stageclear_to_shop`) {
+                oe = mtick.readyLeft;
+                if (mtick.openShop) fr(!1);
                 return
-            } else if (p === `gameover`) {
-                y % 90 == 0 && Bt();
+            }
+            if (mtick.type === `gameover_poll`) {
+                mtick.pollCoins && Bt();
                 return
-            } else if (p === `name`) {
-                Ae++;
-                return
-            } else if (p === `inbox`) {
-                    Q(56, 24, 208, 360, `#001018`), l.strokeStyle = `#66ccff`, l.strokeRect(56.5, 24.5, 207, 359);
-                    $(`INBOX`, X / 2, 32, `#88eeff`, 12, `center`);
-                    $(`消すまで残る · ミッションMSGのみお礼可`, X / 2, 46, `#446688`, 7, `center`);
-                    if (!G.length) {
-                        $(`メッセージはありません`, X / 2, Z * .45, `#668888`, 8, `center`);
-                        $(`TAP=戻る`, X / 2, 372, `#556666`, 7, `center`);
-                    } else if (Ft) {
-                        let e = G[Pt];
-                        if (!e) Ft = !1;
-                        else {
-                            let d = buildInboxDetail(e, Wn(e));
-                            $(d.header, X / 2, 60, `#aaddff`, 9, `center`);
-                            $(d.fromLine, X / 2, 78, `#88aacc`, 8, `center`);
-                            d.bodyLines.forEach((line, idx) => {
-                                $(line, X / 2, 110 + idx * 16, `#ffffff`, 10, `center`);
-                            });
-                            if (d.thanksState === `can`) {
-                                Q(72, Z * .55, 176, 28, `#332200`), l.strokeStyle = `#ffcc66`, l.strokeRect(72.5, 220.5, 175, 27);
-                                $(d.thanksLabel, X / 2, 228, `#ffeeaa`, 9, `center`);
-                            } else {
-                                $(d.thanksLabel, X / 2, 228, `#889988`, 8, `center`);
-                            }
-                            Q(72, Z * .68, 176, 26, `#220011`), l.strokeStyle = `#ff6688`, l.strokeRect(72.5, 272.5, 175, 25);
-                            $(`🗑 削除する`, X / 2, 279, `#ff99aa`, 9, `center`);
-                            Q(88, Z * .8, 144, 22, `#001820`), l.strokeStyle = `#446666`, l.strokeRect(88.5, 320.5, 143, 21);
-                            $(`◀ 一覧へ`, X / 2, 325, `#88aaaa`, 8, `center`);
-                        }
-                    } else {
-                        let { rows } = buildInboxListRows({
-                            messages: G,
-                            cursor: Pt,
-                            canThanks: Wn
-                        });
-                        for (let row of rows) {
-                            row.selected && Q(62, row.y - 2, 196, 44, `#002233`);
-                            $(row.fromLine, 66, row.y, row.kindColor, 7);
-                            $(row.bodyPreview, 66, row.y + 12, `#ffffff`, 9);
-                            $(row.status, 258, row.y + 12, row.statusColor, 7, `right`);
-                            $(row.sourceTag, 66, row.y + 26, `#445566`, 6);
-                        }
-                        $(`選択TAP→詳細  下端=戻る`, X / 2, 372, `#556666`, 7, `center`);
-                    }
-                } else if (K.vstick && xn) Math.min(1, Math.hypot(En, Dn)) > VSTICK_DEADZONE && (J.x += En * t * e, J.y += Dn * t * e);
-            else if (!K.vstick && vn) {
+            }
+            if (mtick.type === `name_blink`) { Ae++; return }
+            if (mtick.type === `inbox_idle`) return;
+            if (mtick.type === `countdown_to_playing`) {
+                oe = mtick.readyLeft;
+                if (oe <= 0) p = `playing`;
+            } else if (mtick.type === `play`) {
+                if (K.vstick && xn) {
+                let sp = playerSpeed(O.speed, K.sense);
+                Math.min(1, Math.hypot(En, Dn)) > VSTICK_DEADZONE && (J.x += En * sp * e, J.y += Dn * sp * e);
+            } else if (!K.vstick && vn) {
                 let t = swipeFollowFactor(O.speed, K.sense, e);
                 J.x += (yn - J.x) * t, J.y += (bn - J.y) * t
+            }
             }
             {
                 let pos = clampPlayerPos(J.x, J.y);
                 J.x = pos.x, J.y = pos.y
             }
             if (Se > 0 && Se--, p === `playing`) {
-                if (x -= e * 60, x <= 0) {
-                    (Qt(`shot`) || Qt(`option`)) && Hr();
-                    {
-                        x = shotCooldownFrames(q(`rate`))
+                {
+                    let tick = tickWeaponCds({
+                        shot: x, missile: S, particle: T, lockon: ye, beam: be, flame: xe
+                    }, {
+                        rate: q(`rate`),
+                        missile: q(`missile`),
+                        cluster: q(`cluster`),
+                        particle: q(`particle`),
+                        overdrive: q(`overdrive`),
+                        lockon: q(`lockon`),
+                        hyper: q(`hyper`),
+                        beam: q(`beam`),
+                        flame: q(`flame`),
+                        shotArmed: Qt(`shot`),
+                        optionArmed: Qt(`option`),
+                        linked: !!V.linked
+                    }, e);
+                    x = tick.cds.shot, S = tick.cds.missile, T = tick.cds.particle;
+                    ye = tick.cds.lockon, be = tick.cds.beam, xe = tick.cds.flame;
+                    for (let f of tick.fire) {
+                        if (f === `shot`) Hr();
+                        else if (f === `missile`) Gr();
+                        else if (f === `particle`) Kr();
+                        else if (f === `lockon`) qr();
+                        else if (f === `beam`) Ur();
+                        else if (f === `flame`) Wr();
                     }
                 }
-                if (S -= e * 60, S <= 0 && q(`missile`) > 0) {
-                    Gr();
-                    let e = q(`missile`),
-                        t = q(`cluster`);
-                    S = missileCooldownFrames(e, t)
+                if (!De) {
+                    let sp = tickSpawnTimer(b, Te, Ee, !!De);
+                    b = sp.spawnCd;
+                    if (sp.spawn) zr(), b = enemySpawnInterval(v);
+                    if (sp.startBoss) Br();
                 }
-                if (T -= e * 60, T <= 0 && q(`particle`) > 0) {
-                    Kr();
-                    let e = q(`particle`),
-                        t = q(`overdrive`);
-                    T = particleCooldownFrames(e, t)
-                }
-                if (ye -= e * 60, ye <= 0 && q(`lockon`) > 0) {
-                    qr();
-                    let e = q(`lockon`),
-                        t = q(`hyper`);
-                    ye = lockonCooldownFrames(e, t)
-                }
-                if (be -= e * 60, be <= 0 && q(`beam`) > 0 && V.linked) {
-                    Ur();
-                    let e = q(`beam`);
-                    be = beamCooldownFrames(e)
-                }
-                if (xe -= e * 60, xe <= 0 && q(`flame`) > 0 && V.linked) {
-                    Wr();
-                    let e = q(`flame`);
-                    xe = flameCooldownFrames(e)
-                }
-                De || (b--, b <= 0 && (zr(), b = enemySpawnInterval(v)), Te >= Ee && Br());
                 for (let t = dn.length - 1; t >= 0; t--) {
                     let n = dn[t];
-                    if (n.phase += e * 3, n.flash > 0 && n.flash--, n.boss) {
-                        let e = hn(n.bossId);
-                        stepBossPosition(n, e.move, Cr, wr)
-                    } else n.x += n.vx, n.y += n.vy, n.type === 2 && (n.x += Math.sin(n.phase) * .8), (n.x < 56 || n.x > 264) && (n.vx *= -1);
-                    n.fireCd--, n.fireCd <= 0 && n.y > 20 && n.y < 360 && (Vr(n), n.fireCd = n.boss ? 28 + n.bossId % 20 : 50 + Math.random() * 40), !n.boss && n.y > 430 && dn.splice(t, 1), Se <= 0 && enemyPlayerHit(n.x, n.y, n.w, n.h, J.x, J.y, J.w, J.h) && (Rr(), n.boss || Lr(n, 999, n.x, n.y))
-                }
-                for (let e = Y.length - 1; e >= 0; e--) {
-                    let t = Y[e];
-                    if (t.life--, t.kind === `missile` && t.from === `p`) {
-                        let e = t.targetId ? Fr(t.targetId) : void 0;
-                        if (!e) {
-                            let n = Ir(1)[0];
-                            n && (t.targetId = n.id, e = n)
-                        }
-                        if (e) {
-                            let n = Math.atan2(e.y - t.y, e.x - t.x),
-                                r = Math.atan2(t.vy, t.vx),
-                                i = n - r;
-                            for (; i > Math.PI;) i -= Math.PI * 2;
-                            for (; i < -Math.PI;) i += Math.PI * 2;
-                            let a = r + Math.max(-t.turn, Math.min(t.turn, i)),
-                                o = Math.hypot(t.vx, t.vy) || 3;
-                            t.vx = Math.cos(a) * Math.min(5.5, o + .05), t.vy = Math.sin(a) * Math.min(5.5, o + .05)
-                        }
+                    stepEnemyMotion(n, e, (en) => {
+                        let meta = hn(en.bossId);
+                        stepBossPosition(en, meta.move, Cr, wr);
+                    });
+                    n.fireCd--;
+                    if (enemyShouldFire(n)) {
+                        Vr(n);
+                        n.fireCd = enemyReloadFrames(n);
                     }
-                    if (t.x += t.vx, t.y += t.vy, t.life <= 0 || t.y < -20 || t.y > 420 || t.x < 28 || t.x > 292) {
-                        Y.splice(e, 1);
+                    if (enemyShouldDespawn(n)) {
+                        dn.splice(t, 1);
+                        continue
+                    }
+                    if (Se <= 0 && enemyPlayerHit(n.x, n.y, n.w, n.h, J.x, J.y, J.w, J.h)) {
+                        Rr();
+                        if (!n.boss) Lr(n, 999, n.x, n.y);
+                    }
+                }
+                for (let bi = Y.length - 1; bi >= 0; bi--) {
+                    let t = Y[bi];
+                    t.life--;
+                    if (t.kind === `missile` && t.from === `p`) {
+                        let tgt = t.targetId ? Fr(t.targetId) : void 0;
+                        if (!tgt) {
+                            let n = Ir(1)[0];
+                            n && (t.targetId = n.id, tgt = n)
+                        }
+                        steerMissile(t, tgt);
+                    }
+                    t.x += t.vx, t.y += t.vy;
+                    if (bulletOutOfBounds(t)) {
+                        Y.splice(bi, 1);
                         continue
                     }
                     if (t.from === `p`) {
                         for (let n of dn)
                             if (aabbOverlap(t.x, t.y, t.w * 2, t.h * 2, n.x, n.y, n.w, n.h)) {
-                                Lr(n, t.dmg, t.x, t.y), t.kind !== `particle` && Y.splice(e, 1), K.shake && (we = Math.min(10, we + 1));
+                                Lr(n, t.dmg, t.x, t.y), t.kind !== `particle` && Y.splice(bi, 1), K.shake && (we = Math.min(10, we + 1));
                                 break
                             }
-                    } else Se <= 0 && playerBulletHit(J.x, J.y, t.x, t.y) && (Rr(), Y.splice(e, 1))
+                    } else Se <= 0 && playerBulletHit(J.x, J.y, t.x, t.y) && (Rr(), Y.splice(bi, 1))
                 }
             }
         }
@@ -2049,23 +2198,24 @@ function Nr() {
             let shake = screenShakeOffset(we),
                 e = shake.x,
                 t = shake.y;
-            if (l.save(), l.translate(e, t), Q(Cr, 0, Tr, Z, `#000`), p === `attract`) fi();
-            else if (p === `changelog`) ci();
-            else if (p === `soundtest`) Ri();
-            else if (p === `shop`) ri();
-            else if (p === `options`) ii();
+            let route = drawRoute(p);
+            if (l.save(), l.translate(e, t), Q(Cr, 0, Tr, Z, `#000`), route === `attract`) fi();
+            else if (route === `changelog`) ci();
+            else if (route === `soundtest`) Ri();
+            else if (route === `shop`) ri();
+            else if (route === `options`) ii();
             else {
                 for (let e of _n) Q(e.x, e.y, e.s, e.s, starColor(e.s));
-                if (p === `playing` || p === `ready` || p === `stageclear` || p === `bossintro`) {
-                    for (let e of gn) l.strokeStyle = e.color, l.globalAlpha = Math.min(1, e.life / 6), l.lineWidth = 1 + O.lockon * .4, l.beginPath(), l.moveTo(J.x, J.y - 6), l.lineTo(e.tx, e.ty), l.stroke(), l.strokeRect(e.tx - 6, e.ty - 6, 12, 12), l.globalAlpha = 1;
+                if (fieldDrawsEntities(p)) {
+                    for (let e of gn) l.strokeStyle = e.color, l.globalAlpha = lockonAlpha(e.life), l.lineWidth = 1 + O.lockon * .4, l.beginPath(), l.moveTo(J.x, J.y - 6), l.lineTo(e.tx, e.ty), l.stroke(), l.strokeRect(e.tx - 6, e.ty - 6, 12, 12), l.globalAlpha = 1;
                     let powerLv = q(`power`);
                     for (let e of Y)
                         for (let r of bulletRects(e, powerLv)) Q(r.x, r.y, r.w, r.h, r.color);
                     for (let e of dn) Xr(e);
-                    Ce > 0 && (l.strokeStyle = y % 8 < 4 ? `#66ffff` : `#2288aa`, l.beginPath(), l.arc(J.x, J.y, 14, 0, Math.PI * 2), l.stroke()), Jr(J.x, J.y, 1, Se > 0 && Math.floor(Se / 3) % 2 == 0), Yr();
-                    for (let e of fn) l.globalAlpha = Math.max(0, e.life / e.max), Q(e.x, e.y, e.size, e.size, e.color);
+                    Ce > 0 && (l.strokeStyle = shieldStrokeColor(y), l.beginPath(), l.arc(J.x, J.y, 14, 0, Math.PI * 2), l.stroke()), Jr(J.x, J.y, 1, invulnBlink(Se)), Yr();
+                    for (let e of fn) l.globalAlpha = particleAlpha(e.life, e.max), Q(e.x, e.y, e.size, e.size, e.color);
                     l.globalAlpha = 1;
-                    for (let e of pn) l.globalAlpha = Math.min(1, e.life / 20), $(e.text, e.x, e.y, e.color, 8, `center`);
+                    for (let e of pn) l.globalAlpha = floatTextAlpha(e.life), $(e.text, e.x, e.y, e.color, 8, `center`);
                     l.globalAlpha = 1, ni()
                 }
                 {
@@ -2130,7 +2280,7 @@ function Nr() {
                         $(`選択TAP→詳細  下端=戻る`, X / 2, 372, `#556666`, 7, `center`)
                     }
                 }
-                p !== `name` && p !== `inbox` && $r()
+                fieldShowsHud(p) && $r()
             }
             if (l.restore(), Qr(), K.scanlines) {
                 l.fillStyle = `rgba(0,0,0,0.12)`;
@@ -2160,76 +2310,40 @@ function Nr() {
         }
 
         function Qi(e, t) {
-            if (e < Cr || e > wr) {
-                // upper BACK, lower OPT
-                if (t >= 100 && t < 150) mr(`shop`);
-                else pr();
-                return
-            }
+            let act = shopPointerUp({
+                x: e,
+                y: t,
+                left: Cr,
+                right: wr,
+                catalogLen: Kn().length,
+                cursor: D
+            });
             let n = Kn();
-            if (t >= 22 && t <= 46) {
-                if (e >= 150 && e <= 208) {
-                    D = n.length + 2, Wi();
-                    return
-                }
-                if (e >= 212 && e <= 264) {
-                    D = n.length + 1, mr(`shop`);
-                    return
-                }
-            }
-            let r = qn(n, 10);
-            for (let e = 0; e < Math.min(10, n.length); e++) {
-                let i = e + r,
-                    a = 68 + e * 20;
-                if (t >= a - 1 && t < a + 20 - 1) {
-                    D === i ? sr(n[i]) : (D = i, w());
-                    return
-                }
-            }
-            if (t >= 350 && t <= 388) {
-                if (e >= 56 && e < 122.66666666666667) {
-                    D = n.length + 2, Wi();
-                    return
-                }
-                if (e >= 126.66666666666667 && e < 193.33333333333334) {
-                    D = n.length + 1, mr(`shop`);
-                    return
-                }
-                if (e >= 197.33333333333334 && e <= 264) {
-                    D = n.length, pr();
-                    return
-                }
-            }
-            $i()
+            if (act.type === `side_opt`) { mr(`shop`); return }
+            if (act.type === `side_back`) { pr(); return }
+            if (act.type === `header_share` || act.type === `footer_share`) { D = n.length + 2, Wi(); return }
+            if (act.type === `header_opt` || act.type === `footer_opt`) { D = n.length + 1, mr(`shop`); return }
+            if (act.type === `footer_go`) { D = n.length, pr(); return }
+            if (act.type === `buy`) { D = act.index, sr(n[act.index]); return }
+            if (act.type === `select`) { D = act.index, w(); return }
+            if (act.type === `empty_confirm`) $i()
         }
 
         function $i() {
-            let e = Kn();
-            if (D < e.length) {
-                sr(e[D]);
-                return
-            }
-            if (D === e.length) {
-                pr();
-                return
-            }
-            if (D === e.length + 1) {
-                mr(`shop`);
-                return
-            }
-            if (D === e.length + 2) {
-                Wi();
-                return
-            }
+            let e = Kn(),
+                act = shopEmptyConfirm(D, e.length);
+            if (act.type === `buy`) sr(e[act.index]);
+            else if (act.type === `go`) pr();
+            else if (act.type === `opt`) mr(`shop`);
+            else if (act.type === `share`) Wi()
         }
 
         function ea() {
-            return Kn().length + 2
+            return shopCursorMax(Kn().length)
         }
 
         function ta(e) {
-            let t = ea();
-            D = Math.max(0, Math.min(t, D + e)), w()
+            D = shopCursorStep(D, e, Kn().length), w()
         }
 
         function na(e, t) {
@@ -2253,9 +2367,10 @@ function Nr() {
             if (!ot || p !== `shop`) return;
             let n = t - ct,
                 r = e - st;
-            if (Math.abs(n) >= Math.abs(r) * .65) {
-                for (lt += n, ct = t, st = e; lt <= -16;) ta(-1), lt += 16, ut = !0;
-                for (; lt >= 16;) ta(1), lt -= 16, ut = !0;
+            let scr = shopDragScroll({ dx: r, dy: n, accum: lt, stepPx: 16 });
+            if (scr.vertical) {
+                lt = scr.accum, ct = t, st = e;
+                if (scr.steps) ta(scr.steps), ut = !0;
                 return
             }
             st = e, ct = t
@@ -2280,13 +2395,17 @@ function Nr() {
         }
 
         function sa(e, t) {
-            if (e < Cr || e > wr) {
-                hr();
-                return
-            }
+            let down = optionsPointerDown({
+                x: e,
+                y: t,
+                left: Cr,
+                right: wr,
+                rowAtY: aa,
+                rowKind: (i) => an()[i]?.kind
+            });
+            if (down.sideBack) { hr(); return }
             et = !0, tt = e, nt = t, rt = 0, it = 0, at = !1;
-            let n = aa(t);
-            n >= 0 && an()[n].kind !== `header` && (R = n)
+            if (down.selectRow) R = down.rowIndex
         }
 
         function ca(e, t) {
@@ -2339,26 +2458,21 @@ function Nr() {
 
         function ua(e, t) {
             if (!et) return;
-            if (et = !1, at) {
-                at = !1;
-                return
-            }
-            if (e < Cr || e > wr) return;
-            let n = aa(t);
-            if (n < 0) {
-                la(R);
-                return
-            }
-            let r = an()[n];
-            if (!r || r.kind === `header`) {
-                la(R);
-                return
-            }
-            if (n === R) {
-                la(R);
-                return
-            }
-            R = n, w()
+            et = !1;
+            let up = optionsPointerUp({
+                dragged: !!at,
+                x: e,
+                y: t,
+                left: Cr,
+                right: wr,
+                cursor: R,
+                rowAtY: aa,
+                rowKind: (i) => an()[i]?.kind
+            });
+            at = !1;
+            if (up.type === `ignore`) return;
+            if (up.type === `activate`) { la(up.cursor); return }
+            if (up.type === `select`) { R = up.cursor, w() }
         }
 
         function da(e, t) {
@@ -2368,31 +2482,25 @@ function Nr() {
 
         function fa(e, t) {
             let n = Xi(e, t);
-            if (ee(), Gt(), p !== `attract` && p !== `options` && p !== `shop` && muteButtonHit(n.x, n.y)) {
+            ee(), Gt();
+            let route = routePointerDown({
+                mode: p,
+                x: n.x,
+                y: n.y,
+                left: Cr,
+                right: wr,
+                muteHit: muteButtonHit(n.x, n.y)
+            });
+            if (route.type === `mute`) {
                 Fe = ne(), K.muted = Fe, Kt(), Fe || (p === `bossintro` || p === `playing` && De ? mt(mn(v).vibe, v) : (p === `playing` || p === `ready`) && W(`play`, v)), w();
                 return
             }
-            if (p === `attract`) {
-                Gi(n.x, n.y);
-                return
-            }
-            if (p === `changelog`) {
-                li(n.x, n.y);
-                return
-            }
-            if (p === `soundtest`) {
-                Vi(n.x, n.y);
-                return
-            }
-            if (p === `options`) {
-                sa(n.x, n.y);
-                return
-            }
-            if (p === `shop`) {
-                na(n.x, n.y);
-                return
-            }
-            if (p === `gameover`) {
+            if (route.type === `mode` && route.mode === `attract`) { Gi(n.x, n.y); return }
+            if (route.type === `mode` && route.mode === `changelog`) { li(n.x, n.y); return }
+            if (route.type === `mode` && route.mode === `soundtest`) { Vi(n.x, n.y); return }
+            if (route.type === `mode` && route.mode === `options`) { sa(n.x, n.y); return }
+            if (route.type === `mode` && route.mode === `shop`) { na(n.x, n.y); return }
+            if (route.type === `mode` && route.mode === `gameover`) {
                 let hit = gameOverHit(n.x, n.y, Cr, wr);
                 if (hit === `side_share` || hit === `share`) { Wi(), Bt(); return }
                 if (hit === `side_title` || hit === `title`) { p = `attract`, Bt(), W(`attract`), w(); return }
@@ -2402,70 +2510,56 @@ function Nr() {
                 }
                 return
             }
-            if (p === `name`) {
-                if (n.x < Cr || n.x > wr) {
-                    p = `attract`, W(`attract`), w();
-                    return
-                }
-                n.x < X / 3 ? Zi(-1) : n.x > X * 2 / 3 ? Zi(1) : (Oe++, Oe >= 3 && (p = `attract`, W(`attract`)));
+            if (route.type === `mode` && route.mode === `name`) {
+                let hit = nameEntryHit(n.x, X, Cr, wr);
+                if (hit === `side_back`) { p = `attract`, W(`attract`), w(); return }
+                if (hit === `letter_prev`) Zi(-1);
+                else if (hit === `letter_next`) Zi(1);
+                else Oe++, Oe >= 3 && (p = `attract`, W(`attract`));
                 return
             }
-            if (p === `inbox`) {
-                if (n.x < Cr || n.x > wr) {
+            if (route.type === `mode` && route.mode === `inbox`) {
+                let hit = inboxPointerHit({
+                    x: n.x,
+                    y: n.y,
+                    left: Cr,
+                    right: wr,
+                    fieldH: Z,
+                    messageCount: G.length,
+                    detailOpen: !!Ft,
+                    cursor: Pt
+                });
+                if (hit.type === `side_title` || hit.type === `empty_title` || hit.type === `list_back`) {
                     p = `attract`, W(`attract`), w();
                     return
                 }
-                if (!G.length) {
-                    p = `attract`, W(`attract`);
-                    return
-                }
-                if (!Ft) {
-                    if (n.y > 364) {
-                        p = `attract`, W(`attract`);
-                        return
-                    }
-                    let e = Math.max(0, Math.min(Pt, Math.max(0, G.length - 5)));
-                    for (let t = 0; t < Math.min(5, G.length - e); t++) {
-                        let r = 58 + t * 48;
-                        if (n.y >= r - 2 && n.y < r + 44) {
-                            Pt = e + t, Ft = !0, w();
-                            return
-                        }
-                    }
-                    return
-                }
-                let e = G[Pt];
-                if (!e) {
-                    Ft = !1;
-                    return
-                }
-                if (n.y >= Z * .55 && n.y < Z * .65) {
+                if (hit.type === `open`) { Pt = hit.index, Ft = !0, w(); return }
+                if (hit.type === `thanks`) {
+                    let e = G[Pt];
+                    if (!e) { Ft = !1; return }
                     Wn(e) ? zt(e) : C();
                     return
                 }
-                if (n.y >= Z * .68 && n.y < Z * .78) {
-                    $n({
-                        playerId: B,
-                        messageId: e.id
-                    }).then(() => {
-                        It(), Ft = !1, w()
-                    });
+                if (hit.type === `delete`) {
+                    let e = G[Pt];
+                    if (!e) { Ft = !1; return }
+                    $n({ playerId: B, messageId: e.id }).then(() => { It(), Ft = !1, w() });
                     return
                 }
-                if (n.y >= Z * .8) {
-                    Ft = !1, w();
-                    return
-                }
+                if (hit.type === `to_list`) { Ft = !1, w(); return }
+                if (hit.type === `clear_detail`) { Ft = !1; return }
                 return
             }
-            if ((p === `playing` || p === `ready` || p === `bossintro`) && (n.x < Cr || n.x > wr)) {
-                // side rails: upper=primary, lower=alt (shop / options)
-                let left = n.x < Cr,
-                    upper = n.y < 100;
-                if (left) upper ? fr(!0) : mr(`play`);
-                else upper ? mr(`play`) : fr(!0);
+            if (route.type === `play_side`) {
+                if (route.left) route.upper ? fr(!0) : mr(`play`);
+                else route.upper ? mr(`play`) : fr(!0);
                 return
-            }(p === `playing` || p === `ready` || p === `bossintro`) && (K.vstick ? (xn = !0, Cn = Math.max(78, Math.min(242, n.x)), Tn = Math.max(70, Math.min(380, n.y)), En = 0, Dn = 0) : (vn = !0, yn = Math.max(58, Math.min(262, n.x)), bn = Math.max(36, Math.min(382, n.y))))
+            }
+            if (route.type === `play_move`) {
+                let mv = playMoveFromPointer({ x: n.x, y: n.y, vstick: !!K.vstick });
+                if (mv.vstick) xn = !0, Cn = mv.stickX, Tn = mv.stickY, En = 0, Dn = 0;
+                else vn = !0, yn = mv.followX, bn = mv.followY
+            }
         }
 
         function pa(e, t) {
