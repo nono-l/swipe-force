@@ -11,11 +11,13 @@ export type SoundTestMenuAction =
   | "stage_list"
   | "boss_list"
   | "legacy_list"
+  | "archive_list"
   | "stop"
   | "back"
   | "stage"
   | "boss"
-  | "legacy";
+  | "legacy"
+  | "archive";
 
 export type SoundTestMenuItem = {
   label: string;
@@ -30,7 +32,8 @@ export function buildSoundTestRootMenu(): SoundTestMenuItem[] {
     { label: "▶ TITLE THEME", action: "title" },
     { label: "STAGE BGM ×64", sub: "各面テーマ", action: "stage_list" },
     { label: "BOSS THEME ×64", sub: "物語アーク", action: "boss_list" },
-    { label: "旧ボス曲 CHIP×64", sub: "アーカイブ", action: "legacy_list" },
+    { label: "旧ボス曲 CHIP×64", sub: "チップアーカイブ", action: "legacy_list" },
+    { label: "旧曲バックアップ", sub: "入れ替え前の曲", action: "archive_list" },
     { label: "■ STOP", action: "stop" },
     { label: "◀ BACK", action: "back" },
   ];
@@ -40,19 +43,58 @@ export type SoundCatalogLabels = {
   stage: (n: number) => string;
   boss: (n: number) => string;
   legacy: (n: number) => string;
+  archive?: (n: number) => string;
+  /** period-only subline for archive rows */
+  archivePeriod?: (n: number) => string;
 };
 
 export type SoundCatalog = {
   stages: number;
   bosses: number;
+  archives?: number;
   labels: SoundCatalogLabels;
 };
 
-/** Recovered `Ii(mode)` — stage / boss / legacy track list + BACK */
+/** Recovered `Ii(mode)` — stage / boss / legacy / archive track list + BACK */
 export function buildSoundTestTrackList(
-  mode: "stage" | "boss" | "legacy" | string,
+  mode: "stage" | "boss" | "legacy" | "archive" | string,
   catalog: SoundCatalog,
 ): SoundTestMenuItem[] {
+  if (mode === "archive") {
+    const count = Math.max(0, catalog.archives || 0);
+    const items: SoundTestMenuItem[] = [];
+    for (let i = 1; i <= count; i++) {
+      let label = catalog.labels.archive
+        ? catalog.labels.archive(i)
+        : `旧曲 #${String(i).padStart(2, "0")}`;
+      // Prefer dedicated period label if catalog provides it
+      let sub =
+        catalog.labels.archivePeriod?.(i) ||
+        "使用期間";
+      if (label.length > 26) label = label.slice(0, 25) + "…";
+      // strip legacy "(period)" suffix if still present
+      const m = label.match(/^(.*)\s+\(([^)]+)\)$/);
+      if (m && !catalog.labels.archivePeriod) {
+        label = m[1];
+        sub = m[2];
+      }
+      items.push({
+        label,
+        sub,
+        action: "archive",
+        n: i,
+      });
+    }
+    if (!count) {
+      items.push({
+        label: "（まだバックアップなし）",
+        action: "back",
+        n: 0,
+      });
+    }
+    items.push({ label: "◀ BACK", action: "back", n: 0 });
+    return items;
+  }
   const count = mode === "stage" ? catalog.stages : catalog.bosses;
   const items: SoundTestMenuItem[] = [];
   for (let i = 1; i <= count; i++) {
@@ -137,6 +179,8 @@ export function soundTestListHeader(
   if (mode === "stage") return { title: "STAGE THEMES", color: "#66aacc" };
   if (mode === "legacy")
     return { title: "LEGACY BOSS (旧曲)", color: "#aa8866" };
+  if (mode === "archive")
+    return { title: "ARCHIVES (入れ替え前)", color: "#ccaa66" };
   return { title: "STORY BOSS THEMES", color: "#66aacc" };
 }
 

@@ -1,0 +1,1 @@
+ALTER TABLE ad_watch_player ADD COLUMN IF NOT EXISTS total_watch_sec INTEGER NOT NULL DEFAULT 0;

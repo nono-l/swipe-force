@@ -1,16 +1,25 @@
 /**
  * Gift-only bag grants: daily login bonus + promo URL codes.
  * Built-in defs + custom promos (local admin UI).
+ * unlocks lives as grant.unlocks string (e.g. "beam,flame") — no extra DB cols.
  */
 
 import type { BagStock } from "./bag-inventory";
 import { addBagStock, EMPTY_BAG } from "./bag-inventory";
+import {
+  applyUnlocksFromGrant,
+  formatUnlocksSummary,
+  normalizeUnlocksString,
+} from "./weapon-unlocks";
 
 export const LOGIN_BONUS_KEY = "swipe_force_login_bonus_v1";
 export const PROMO_CLAIMED_KEY = "swipe_force_promo_claimed_v1";
 export const CUSTOM_PROMO_KEY = "swipe_force_promo_defs_v1";
 
-export type GrantBundle = Partial<BagStock>;
+export type GrantBundle = Partial<BagStock> & {
+  /** comma-separated special weapons: "beam,flame" */
+  unlocks?: string;
+};
 
 export type PromoDef = {
   code: string;
@@ -70,19 +79,22 @@ export function sanitizeGrant(g: GrantBundle | null | undefined): GrantBundle {
   const a = clampQty(g?.ptsX5);
   const b = clampQty(g?.ptsX10);
   const c = clampQty(g?.ptsPack);
+  const u = normalizeUnlocksString(g?.unlocks);
   if (t) out.stageTicket = t;
   if (a) out.ptsX5 = a;
   if (b) out.ptsX10 = b;
   if (c) out.ptsPack = c;
+  if (u) out.unlocks = u;
   return out;
 }
 
 export function grantIsEmpty(g: GrantBundle): boolean {
   return !(
     (g.stageTicket || 0) +
-    (g.ptsX5 || 0) +
-    (g.ptsX10 || 0) +
-    (g.ptsPack || 0)
+      (g.ptsX5 || 0) +
+      (g.ptsX10 || 0) +
+      (g.ptsPack || 0) ||
+    (g.unlocks && g.unlocks.length > 0)
   );
 }
 
@@ -285,6 +297,8 @@ export function formatGrantSummary(g: GrantBundle): string {
   if (g.ptsX5) parts.push(`×5×${g.ptsX5}`);
   if (g.ptsX10) parts.push(`×10×${g.ptsX10}`);
   if (g.ptsPack) parts.push(`+5K×${g.ptsPack}`);
+  const u = formatUnlocksSummary(g.unlocks);
+  if (u) parts.push(`UNLOCK:${u}`);
   return parts.length ? parts.join(" ") : "なし";
 }
 
@@ -295,6 +309,7 @@ export function applyGrantToBag(bag: BagStock, grant: GrantBundle): BagStock {
   if (grant.ptsX5) next = addBagStock(next, "ptsX5", grant.ptsX5 | 0);
   if (grant.ptsX10) next = addBagStock(next, "ptsX10", grant.ptsX10 | 0);
   if (grant.ptsPack) next = addBagStock(next, "ptsPack", grant.ptsPack | 0);
+  if (grant.unlocks) applyUnlocksFromGrant(grant.unlocks);
   return next;
 }
 

@@ -51,6 +51,7 @@ export type SoundTestMenuAction =
   | { type: "open_stage" }
   | { type: "open_boss" }
   | { type: "open_legacy" }
+  | { type: "open_archive" }
   | { type: "stop" }
   | { type: "back" }
   | { type: "noop" };
@@ -62,6 +63,7 @@ export function soundTestMenuAction(
   if (action === "stage_list") return { type: "open_stage" };
   if (action === "boss_list") return { type: "open_boss" };
   if (action === "legacy_list") return { type: "open_legacy" };
+  if (action === "archive_list") return { type: "open_archive" };
   if (action === "stop") return { type: "stop" };
   if (action === "back") return { type: "back" };
   return { type: "noop" };
@@ -78,7 +80,12 @@ export function soundTestListAction(
 ): SoundTestListAction {
   if (!item) return { type: "noop" };
   if (item.action === "back") return { type: "back_menu" };
-  if (mode === "stage" || mode === "boss" || mode === "legacy") {
+  if (
+    mode === "stage" ||
+    mode === "boss" ||
+    mode === "legacy" ||
+    mode === "archive"
+  ) {
     return { type: "play", list: mode, index: item.n ?? 0 };
   }
   return { type: "noop" };

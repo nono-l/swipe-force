@@ -290,34 +290,29 @@ export function openTwitterShare(
   const shareId = newShareId();
   const url = shareUrl(playerId, shareId);
   const help = progressHelpLine(progress);
-  const tags = ["SWIPEFORCE","GrokBuild","シューティング","indiegames"].map(
-    (t) => t.trim(),
-  );
-  // hashtags without # in the param
-  const hashtagParam = tags.filter(Boolean).join(",");
   const who =
     profile?.displayName && profile.displayName.trim()
-      ? `パイロット「${profile.displayName.trim().slice(0, 16)}」`
+      ? `パイロット「${profile.displayName.trim().slice(0, 16)}」が助けを求めています`
       : "";
-  // dedicated 40-char share template (not the long self-intro)
   const blurb =
     profile?.shareBlurb && profile.shareBlurb.trim()
       ? profile.shareBlurb.trim().slice(0, 40)
       : "";
-  const text = [
-    "SWIPE FORCE",
-    who ? `${who}が助けを求めています` : "",
-    blurb,
-    help,
-    "",
-    `#SWIPEFORCE #GrokBuild #シューティング`,
-    url,
-  ]
-    .filter((line) => line !== "")
-    .join("\n");
-  const intent =
-    `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}` +
-    `&hashtags=${encodeURIComponent(hashtagParam)}`;
+
+  // Clean layout — tags then blank then URL. No &hashtags= (avoids trailing dup tags).
+  const lines: string[] = ["SWIPE FORCE"];
+  if (who) lines.push(who);
+  if (blurb) lines.push(blurb);
+  for (const line of help.split("\n")) {
+    if (line !== "") lines.push(line);
+  }
+  lines.push("");
+  lines.push("#SWIPEFORCE #GrokBuild #シューティング #indiegames");
+  lines.push("");
+  lines.push(url);
+
+  const text = lines.join("\n");
+  const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
   window.open(intent, "_blank", "noopener,noreferrer");
   return shareId;
 }

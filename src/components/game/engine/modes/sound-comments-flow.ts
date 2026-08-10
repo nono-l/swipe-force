@@ -21,7 +21,8 @@ export function commentsReturnMode(
     listMode === "menu" ||
     listMode === "stage" ||
     listMode === "boss" ||
-    listMode === "legacy"
+    listMode === "legacy" ||
+    listMode === "archive"
   ) {
     return listMode;
   }

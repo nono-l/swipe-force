@@ -85,38 +85,44 @@ export function shopItemMax(
   item: ShopItem,
   linked: boolean,
   weaponExtendIds: readonly string[] = WEAPON_EXTEND_IDS,
+  /** promo-unlocked special weapon ids (beam/flame) */
+  specialUnlocks: readonly string[] = [],
 ): number {
   if (item.stockable || item.consumable) return item.max;
   if (linked && weaponExtendIds.includes(item.id)) return 20;
-  if ((item.linkOnly || item.tier >= 4) && !linked) return 0;
+  const specialOk =
+    linked || specialUnlocks.includes(item.id);
+  if ((item.linkOnly || item.tier >= 4) && !specialOk) return 0;
   return item.max;
 }
 
 /**
  * Catalog unlock tier.
- * T2 = basic weapons maxed · T3 = advanced maxed · T4 = linked + T3
- * Account link no longer skips T2/T3 progression (only opens T4 specials).
+ * T2 = basic weapons maxed · T3 = advanced maxed · T4 = (linked|promo special) + T3
  */
 export function shopUnlockTier(
   linked: boolean,
   hasTier3: boolean,
   hasTier2: boolean,
+  hasSpecialPromo = false,
 ): number {
-  if (hasTier3) return linked ? 4 : 3;
+  if (hasTier3) return linked || hasSpecialPromo ? 4 : 3;
   if (hasTier2) return 2;
   return 1;
 }
 
-/** Filter catalog by unlock tier / link-only. */
+/** Filter catalog by unlock tier / link-only / promo unlocks. */
 export function filterShopCatalog<T extends ShopItem>(
   catalog: T[],
   unlockTier: number,
   linked: boolean,
+  specialUnlocks: readonly string[] = [],
 ): T[] {
   return catalog.filter((t) => {
-    // T4 / link-only: need linked AND catalog at least T3 path (unlock >= 3)
     if (t.linkOnly || t.tier >= 4) {
-      return linked && unlockTier >= 3;
+      const ok =
+        linked || specialUnlocks.includes(t.id);
+      return ok && unlockTier >= 3;
     }
     return t.tier <= unlockTier;
   });

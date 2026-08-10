@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdvertiserRouteImport } from './routes/advertiser'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ApiAccountLinkRouteImport } from './routes/api/account/link'
 import { Route as ApiAccountProfileRouteImport } from './routes/api/account/profile'
@@ -17,6 +18,10 @@ import { Route as ApiAdminPromoRouteImport } from './routes/api/admin/promo'
 import { Route as ApiAdminStaffRouteImport } from './routes/api/admin/staff'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiPromoClaimRouteImport } from './routes/api/promo/claim'
+import { Route as ApiShareAdAdvertiserRouteImport } from './routes/api/share/ad-advertiser'
+import { Route as ApiShareAdPrepaidRouteImport } from './routes/api/share/ad-prepaid'
+import { Route as ApiShareAdVideosRouteImport } from './routes/api/share/ad-videos'
+import { Route as ApiShareAdWatchRouteImport } from './routes/api/share/ad-watch'
 import { Route as ApiShareAwardRouteImport } from './routes/api/share/award'
 import { Route as ApiShareBalanceRouteImport } from './routes/api/share/balance'
 import { Route as ApiShareMessageRouteImport } from './routes/api/share/message'
@@ -31,6 +36,11 @@ import { Route as ApiSoundVotesRouteImport } from './routes/api/sound/votes'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdvertiserRoute = AdvertiserRouteImport.update({
+  id: '/advertiser',
+  path: '/advertiser',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -66,6 +76,26 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 const ApiPromoClaimRoute = ApiPromoClaimRouteImport.update({
   id: '/api/promo/claim',
   path: '/api/promo/claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShareAdAdvertiserRoute = ApiShareAdAdvertiserRouteImport.update({
+  id: '/api/share/ad-advertiser',
+  path: '/api/share/ad-advertiser',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShareAdPrepaidRoute = ApiShareAdPrepaidRouteImport.update({
+  id: '/api/share/ad-prepaid',
+  path: '/api/share/ad-prepaid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShareAdVideosRoute = ApiShareAdVideosRouteImport.update({
+  id: '/api/share/ad-videos',
+  path: '/api/share/ad-videos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShareAdWatchRoute = ApiShareAdWatchRouteImport.update({
+  id: '/api/share/ad-watch',
+  path: '/api/share/ad-watch',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiShareAwardRoute = ApiShareAwardRouteImport.update({
@@ -121,6 +151,7 @@ const ApiSoundVotesRoute = ApiSoundVotesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/advertiser': typeof AdvertiserRoute
   '/login': typeof LoginRoute
   '/api/account/link': typeof ApiAccountLinkRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
@@ -128,6 +159,10 @@ export interface FileRoutesByFullPath {
   '/api/admin/staff': typeof ApiAdminStaffRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/promo/claim': typeof ApiPromoClaimRoute
+  '/api/share/ad-advertiser': typeof ApiShareAdAdvertiserRoute
+  '/api/share/ad-prepaid': typeof ApiShareAdPrepaidRoute
+  '/api/share/ad-videos': typeof ApiShareAdVideosRoute
+  '/api/share/ad-watch': typeof ApiShareAdWatchRoute
   '/api/share/award': typeof ApiShareAwardRoute
   '/api/share/balance': typeof ApiShareBalanceRoute
   '/api/share/message': typeof ApiShareMessageRoute
@@ -141,6 +176,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/advertiser': typeof AdvertiserRoute
   '/login': typeof LoginRoute
   '/api/account/link': typeof ApiAccountLinkRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
@@ -148,6 +184,10 @@ export interface FileRoutesByTo {
   '/api/admin/staff': typeof ApiAdminStaffRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/promo/claim': typeof ApiPromoClaimRoute
+  '/api/share/ad-advertiser': typeof ApiShareAdAdvertiserRoute
+  '/api/share/ad-prepaid': typeof ApiShareAdPrepaidRoute
+  '/api/share/ad-videos': typeof ApiShareAdVideosRoute
+  '/api/share/ad-watch': typeof ApiShareAdWatchRoute
   '/api/share/award': typeof ApiShareAwardRoute
   '/api/share/balance': typeof ApiShareBalanceRoute
   '/api/share/message': typeof ApiShareMessageRoute
@@ -162,6 +202,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/advertiser': typeof AdvertiserRoute
   '/login': typeof LoginRoute
   '/api/account/link': typeof ApiAccountLinkRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
@@ -169,6 +210,10 @@ export interface FileRoutesById {
   '/api/admin/staff': typeof ApiAdminStaffRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/promo/claim': typeof ApiPromoClaimRoute
+  '/api/share/ad-advertiser': typeof ApiShareAdAdvertiserRoute
+  '/api/share/ad-prepaid': typeof ApiShareAdPrepaidRoute
+  '/api/share/ad-videos': typeof ApiShareAdVideosRoute
+  '/api/share/ad-watch': typeof ApiShareAdWatchRoute
   '/api/share/award': typeof ApiShareAwardRoute
   '/api/share/balance': typeof ApiShareBalanceRoute
   '/api/share/message': typeof ApiShareMessageRoute
@@ -184,6 +229,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/advertiser'
     | '/login'
     | '/api/account/link'
     | '/api/account/profile'
@@ -191,6 +237,10 @@ export interface FileRouteTypes {
     | '/api/admin/staff'
     | '/api/auth/$'
     | '/api/promo/claim'
+    | '/api/share/ad-advertiser'
+    | '/api/share/ad-prepaid'
+    | '/api/share/ad-videos'
+    | '/api/share/ad-watch'
     | '/api/share/award'
     | '/api/share/balance'
     | '/api/share/message'
@@ -204,6 +254,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/advertiser'
     | '/login'
     | '/api/account/link'
     | '/api/account/profile'
@@ -211,6 +262,10 @@ export interface FileRouteTypes {
     | '/api/admin/staff'
     | '/api/auth/$'
     | '/api/promo/claim'
+    | '/api/share/ad-advertiser'
+    | '/api/share/ad-prepaid'
+    | '/api/share/ad-videos'
+    | '/api/share/ad-watch'
     | '/api/share/award'
     | '/api/share/balance'
     | '/api/share/message'
@@ -224,6 +279,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/advertiser'
     | '/login'
     | '/api/account/link'
     | '/api/account/profile'
@@ -231,6 +287,10 @@ export interface FileRouteTypes {
     | '/api/admin/staff'
     | '/api/auth/$'
     | '/api/promo/claim'
+    | '/api/share/ad-advertiser'
+    | '/api/share/ad-prepaid'
+    | '/api/share/ad-videos'
+    | '/api/share/ad-watch'
     | '/api/share/award'
     | '/api/share/balance'
     | '/api/share/message'
@@ -245,6 +305,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdvertiserRoute: typeof AdvertiserRoute
   LoginRoute: typeof LoginRoute
   ApiAccountLinkRoute: typeof ApiAccountLinkRoute
   ApiAccountProfileRoute: typeof ApiAccountProfileRoute
@@ -252,6 +313,10 @@ export interface RootRouteChildren {
   ApiAdminStaffRoute: typeof ApiAdminStaffRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiPromoClaimRoute: typeof ApiPromoClaimRoute
+  ApiShareAdAdvertiserRoute: typeof ApiShareAdAdvertiserRoute
+  ApiShareAdPrepaidRoute: typeof ApiShareAdPrepaidRoute
+  ApiShareAdVideosRoute: typeof ApiShareAdVideosRoute
+  ApiShareAdWatchRoute: typeof ApiShareAdWatchRoute
   ApiShareAwardRoute: typeof ApiShareAwardRoute
   ApiShareBalanceRoute: typeof ApiShareBalanceRoute
   ApiShareMessageRoute: typeof ApiShareMessageRoute
@@ -271,6 +336,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/advertiser': {
+      id: '/advertiser'
+      path: '/advertiser'
+      fullPath: '/advertiser'
+      preLoaderRoute: typeof AdvertiserRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -320,6 +392,34 @@ declare module '@tanstack/react-router' {
       path: '/api/promo/claim'
       fullPath: '/api/promo/claim'
       preLoaderRoute: typeof ApiPromoClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/ad-advertiser': {
+      id: '/api/share/ad-advertiser'
+      path: '/api/share/ad-advertiser'
+      fullPath: '/api/share/ad-advertiser'
+      preLoaderRoute: typeof ApiShareAdAdvertiserRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/ad-prepaid': {
+      id: '/api/share/ad-prepaid'
+      path: '/api/share/ad-prepaid'
+      fullPath: '/api/share/ad-prepaid'
+      preLoaderRoute: typeof ApiShareAdPrepaidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/ad-videos': {
+      id: '/api/share/ad-videos'
+      path: '/api/share/ad-videos'
+      fullPath: '/api/share/ad-videos'
+      preLoaderRoute: typeof ApiShareAdVideosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/ad-watch': {
+      id: '/api/share/ad-watch'
+      path: '/api/share/ad-watch'
+      fullPath: '/api/share/ad-watch'
+      preLoaderRoute: typeof ApiShareAdWatchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/share/award': {
@@ -397,6 +497,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdvertiserRoute: AdvertiserRoute,
   LoginRoute: LoginRoute,
   ApiAccountLinkRoute: ApiAccountLinkRoute,
   ApiAccountProfileRoute: ApiAccountProfileRoute,
@@ -404,6 +505,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminStaffRoute: ApiAdminStaffRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiPromoClaimRoute: ApiPromoClaimRoute,
+  ApiShareAdAdvertiserRoute: ApiShareAdAdvertiserRoute,
+  ApiShareAdPrepaidRoute: ApiShareAdPrepaidRoute,
+  ApiShareAdVideosRoute: ApiShareAdVideosRoute,
+  ApiShareAdWatchRoute: ApiShareAdWatchRoute,
   ApiShareAwardRoute: ApiShareAwardRoute,
   ApiShareBalanceRoute: ApiShareBalanceRoute,
   ApiShareMessageRoute: ApiShareMessageRoute,

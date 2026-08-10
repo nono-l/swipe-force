@@ -75,6 +75,12 @@ import {
 import { syncProfileFromServer } from "@/lib/account";
 import { openPromoAdminDialog } from "@/lib/promo-admin-ui";
 import { claimPromoRemote } from "@/lib/promo-api";
+import {
+  loadPromoUnlocks,
+  hasSpecialWeaponAccess,
+} from "@/components/game/engine/modes/weapon-unlocks";
+import { openAdWatchDialog } from "@/lib/ad-watch-ui";
+import { openAdAdvertiserDialog } from "@/lib/ad-advertiser-ui";
 import { isPromoAdminPlayer, fetchStaffList } from "./modes/admin";
 import {
   addPlayTime,
@@ -713,6 +719,14 @@ function SwipeForceEngine() {
         let resizeObserver = new ResizeObserver(layoutCanvas);
         resizeObserver.observe(hostEl);
 
+        function specialUnlocks() {
+            try { return loadPromoUnlocks() } catch { return [] }
+        }
+
+        function hasSpecial(id) {
+            return hasSpecialWeaponAccess(id, !!account.linked, specialUnlocks());
+        }
+
         function tier2Unlocked() {
             return upgrades.shot >= 3 && upgrades.rate >= 3 && upgrades.speed >= 3 && upgrades.power >= 3 && upgrades.option >= 2
         }
@@ -722,15 +736,16 @@ function SwipeForceEngine() {
         }
 
         function currentShopTier() {
-            return shopUnlockTier(!!account.linked, tier3Unlocked(), tier2Unlocked());
+            const u = specialUnlocks();
+            return shopUnlockTier(!!account.linked, tier3Unlocked(), tier2Unlocked(), u.length > 0);
         }
 
         function itemMaxOf(e) {
-            return shopItemMax(e, !!account.linked, LINKED_ITEM_IDS);
+            return shopItemMax(e, !!account.linked, LINKED_ITEM_IDS, specialUnlocks());
         }
 
         function shopCatalog() {
-            return filterShopCatalog(SHOP_ITEMS, currentShopTier(), !!account.linked);
+            return filterShopCatalog(SHOP_ITEMS, currentShopTier(), !!account.linked, specialUnlocks());
         }
 
         function shopListWindow(e, t) {
@@ -761,7 +776,7 @@ function SwipeForceEngine() {
             if (e.stockable) {
                 return bagStockOfId(e.id) < itemMaxOf(e) && pts >= itemCostOf(e)
             }
-            return e.consumable ? e.id === `life` && lives >= 5 || e.id === `shield` && shield > 0 ? !1 : pts >= itemCostOf(e) : (e.linkOnly || e.tier >= 4) && !account.linked || upgrades[e.id] >= itemMaxOf(e) ? !1 : pts >= itemCostOf(e)
+            return e.consumable ? e.id === `life` && lives >= 5 || e.id === `shield` && shield > 0 ? !1 : pts >= itemCostOf(e) : (e.linkOnly || e.tier >= 4) && !hasSpecial(e.id) || upgrades[e.id] >= itemMaxOf(e) ? !1 : pts >= itemCostOf(e)
         }
 
         function syncEasyCarry() {
@@ -1069,7 +1084,7 @@ function SwipeForceEngine() {
             if (e.id !== `life` && e.id !== `shield` && !e.stockable) syncEasyCarry();
             sfx.buy(), shopToast = result.message, shopToastLife = 50;
             // celebrate after state applied (match original)
-            if (tier2Unlocked() || tier3Unlocked() || account.linked && (upgrades.beam > 0 || upgrades.flame > 0)) celebrate = 90
+            if (tier2Unlocked() || tier3Unlocked() || (hasSpecial(`beam`) || hasSpecial(`flame`)) && (upgrades.beam > 0 || upgrades.flame > 0)) celebrate = 90
         }
 
         
@@ -1330,7 +1345,7 @@ function SwipeForceEngine() {
 
         function fireBeam() {
             let e = armedLevelOf(`beam`);
-            if (e <= 0 || !account.linked) return;
+            if (e <= 0 || !hasSpecial(`beam`)) return;
             sfx.lockon();
             for (let entity of createBeams({
                 px: player.x,
@@ -1343,7 +1358,7 @@ function SwipeForceEngine() {
 
         function fireFlame() {
             let e = armedLevelOf(`flame`);
-            if (e <= 0 || !account.linked) return;
+            if (e <= 0 || !hasSpecial(`flame`)) return;
             for (let entity of createFlames({
                 px: player.x,
                 py: player.y,
@@ -2038,12 +2053,14 @@ function SwipeForceEngine() {
 
         function drawTrackCard(e, t) {
             let n = currentTrackCard(),
+                hasPeriod = !!(n.period && String(n.period).trim()),
                 lay = trackCardLayout({
                     top: e,
                     compact: !!t?.compact,
                     mode: soundPlayMode,
                     index: soundIndex,
-                    cat: n.cat
+                    cat: n.cat,
+                    hasPeriod
                 });
             fillRect(lay.box.x, lay.box.y, lay.box.w, lay.box.h, `#0a1a14`);
             ctx.strokeStyle = n.catColor;
@@ -2051,7 +2068,11 @@ function SwipeForceEngine() {
             fillRect(lay.catBadge.x, lay.catBadge.y, lay.catBadge.w, lay.catBadge.h, `#102820`);
             drawText(lay.catBadge.text, lay.catLabelX, lay.catLabelY, n.catColor, 6, `center`);
             drawText(`この曲に対する評価・コメント`, lay.metaX, lay.metaY, `#668877`, 6);
+            // title without period crammed in
             drawText(n.short, 64, lay.titleY, `#ffeeaa`, lay.titleSize);
+            if (lay.periodY != null && hasPeriod) {
+                drawText(String(n.period), 64, lay.periodY, `#ccaa66`, lay.periodSize);
+            }
             lay.showId && drawText(`ID ${n.key}`, 258, lay.idY, `#445544`, 5, `right`);
             return lay.height
         }
@@ -2132,6 +2153,7 @@ function SwipeForceEngine() {
                 else if (act.type === `open_stage`) soundListMode = `stage`, soundCursor = 0, sfx.ui();
                 else if (act.type === `open_boss`) soundListMode = `boss`, soundCursor = 0, sfx.ui();
                 else if (act.type === `open_legacy`) soundListMode = `legacy`, soundCursor = 0, sfx.ui();
+                else if (act.type === `open_archive`) soundListMode = `archive`, soundCursor = 0, sfx.ui();
                 else if (act.type === `stop`) bgm.stop(), trackLabel = `— STOPPED —`, sfx.ui();
                 else if (act.type === `back`) leaveSoundTest();
                 return
@@ -2191,8 +2213,11 @@ function SwipeForceEngine() {
                 soundCursor >= e.length && (soundCursor = e.length - 1);
                 let r = soundTestListWindow(e.length, soundCursor, t);
                 {
-                    let hdr = soundTestListHeader(soundListMode);
-                    drawText(hdr.title, PLAY_W / 2, 52, hdr.color, 6, `center`);
+                    // header only when not overlapping the track card
+                    if (!playing) {
+                        let hdr = soundTestListHeader(soundListMode);
+                        drawText(hdr.title, PLAY_W / 2, 52, hdr.color, 6, `center`);
+                    }
                 }
                 for (let i = 0; i < Math.min(t, e.length); i++) {
                     let t = i + r,
@@ -2320,6 +2345,24 @@ function SwipeForceEngine() {
             } catch {}
         }
 
+        function tryOpenAdWatch() {
+            try {
+                openAdWatchDialog({
+                    playerId: playerId,
+                    sfxUi: () => { try { sfx.ui() } catch {} },
+                    sfxOk: () => { try { sfx.buy() } catch {} },
+                    sfxFail: () => { try { sfx.buyFail() } catch {} },
+                    onCoins: (c) => {
+                        continueCoins = Math.max(0, c | 0);
+                        shareToast = `広告視聴 · COIN ×${continueCoins}`, shareToastLife = 100;
+                    },
+                });
+            } catch {
+                shareToast = `広告視聴を開けません`, shareToastLife = 80;
+                try { sfx.buyFail() } catch {}
+            }
+        }
+
         function shareProgress() {
             let pack = buildSharePayload({
                 playerId: playerId,
@@ -2365,6 +2408,8 @@ function SwipeForceEngine() {
             if (a.type === `profile`) { try { window.__sfOpenProfile?.() } catch {} return }
             if (a.type === `stats`) { try { window.__sfOpenStats?.() } catch {} return }
             if (a.type === `open_bag`) { openBag(`attract`); return }
+            if (a.type === `open_ad_watch`) { tryOpenAdWatch(); return }
+            if (a.type === `open_ad_advertiser`) { tryOpenAdAdvertiser(); return }
             if (a.type === `open_promo_admin`) {
                 tryOpenPromoAdmin();
                 return
@@ -2379,7 +2424,10 @@ function SwipeForceEngine() {
             if (a.type === `open_extra`) { titleSub = `extra`, titleCursor = 0, sfx.ui(); return }
             if (a.type === `changelog`) { openChangelog(); return }
             if (a.type === `noop`) {
-                if (res.cursor != null) sfx.ui();
+                // first tap on a menu row: move cursor + select SE
+                if (res.cursor != null) {
+                    try { sfx.select() } catch { try { sfx.ui() } catch {} }
+                }
                 return
             }
             sfx.ui()
@@ -2582,7 +2630,7 @@ function SwipeForceEngine() {
                     drawText(`GAME OVER`, PLAY_W / 2, PLAY_H / 2 - 48, `#ff2244`, 18, `center`);
                     drawText(gameOverView.scoreText, PLAY_W / 2, PLAY_H / 2 - 24, `#00ff88`, 12, `center`);
                     drawText(gameOverView.coinText, PLAY_W / 2, PLAY_H / 2 - 6, gameOverView.coinColor, 10, `center`);
-                    drawText(`制限時間なし · シェアしてコイン待ちOK`, PLAY_W / 2, 210, `#668866`, 7, `center`);
+                    drawText(`制限時間なし · 広告視聴 / シェアでコイン`, PLAY_W / 2, 210, `#668866`, 7, `center`);
                     fillRect(72, 228, 176, 30, gameOverView.continue.fill), ctx.strokeStyle = gameOverView.continue.stroke, ctx.strokeRect(72.5, 228.5, 175, 29);
                     drawText(gameOverView.continue.label, PLAY_W / 2, 237, gameOverView.continue.labelColor, 9, `center`);
                     fillRect(72, 264, 176, 28, `#221100`), ctx.strokeStyle = gameOverView.shareStroke, ctx.strokeRect(72.5, 264.5, 175, 27);
@@ -2903,7 +2951,7 @@ function SwipeForceEngine() {
                 if (hit === `side_share` || hit === `share`) { shareProgress(), refreshCoins(); return }
                 if (hit === `side_title` || hit === `title`) { mode = `attract`, refreshCoins(), bgm.start(`attract`), sfx.ui(); return }
                 if (hit === `continue`) {
-                    continueCoins > 0 ? doContinue() : (sfx.buyFail(), shareToast = `コインが必要です · シェアしよう`, shareToastLife = 80);
+                    continueCoins > 0 ? doContinue() : (sfx.buyFail(), tryOpenAdWatch(), shareToast = `コイン不足 · 広告視聴でGET`, shareToastLife = 100);
                     return
                 }
                 return
@@ -3110,8 +3158,8 @@ function SwipeForceEngine() {
                 if (mode === `attract`) {
                     let adminMenu = !!(account.linked && isPromoAdminPlayer(playerId));
                     let menuLen = titleMenuLen(titleSub, { isPromoAdmin: adminMenu });
-                    if (act.type === `attract_up`) titleCursor = (titleCursor + menuLen - 1) % menuLen, sfx.ui();
-                    else if (act.type === `attract_down`) titleCursor = (titleCursor + 1) % menuLen, sfx.ui();
+                    if (act.type === `attract_up`) titleCursor = (titleCursor + menuLen - 1) % menuLen, sfx.select();
+                    else if (act.type === `attract_down`) titleCursor = (titleCursor + 1) % menuLen, sfx.select();
                     else if (act.type === `attract_back`) {
                         // one level up: extra/diff → root
                         if (titleSub === `extra`) {
@@ -3127,7 +3175,9 @@ function SwipeForceEngine() {
                             else if (titleCursor === 1) (typeof window.__sfOpenProfile === `function` ? window.__sfOpenProfile() : 0);
                             else if (titleCursor === 2) (typeof window.__sfOpenStats === `function` ? window.__sfOpenStats() : 0);
                             else if (titleCursor === 3) openBag(`attract`);
-                            else if (adminMenu && titleCursor === 4) tryOpenPromoAdmin();
+                            else if (titleCursor === 4) tryOpenAdWatch();
+                            else if (titleCursor === 5) tryOpenAdAdvertiser();
+                            else if (adminMenu && titleCursor === 6) tryOpenPromoAdmin();
                             else titleSub = `root`, titleCursor = 4, sfx.ui();
                         } else if (titleSub === `diff`) {
                             if (titleCursor === 0) difficulty = `easy`, startRun();
@@ -3173,7 +3223,7 @@ function SwipeForceEngine() {
                 }
                 if (mode === `gameover`) {
                     if (act.type === `gameover_continue_or_share`) {
-                        continueCoins > 0 ? doContinue() : shareProgress();
+                        continueCoins > 0 ? doContinue() : tryOpenAdWatch();
                         return
                     }
                     if (act.type === `gameover_share`) { shareProgress(); return }

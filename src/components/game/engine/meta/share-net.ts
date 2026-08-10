@@ -1,20 +1,47 @@
 // @ts-nocheck
 /** X share intent + continue-coin / mission / inbox network API. */
 import { sanitizeUserText } from "./sanitize";
-import { loadAllMissions, addCoins, markFanmailSent, markMissionDone, allMissionsComplete, saveAllMissions, hasSentFanmail, buildShareUrl, setCoins, isMissionDone, newShareId, getCoins, formatShareProgress } from "./player-local";
+import {
+  MISSION_DEFS,
+  loadAllMissions,
+  addCoins,
+  markFanmailSent,
+  markMissionDone,
+  allMissionsComplete,
+  saveAllMissions,
+  hasSentFanmail,
+  buildShareUrl,
+  setCoins,
+  isMissionDone,
+  newShareId,
+  getCoins,
+  formatShareProgress,
+} from "./player-local";
+import { shareProfilePayload } from "@/lib/profile-ui";
+import { noteHelpAsked } from "@/lib/player-stats";
 
 export function openShareSheet(e, t = {}) {
     let n = newShareId(),
         r = buildShareUrl(e, n),
         i = formatShareProgress(t),
-        a = [`SWIPEFORCE`, `GrokBuild`, `シューティング`, `indiegames`].map(e => e.trim()).filter(Boolean).join(`,`),
         prof = {};
     try { prof = shareProfilePayload() || {}; } catch (err) { prof = {}; }
     let who = prof.displayName ? `パイロット「${String(prof.displayName).slice(0, 16)}」が助けを求めています` : ``,
-        blurb = prof.shareBlurb ? String(prof.shareBlurb).slice(0, 40) : ``,
-        o = [`SWIPE FORCE`, who, blurb, i, ``, `#SWIPEFORCE #GrokBuild #シューティング`, r].filter(e => e !== ``).join(`
-`),
-        s = `https://twitter.com/intent/tweet?text=${encodeURIComponent(o)}&hashtags=${encodeURIComponent(a)}`;
+        blurb = prof.shareBlurb ? String(prof.shareBlurb).slice(0, 40) : ``;
+    // Clean layout: body → blank → tags → blank → URL
+    // Do NOT pass &hashtags= (Twitter appends them after the URL and duplicates).
+    let lines = [`SWIPE FORCE`];
+    if (who) lines.push(who);
+    if (blurb) lines.push(blurb);
+    for (const line of String(i || ``).split(`\n`)) {
+        if (line !== ``) lines.push(line);
+    }
+    lines.push(``);
+    lines.push(`#SWIPEFORCE #GrokBuild #シューティング #indiegames`);
+    lines.push(``);
+    lines.push(r);
+    let o = lines.join(`\n`),
+        s = `https://twitter.com/intent/tweet?text=${encodeURIComponent(o)}`;
     try { noteHelpAsked(); } catch (err) {}
     return window.open(s, `_blank`, `noopener,noreferrer`), n
 }
@@ -87,23 +114,32 @@ export async function reportMissionClear(e) {
                 playSeconds: a
             })
         });
-        if (!e.ok) return {
-            ok: !0,
-            reason: `local_only`,
-            coins: s
-        };
-        let o = await e.json();
-        if (o.ok === !1 && (o.reason === `self` || o.reason === `too_fast`)) {
-            let e = loadAllMissions();
-            return e[t] && (delete e[t][i], saveAllMissions(e)), addCoins(t, -1), {
+        if (!e.ok) {
+            // network/HTTP error — keep local credit (local_only)
+            return {
+                ok: !0,
+                reason: `local_only`,
+                coins: s
+            };
+        }
+        let body = await e.json().catch(() => ({}));
+        if (body.ok === !1 && (body.reason === `self` || body.reason === `too_fast`)) {
+            // roll back local: keyed by shareId, not sharerId
+            let store = loadAllMissions();
+            if (store[n]) {
+                delete store[n][i];
+                saveAllMissions(store);
+            }
+            addCoins(t, -o.coins);
+            return {
                 ok: !1,
-                reason: o.reason
+                reason: body.reason
             }
         }
-        let c = Math.max(s, Number(o.coins) || 0);
+        let c = Math.max(s, Number(body.coins) || 0);
         return setCoins(t, c), {
             ok: !0,
-            already: !!o.already,
+            already: !!body.already,
             coins: c
         }
     } catch {

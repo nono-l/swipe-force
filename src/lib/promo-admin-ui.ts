@@ -34,6 +34,7 @@ import {
   isPromoExpired,
   isPromoSoldOut,
 } from "@/lib/promo-server";
+import { openAdAdminDialog } from "@/lib/ad-admin-ui";
 
 function esc(s: string) {
   const amp = ["&", "a", "m", "p", ";"].join("");
@@ -63,6 +64,32 @@ function btnStyle(kind: "primary" | "danger" | "ghost" | "ok" | "tab" | "tabOn" 
     tabOn: "border:1px solid #fc8;background:#2a2010;color:#ffe088;flex:1;font-weight:700",
   };
   return `padding:8px 10px;border-radius:8px;cursor:pointer;font-size:12px;${map[kind]}`;
+}
+
+
+async function copyText(text: string): Promise<boolean> {
+  const s = String(text || "").trim();
+  if (!s) return false;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(s);
+      return true;
+    }
+  } catch { /* */ }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = s;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0";
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, s.length);
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return ok;
+  } catch {
+    return false;
+  }
 }
 
 export function openPromoAdminDialog(opts: {
@@ -101,7 +128,7 @@ export function openPromoAdminDialog(opts: {
     document.body.appendChild(dlg);
     dlg.addEventListener("pointerdown", (e) => e.stopPropagation());
 
-    let tab: "promo" | "staff" = "promo";
+    let tab: "promo" | "staff" | "ads" = "promo";
     let editCode = "";
     let flash = "";
     let staff: StaffEntry[] = [
@@ -117,6 +144,7 @@ export function openPromoAdminDialog(opts: {
     }));
     let promoLoaded = false;
     let totalClaims = 0;
+
 
     const close = () => dlg.remove();
 
@@ -154,6 +182,12 @@ export function openPromoAdminDialog(opts: {
           (card.querySelector("#sf-pa-pack") as HTMLInputElement)?.value || 0,
         ),
       };
+      const unlockParts: string[] = [];
+      if ((card.querySelector("#sf-pa-u-beam") as HTMLInputElement)?.checked)
+        unlockParts.push("beam");
+      if ((card.querySelector("#sf-pa-u-flame") as HTMLInputElement)?.checked)
+        unlockParts.push("flame");
+      if (unlockParts.length) grant.unlocks = unlockParts.join(",");
       const expiresAt =
         (card.querySelector("#sf-pa-exp") as HTMLInputElement)?.value || "";
       const maxClaims = Number(
@@ -179,6 +213,17 @@ export function openPromoAdminDialog(opts: {
       setN("#sf-pa-x10", def?.grant.ptsX10 || 0);
       setN("#sf-pa-pack", def?.grant.ptsPack || 0);
       setN("#sf-pa-max", def?.maxClaims || 0);
+      const unlocks = String(def?.grant?.unlocks || "")
+        .toLowerCase()
+        .split(",");
+      const beamEl = card.querySelector(
+        "#sf-pa-u-beam",
+      ) as HTMLInputElement | null;
+      const flameEl = card.querySelector(
+        "#sf-pa-u-flame",
+      ) as HTMLInputElement | null;
+      if (beamEl) beamEl.checked = unlocks.includes("beam");
+      if (flameEl) flameEl.checked = unlocks.includes("flame");
       const expEl = card.querySelector("#sf-pa-exp") as HTMLInputElement | null;
       if (expEl) {
         const raw = String(def?.expiresAt || "").trim();
@@ -254,6 +299,16 @@ export function openPromoAdminDialog(opts: {
             <input id="sf-pa-pack" type="number" min="0" max="99" value="0" style="${inputStyle()}" />
           </div>
         </div>
+        <div style="background:#0a1810;border:1px solid #264;border-radius:8px;padding:8px;margin-bottom:10px">
+          <div style="font-size:10px;font-weight:700;color:#9ec;margin-bottom:6px">特別武器アンロック（grant.unlocks 文字列）</div>
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#cfe;margin-right:14px;cursor:pointer">
+            <input type="checkbox" id="sf-pa-u-beam" /> OPT-LASER (beam)
+          </label>
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#cfe;cursor:pointer">
+            <input type="checkbox" id="sf-pa-u-flame" /> FLAME (flame)
+          </label>
+          <div style="font-size:9px;color:#678;margin-top:6px;line-height:1.35">DBは grant_json の1フィールドのみ。例: "beam,flame"</div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
           <div>
             <label style="font-size:10px;color:#8ab">期限 (空=なし)</label>
@@ -297,6 +352,34 @@ export function openPromoAdminDialog(opts: {
       `;
     }
 
+    function renderAdsBody(): string {
+      return `
+      <div style="font-size:12px;color:#9bc;line-height:1.5;margin-bottom:12px">
+        YouTube 広告の登録・表示上限・再生秒数の確認は<br/>
+        <b style="color:#fe8">広告管理画面</b> で行います。
+      </div>
+      <button type="button" id="sf-open-ad-admin" style="width:100%;padding:12px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-weight:800;cursor:pointer">
+        📺 広告管理を開く
+      </button>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <a id="sf-open-ad-portal" href="/advertiser" target="_blank" rel="noopener"
+           style="flex:1;box-sizing:border-box;padding:12px;border-radius:8px;border:1px solid #8cf;background:#102030;color:#cef;font-weight:800;cursor:pointer;text-align:center;text-decoration:none">
+          📣 ポータルを開く
+        </a>
+        <button type="button" id="sf-ad-portal-copy" style="flex-shrink:0;padding:12px 14px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-weight:800;cursor:pointer;font-size:12px">
+          URLコピー
+        </button>
+      </div>
+      <div id="sf-ad-portal-url" title="クリックでコピー" style="font-size:10px;color:#8cf;margin-top:8px;word-break:break-all;text-align:center;user-select:all;cursor:pointer;padding:8px;border:1px dashed #356;border-radius:8px;background:#041018"></div>
+      <div style="font-size:10px;color:#678;margin-top:10px;line-height:1.4">
+        · 動画ID / 尺（秒）/ 合計表示上限（時間）<br/>
+        · 累計再生秒数・受取回数を一覧表示<br/>
+        · ポータルは連携ユーザーが直URLで利用
+      </div>
+      ${flash ? `<div style="margin-top:8px;font-size:11px;color:#fc8">${esc(flash)}</div>` : ""}
+      `;
+    }
+
     function render() {
       if (!isPromoAdminPlayer(opts.playerId)) {
         close();
@@ -314,9 +397,10 @@ export function openPromoAdminDialog(opts: {
       </div>
       <div style="display:flex;gap:6px;margin-bottom:12px">
         <button type="button" id="sf-tab-promo" style="${btnStyle(tab === "promo" ? "tabOn" : "tab")}">プロモ</button>
+        <button type="button" id="sf-tab-ads" style="${btnStyle(tab === "ads" ? "tabOn" : "tab")}">広告動画</button>
         <button type="button" id="sf-tab-staff" style="${btnStyle(tab === "staff" ? "tabOn" : "tab")}">管理者</button>
       </div>
-      <div id="sf-pa-body">${tab === "promo" ? renderPromoBody() : renderStaffBody()}</div>
+      <div id="sf-pa-body">${tab === "promo" ? renderPromoBody() : tab === "ads" ? renderAdsBody() : renderStaffBody()}</div>
       `;
 
       card.querySelector("#sf-pa-x")!.addEventListener("click", close);
@@ -326,6 +410,11 @@ export function openPromoAdminDialog(opts: {
         render();
         void reloadPromos().then(() => render());
       });
+      card.querySelector("#sf-tab-ads")!.addEventListener("click", () => {
+        tab = "ads";
+        flash = "";
+        render();
+      });
       card.querySelector("#sf-tab-staff")!.addEventListener("click", () => {
         tab = "staff";
         flash = "";
@@ -334,7 +423,57 @@ export function openPromoAdminDialog(opts: {
       });
 
       if (tab === "promo") bindPromoHandlers();
+      else if (tab === "ads") bindAdsHandlers();
       else bindStaffHandlers();
+    }
+
+    function bindAdsHandlers() {
+      const portalUrl =
+        typeof location !== "undefined" ? location.origin + "/advertiser" : "/advertiser";
+      const setFlash = (msg: string) => {
+        flash = msg;
+        render();
+      };
+      const urlEl = card.querySelector("#sf-ad-portal-url") as HTMLElement | null;
+      if (urlEl) {
+        urlEl.textContent = portalUrl;
+        urlEl.addEventListener("click", async () => {
+          const ok = await copyText(portalUrl);
+          if (ok) {
+            opts.sfxOk?.();
+            setFlash(`ポータルURLをコピーしました`);
+          } else {
+            opts.sfxFail?.();
+            setFlash(`コピー失敗 · 長押しで選択`);
+          }
+        });
+      }
+      const portalA = card.querySelector("#sf-open-ad-portal") as HTMLAnchorElement | null;
+      if (portalA) {
+        portalA.href = portalUrl;
+        portalA.addEventListener("click", () => opts.sfxUi?.());
+      }
+      card.querySelector("#sf-ad-portal-copy")?.addEventListener("click", async () => {
+        const ok = await copyText(portalUrl);
+        if (ok) {
+          opts.sfxOk?.();
+          setFlash(`ポータルURLをコピーしました`);
+        } else {
+          opts.sfxFail?.();
+          setFlash(`コピー失敗 · 長押しで選択`);
+        }
+      });
+      card.querySelector("#sf-open-ad-admin")?.addEventListener("click", () => {
+        opts.sfxUi?.();
+        close();
+        openAdAdminDialog({
+          playerId: opts.playerId,
+          sfxUi: opts.sfxUi,
+          sfxOk: opts.sfxOk,
+          sfxFail: opts.sfxFail,
+          onDenied: opts.onDenied,
+        });
+      });
     }
 
     function bindPromoHandlers() {

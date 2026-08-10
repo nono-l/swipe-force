@@ -1,5 +1,13 @@
 // @ts-nocheck
 import { bossThemeMeta, BOSS_ACTS } from "./boss-themes";
+import {
+  themeArchiveAt,
+  themeArchiveCount,
+  themeArchiveLabel,
+  themeArchiveMeta,
+  themeArchivePeriodLabel,
+  THEME_ARCHIVES,
+} from "./theme-archive";
 /**
  * Recovered audio engine (SFX + BGM) — single module so shared mute/gain state stays consistent.
  * Prefer importing via ./sfx KEY_CLOUD_INBOX ./bgm facades for clarity.
@@ -196,6 +204,14 @@ export function sfxBuyFail() {
 
 export function sfxUi() {
     throttleSfx(`ui`, 45) && tone(520, .03, `square`, .05)
+}
+
+/** Menu cursor land / first-tap select (clearer than ui blip) */
+export function sfxSelect() {
+    throttleSfx(`select`, 55) && (
+        tone(660, .04, `square`, .07),
+        setTimeout(() => tone(880, .05, `triangle`, .06), 35)
+    )
 }
 
 
@@ -860,33 +876,26 @@ export function makeStormPatch(e, t) {
 }
 
 export function makeAbyssPatch(e, t) {
-    // 深海のバス — 三和音のオルゴール（music box triads）
+    // 深海のバス — 三和音のオルゴール（music box triads） [live]
     let n = Math.floor((Math.max(1, e) - 1) / 16) % 4,
-        // broken-triad melodies (scale degrees 0-2-4-7-…) with rests
         r = [
-            // I · V · vi · IV 風の箱揺らし
             [0, 2, 4, -1, 4, 2, 0, -1, 0, 4, 7, -1, 5, 4, 2, 0,
              0, 2, 4, 5, 4, 2, 0, -1, 7, 5, 4, 2, 0, -1, 0, -1],
-            // 少し暗い揺らぎ
             [0, -1, 2, 4, -1, 5, 4, 2, 0, 2, 4, 7, 5, -1, 4, 0,
              4, 2, 0, -1, 2, 4, 5, 4, 0, -1, 5, 4, 2, 0, -1, 0],
-            // 高域のつま弾き
             [4, 2, 0, 2, 4, 7, -1, 5, 4, 2, 0, -1, 4, 5, 7, 4,
              0, 2, 4, -1, 7, 5, 4, 2, 0, 4, 2, 0, -1, 2, 0, -1],
-            // ゆっくりなカデンツ
             [0, -1, -1, 4, -1, -1, 7, -1, 5, -1, 4, -1, 2, -1, 0, -1,
              0, 2, 4, 5, -1, 4, 2, 0, 4, -1, 5, 4, 2, 0, -1, 0],
         ][n],
-        // カウンターは 3 度上の細い応答（オルゴールの第2ボイス）
         i = r.map((deg, idx) => {
             if (deg < 0) return -1;
             if (idx % 4 === 1 || idx % 4 === 3) return deg + 2;
             return -1;
         });
     return makeFlavorPatch(e, t, `abyss`, {
-        tonic: [55, 53, 57, 52][n], // 高め＝箱の金属感
-        scale: BAROQUE_SCALES[0], // major-ish
-        // 三和音進行: I – V – vi – IV – I – iii – V – I
+        tonic: [55, 53, 57, 52][n],
+        scale: BAROQUE_SCALES[0],
         prog: [0, 4, 5, 3, 0, 2, 4, 0],
         lead: r,
         counter: i,
@@ -901,6 +910,31 @@ export function makeAbyssPatch(e, t) {
         brassMode: 0,
         chordTicks: 8,
         arpStyle: 0,
+    })
+}
+
+/** Archived 2026-08-10: previous 深海のバス (low drone / sparse) */
+export function makeAbyssPatchV1(e, t) {
+    let n = Math.floor((Math.max(1, e) - 1) / 16) % 4,
+        r = [
+            [0, 0, 0, 2, 0, 0, 4, 0, 0, 0, 5, 0, 4, 2, 0, 0],
+            [0, 0, 3, 0, 0, 5, 0, 0, 0, 2, 0, 0, 3, 0, 0, 0],
+            [0, 2, 0, 0, 4, 0, 0, 5, 0, 4, 0, 2, 0, 0, 0, 0],
+            [0, 0, 0, 0, 5, 5, 0, 0, 3, 0, 0, 2, 0, 0, 0, 0]
+        ][n],
+        i = r.map((e, t) => t % 4 == 0 ? e + 7 : -1);
+    return makeFlavorPatch(e, t, `abyss_v1`, {
+        tonic: [36, 38, 35, 40][n],
+        scale: BAROQUE_SCALES[1],
+        prog: [0, 0, 5, 0, 0, 3, 0, 0],
+        lead: [...i, ...i],
+        counter: [...r, ...r],
+        tempo: [80, 74, 70, 86][n],
+        drum: 53,
+        leadEvery: 4,
+        leadOct: 0,
+        leadPeak: .07,
+        bassMode: 2
     })
 }
 
@@ -1378,6 +1412,10 @@ export function bgmResume() {
     } else if (activePatch.flavor === `abyss`) {
         // music box: almost no drums — soft tick only on bar
         r === 0 && n % 32 === 0 && noiseBurst(.012, .012, 4e3, `bgm`)
+    } else if (activePatch.flavor === `abyss_v1`) {
+        // archived drone bed
+        let e = r;
+        (e === 0 || e === 8) && tone(70, .05, `triangle`, .05, void 0, `bgm`), (e === 4 || e === 12) && noiseBurst(.02, .025, 2500, `bgm`)
     } else if (activePatch.flavor === `dawn` || activePatch.flavor === `continuo`) {
         let e = r;
         (e === 0 || e === 8) && tone(70, .05, `triangle`, .05, void 0, `bgm`), (e === 4 || e === 12) && noiseBurst(.02, .025, 2500, `bgm`)
@@ -1607,15 +1645,12 @@ export function bgmResume() {
                 let every = t;
                 let peak = i;
                 let oct = o > 12 ? o : 24;
-                // コード三和音（prog ルート）を小節頭で箱を鳴らす
                 if (n % 8 === 0) {
                     playMusicBoxTriad(a, 12, peak * .55);
                 }
-                // 中間拍で 3 度転回を薄く
                 if (n % 8 === 4) {
                     playMusicBoxTriad(a, 0, peak * .28);
                 }
-                // メロディ: broken triad ラインを music-box pluck
                 if (n % every === 0) {
                     let idx = Math.floor(n / every) % activePatch.lead.length;
                     let deg = activePatch.lead[idx];
@@ -1639,7 +1674,6 @@ export function bgmResume() {
                         }, 40);
                     }
                 }
-                // アルペジオ的に 1-3-5 を 2 拍おきに散らす
                 if (n % 4 === 2) {
                     let step = Math.floor(n / 4) % 3;
                     let arpDeg = a + [0, 2, 4][step];
@@ -1650,6 +1684,24 @@ export function bgmResume() {
                     );
                 }
                 scheduleNextTick();
+                return
+            }
+            if (e === `abyss_v1`) {
+                // archived 深海のバス v1 — low drone
+                if (n % 2 == 0) {
+                    let e = Math.floor(n / 2) % activePatch.counter.length,
+                        t = activePatch.counter[e];
+                    if (t >= 0) {
+                        let e = midiToHz(degreeToMidi(t, -24));
+                        tone(e, .2, `triangle`, .16, void 0, `bgm`), tone(e * 1.5, .16, `triangle`, .05, void 0, `bgm`), tone(Math.max(30, e * .5), .22, `sine`, .08, void 0, `bgm`)
+                    }
+                }
+                if (n % t === 0) {
+                    let e = Math.floor(n / t) % activePatch.lead.length,
+                        r = activePatch.lead[e];
+                    r >= 0 && tone(midiToHz(degreeToMidi(r, 12)), .2, `sine`, i * .6, void 0, `bgm`)
+                }
+                n % 16 == 8 && noiseBurst(.12, .025, 300, `bgm`), scheduleNextTick();
                 return
             }
             if (e === `cadence`) {
@@ -1786,25 +1838,91 @@ export function bgmStop(e = 0, t = 1) {
     bgmResume()
 }
 
+/** Build patch for a sound-test archive slot (1-based). */
+export function makeArchivePatch(index1based) {
+    const entry = themeArchiveAt(index1based);
+    if (!entry) {
+        return makeChipPatch(1, !0);
+    }
+    const meta = themeArchiveMeta(index1based);
+    const stage = entry.sampleStage || 1;
+    if (entry.flavor === `abyss_v1`) {
+        return makeAbyssPatchV1(stage, meta);
+    }
+    // fallback: chip snapshot tagged with archive story
+    const p = makeChipPatch(stage, !0);
+    p.style = `legacy`;
+    p.story = entry.title;
+    p.flavor = entry.flavor;
+    return p;
+}
+
+/** Play archived theme (sound test only). index is 1-based. */
+export function bgmArchive(index1based = 1) {
+    const entry = themeArchiveAt(index1based);
+    if (clearBgmTimer(), bgmMode = `boss`, themeSeed = 0, bgmStage = entry?.sampleStage || 1, tickIndex = 0, activePatch = makeArchivePatch(index1based), u) return;
+    let n = ensureAudioCtx();
+    if (n && n.state === `suspended`) {
+        n.resume().then(() => {
+            !u && bgmMode === `boss` && bgmResume()
+        }), scheduleNextTick();
+        return
+    }
+    bgmResume()
+}
+
 export function bgmUnlock() {
     clearBgmTimer(), bgmMode = `off`
 }
 
 export function playBgmForMode(e, t = 1) {
     let n = Math.max(1, Math.min(64, t | 0));
-    return e === `title` ? (bgmStartScene(`attract`), `TITLE THEME`) : e === `stage` ? (bgmStartScene(`play`, n), `STAGE ${String(n).padStart(2,`0`)} BGM`) : e === `legacy` ? (bgmStop((n - 1) % 8, n), `旧ボス ${String(n).padStart(2,`0`)} (CHIP)`) : (bgmBoss((n - 1) % 8, n), getBossThemeMeta(n).title)
+    if (e === `title`) {
+        bgmStartScene(`attract`);
+        return `TITLE THEME`;
+    }
+    if (e === `stage`) {
+        bgmStartScene(`play`, n);
+        return `STAGE ${String(n).padStart(2, `0`)} BGM`;
+    }
+    if (e === `legacy`) {
+        bgmStop((n - 1) % 8, n);
+        return `旧ボス ${String(n).padStart(2, `0`)} (CHIP)`;
+    }
+    if (e === `archive`) {
+        const count = themeArchiveCount();
+        const i = Math.max(1, Math.min(count || 1, t | 0));
+        bgmArchive(i);
+        return themeArchiveMeta(i).title;
+    }
+    bgmBoss((n - 1) % 8, n);
+    return getBossThemeMeta(n).title;
 }
 
 export function soundCatalogMeta() {
+    const archives = themeArchiveCount();
     return {
         stages: 64,
         bosses: 64,
+        archives,
         labels: {
             title: `TITLE THEME`,
-            stage: e => `STAGE ${String(e).padStart(2,`0`)}`,
+            stage: e => `STAGE ${String(e).padStart(2, `0`)}`,
             boss: e => getBossThemeMeta(e).title,
-            legacy: e => `旧B${String(e).padStart(2,`0`)} CHIP`
-        }
+            legacy: e => `旧B${String(e).padStart(2, `0`)} CHIP`,
+            archive: e => themeArchiveLabel(e),
+            archivePeriod: e => themeArchivePeriodLabel(e),
+        },
+        archiveList: THEME_ARCHIVES.map((a, i) => ({
+            index: i + 1,
+            id: a.id,
+            title: a.title,
+            source: a.source,
+            usedFrom: a.usedFrom || "",
+            usedUntil: a.usedUntil || a.archivedAt,
+            archivedAt: a.archivedAt,
+            period: `${a.usedFrom || "?"}〜${a.usedUntil || a.archivedAt}`,
+        })),
     }
 }
 

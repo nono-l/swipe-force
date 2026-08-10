@@ -5,6 +5,11 @@ export type GrantBundle = {
   ptsX5?: number;
   ptsX10?: number;
   ptsPack?: number;
+  /**
+   * Special weapon unlocks as one string (DB stays grant_json only).
+   * e.g. "beam,flame" — whitelist: beam (OPT-LASER), flame (FLAME)
+   */
+  unlocks?: string;
 };
 
 export type PromoDefServer = {
@@ -146,25 +151,56 @@ function clampQty(n: unknown, max = 99): number {
   return Math.max(0, Math.min(max, v));
 }
 
+/** Whitelist unlock tokens (keep in sync with weapon-unlocks.ts). */
+const UNLOCK_OK = new Set(["beam", "flame"]);
+
+export function normalizeUnlocksField(raw: unknown): string {
+  if (raw == null || raw === "") return "";
+  let parts: string[] = [];
+  if (typeof raw === "string") parts = raw.split(/[\s,|+/]+/);
+  else if (Array.isArray(raw)) parts = raw.map(String);
+  else if (typeof raw === "object") {
+    parts = Object.keys(raw as object).filter(
+      (k) => !!(raw as Record<string, unknown>)[k],
+    );
+  }
+  const out: string[] = [];
+  for (const p of parts) {
+    let id = String(p || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]/g, "");
+    if (id === "optlaser" || id === "opt-laser" || id === "laser") id = "beam";
+    if (id === "fire" || id === "flamethrower") id = "flame";
+    if (UNLOCK_OK.has(id) && !out.includes(id)) out.push(id);
+  }
+  return out.join(",");
+}
+
 export function sanitizeGrant(g: GrantBundle | null | undefined): GrantBundle {
   const out: GrantBundle = {};
   const t = clampQty(g?.stageTicket);
   const a = clampQty(g?.ptsX5);
   const b = clampQty(g?.ptsX10);
   const c = clampQty(g?.ptsPack);
+  const u = normalizeUnlocksField(
+    g && "unlocks" in (g as object) ? (g as GrantBundle).unlocks : "",
+  );
   if (t) out.stageTicket = t;
   if (a) out.ptsX5 = a;
   if (b) out.ptsX10 = b;
   if (c) out.ptsPack = c;
+  if (u) out.unlocks = u;
   return out;
 }
 
 export function grantIsEmpty(g: GrantBundle): boolean {
   return !(
     (g.stageTicket || 0) +
-    (g.ptsX5 || 0) +
-    (g.ptsX10 || 0) +
-    (g.ptsPack || 0)
+      (g.ptsX5 || 0) +
+      (g.ptsX10 || 0) +
+      (g.ptsPack || 0) ||
+    (g.unlocks && g.unlocks.length > 0)
   );
 }
 
@@ -182,6 +218,15 @@ export function formatGrantSummary(g: GrantBundle): string {
   if (g.ptsX5) parts.push(`×5×${g.ptsX5}`);
   if (g.ptsX10) parts.push(`×10×${g.ptsX10}`);
   if (g.ptsPack) parts.push(`+5K×${g.ptsPack}`);
+  if (g.unlocks) {
+    const u = g.unlocks
+      .split(",")
+      .map((id) =>
+        id === "beam" ? "OPT-LASER" : id === "flame" ? "FLAME" : id.toUpperCase(),
+      )
+      .join("+");
+    if (u) parts.push(`UNLOCK:${u}`);
+  }
   return parts.length ? parts.join(" ") : "なし";
 }
 

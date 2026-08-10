@@ -16,6 +16,7 @@ import {
   sfxBuy as sfxBuy,
   sfxBuyFail as sfxBuyFail,
   sfxUi as sfxUi,
+  sfxSelect as sfxSelect,
   sfxStart as sfxStart,
 } from "../audio/sfx";
 
@@ -33,6 +34,7 @@ export const sfx = {
   buy: sfxBuy,
   buyFail: sfxBuyFail,
   ui: sfxUi,
+  select: sfxSelect,
   start: sfxStart,
 } as const;
 

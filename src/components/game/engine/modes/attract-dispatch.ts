@@ -13,6 +13,7 @@ export type AttractDispatch =
   | { type: "profile" }
   | { type: "stats" }
   | { type: "open_bag" }
+  | { type: "open_ad_watch" }
   | { type: "open_promo_admin" }
   | { type: "back_root"; cursor: number }
   | { type: "start_easy" }
@@ -38,6 +39,7 @@ export function toAttractDispatch(action: { type: string; [k: string]: any }): A
     case "profile":
     case "stats":
     case "open_bag":
+    case "open_ad_watch":
     case "open_promo_admin":
     case "start_easy":
     case "start_normal":

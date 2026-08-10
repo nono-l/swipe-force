@@ -19,5 +19,6 @@ export {
   sfxBuy,
   sfxBuyFail,
   sfxUi,
+  sfxSelect,
   sfxStart,
 } from "./engine";

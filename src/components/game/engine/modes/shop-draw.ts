@@ -180,7 +180,7 @@ export function shopTierHint(opts: {
   } else if (opts.linked) {
     text = "最終強化解放済み · OPT/FLAME可";
   } else {
-    text = "最終強化解放済み · 連携でOPT/FLAME";
+    text = "最終強化解放済み · 連携/プロモでOPT/FLAME";
   }
   const color =
     opts.celebrate && opts.frame % 10 < 5 ? "#ff66ff" : "#66aa66";

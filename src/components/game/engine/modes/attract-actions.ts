@@ -30,6 +30,8 @@ export type AttractAction =
   | { type: "stats" }
   | { type: "open_bag" }
   | { type: "open_promo_admin" }
+  | { type: "open_ad_watch" }
+  | { type: "open_ad_advertiser" }
   | { type: "noop" };
 
 /** LINK button top-right hasVisitedUrl attract */
@@ -68,8 +70,10 @@ export function attractActionForIndex(
     if (i === 1) return { type: "profile" };
     if (i === 2) return { type: "stats" };
     if (i === 3) return { type: "open_bag" };
+    if (i === 4) return { type: "open_ad_watch" };
+    if (i === 5) return { type: "open_ad_advertiser" };
     if (isPromoAdmin) {
-      if (i === 4) return { type: "open_promo_admin" };
+      if (i === 6) return { type: "open_promo_admin" };
       return { type: "back_root", cursor: 4 };
     }
     return { type: "back_root", cursor: 4 };

@@ -26,16 +26,16 @@ export type TitleMenuContext = {
 export const TITLE_YS = {
   root: [0.42, 0.5, 0.58, 0.66, 0.74, 0.83],
   diff: [0.44, 0.56, 0.68, 0.8],
-  extra5: [0.44, 0.54, 0.64, 0.74, 0.84],
-  extra6: [0.42, 0.5, 0.58, 0.66, 0.74, 0.83],
+  extra6: [0.42, 0.5, 0.58, 0.66, 0.74, 0.84],
+  extra7: [0.4, 0.48, 0.56, 0.64, 0.72, 0.8, 0.88],
 } as const;
 
 /** Hit-box heights (px) matching draw */
 export const TITLE_HIT_H = {
   root: [18, 16, 16, 14, 14, 13],
   diff: [20, 20, 14, 14],
-  extra5: [16, 16, 16, 15, 14],
-  extra6: [15, 15, 15, 15, 15, 14],
+  extra6: [15, 15, 15, 14, 14, 13],
+  extra7: [14, 14, 14, 14, 14, 13, 13],
 } as const;
 
 export function titleMenuLen(
@@ -45,7 +45,7 @@ export function titleMenuLen(
   if (sub === "extra") {
     const admin =
       typeof ctx === "boolean" ? ctx : !!(ctx && ctx.isPromoAdmin);
-    return admin ? 6 : 5;
+    return admin ? 7 : 6;
   }
   if (sub === "diff") return 3;
   return 6;
@@ -58,7 +58,7 @@ export function titleMenuYs(
 ): number[] {
   let fracs: readonly number[];
   if (sub === "extra") {
-    fracs = ctx?.isPromoAdmin ? TITLE_YS.extra6 : TITLE_YS.extra5;
+    fracs = ctx?.isPromoAdmin ? TITLE_YS.extra7 : TITLE_YS.extra6;
   } else if (sub === "diff") {
     fracs = TITLE_YS.diff;
   } else {
@@ -73,8 +73,8 @@ export function titleHitHeights(
 ): number[] {
   if (sub === "extra") {
     return ctx?.isPromoAdmin
-      ? [...TITLE_HIT_H.extra6]
-      : [...TITLE_HIT_H.extra5];
+      ? [...TITLE_HIT_H.extra7]
+      : [...TITLE_HIT_H.extra6];
   }
   if (sub === "diff") return [...TITLE_HIT_H.diff];
   return [...TITLE_HIT_H.root];
@@ -89,35 +89,45 @@ export function buildTitleMenu(
       {
         title: ctx.linked ? "♪ SOUND TEST" : "♪ SOUND TEST 🔒",
         sub: ctx.linked ? "全ステージ/ボス曲" : "連携で解放",
-        h: 16,
+        h: 15,
       },
       {
         title: ctx.linked ? "👤 PROFILE" : "👤 PROFILE 🔒",
         sub: ctx.linked ? "表示名/紹介/シェア文" : "連携で設定",
-        h: 16,
+        h: 15,
       },
       {
         title: "📊 DATA",
         sub: "時間・ヘルプ・強化",
-        h: 16,
+        h: 15,
       },
       {
         title: "🎒 ITEMS",
         sub: "ログイン/プロモ配布",
-        h: 15,
+        h: 14,
+      },
+      {
+        title: "📺 AD WATCH",
+        sub: "広告視聴でコイン",
+        h: 14,
+      },
+      {
+        title: "📣 ADVERTISER",
+        sub: "広告主 · コード/配信",
+        h: 13,
       },
     ];
     if (ctx.isPromoAdmin) {
       items.push({
         title: "🛠 PROMO",
         sub: "管理者 · 配布コード",
-        h: 15,
+        h: 13,
       });
     }
     items.push({
       title: "◀ BACK",
       sub: "タイトルへ",
-      h: 14,
+      h: 13,
     });
     return items;
   }
