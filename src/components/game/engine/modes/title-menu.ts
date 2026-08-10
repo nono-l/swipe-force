@@ -114,8 +114,8 @@ export function buildTitleMenu(
         h: 14,
       },
       {
-        title: "📣 ADVERTISER",
-        sub: "広告主 · コード/配信",
+        title: ctx.linked ? "📣 ADVERTISER" : "📣 ADVERTISER 🔒",
+        sub: ctx.linked ? "広告主 · コード/配信" : "連携で解放",
         h: 13,
       },
     ];

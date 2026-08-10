@@ -1,6 +1,7 @@
 /**
  * Fetch YouTube video duration (seconds) via IFrame API — no Data API key.
  * Spins up a temporary off-screen player, reads getDuration(), destroys it.
+ * Title via oEmbed (server proxy + noembed fallback).
  */
 
 import { parseYouTubeVideoId } from "@/components/game/engine/modes/ad-watch";
@@ -164,4 +165,57 @@ export async function fetchYouTubeDurationSec(
       finish(null);
     }
   });
+}
+
+/** Fetch video title via oEmbed (server proxy, then noembed fallback). */
+export async function fetchYouTubeTitle(
+  videoIdOrUrl: string,
+): Promise<string | null> {
+  const id = parseYouTubeVideoId(videoIdOrUrl);
+  if (id.length < 6) return null;
+  try {
+    const res = await fetch(
+      `/api/share/youtube-meta?id=${encodeURIComponent(id)}`,
+      { credentials: "same-origin" },
+    );
+    const data = (await res.json().catch(() => ({}))) as {
+      ok?: boolean;
+      title?: string | null;
+    };
+    if (data.ok && data.title) {
+      return String(data.title).trim().slice(0, 80);
+    }
+  } catch {
+    /* */
+  }
+  try {
+    const watch = `https://www.youtube.com/watch?v=${encodeURIComponent(id)}`;
+    const res = await fetch(
+      `https://noembed.com/embed?url=${encodeURIComponent(watch)}`,
+    );
+    const data = (await res.json().catch(() => ({}))) as { title?: string };
+    if (data.title) return String(data.title).trim().slice(0, 80);
+  } catch {
+    /* */
+  }
+  return null;
+}
+
+export type YouTubeMeta = {
+  id: string;
+  title: string | null;
+  durationSec: number | null;
+};
+
+/** Parallel title + duration fetch for ad registration forms. */
+export async function fetchYouTubeMeta(
+  videoIdOrUrl: string,
+): Promise<YouTubeMeta | null> {
+  const id = parseYouTubeVideoId(videoIdOrUrl);
+  if (id.length < 6) return null;
+  const [title, durationSec] = await Promise.all([
+    fetchYouTubeTitle(id),
+    fetchYouTubeDurationSec(id),
+  ]);
+  return { id, title, durationSec };
 }

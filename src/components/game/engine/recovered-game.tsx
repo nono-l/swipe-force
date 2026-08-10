@@ -2365,6 +2365,11 @@ function SwipeForceEngine() {
 
         function tryOpenAdAdvertiser() {
             try {
+                if (!account.linked) {
+                    shareToast = `ADVERTISER はアカウント連携特典です`, shareToastLife = 90;
+                    try { sfx.buyFail() } catch {}
+                    return;
+                }
                 if (!playerId) {
                     shareToast = `プレイヤーIDがありません`, shareToastLife = 80;
                     try { sfx.buyFail() } catch {}

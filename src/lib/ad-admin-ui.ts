@@ -14,7 +14,7 @@ import {
   type AdminAdVideo,
 } from "@/lib/ad-videos-api";
 import { maxCoinsForVideo, parseYouTubeVideoId } from "@/components/game/engine/modes/ad-watch";
-import { fetchYouTubeDurationSec } from "@/lib/youtube-duration";
+import { fetchYouTubeDurationSec, fetchYouTubeTitle } from "@/lib/youtube-duration";
 import { isPromoAdminPlayer } from "@/components/game/engine/modes/admin";
 
 export type AdAdminDialogOpts = {
@@ -146,7 +146,7 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
           </div>
           <div style="grid-column:1/-1">
             <label style="font-size:10px;color:#8ab">ラベル</label>
-            <input id="sf-aa-label" value="${esc(editing?.label || "")}" placeholder="キャンペーンA" style="${inputStyle()}" />
+            <input id="sf-aa-label" value="${esc(editing?.label || "")}" placeholder="空なら動画タイトルを自動" style="${inputStyle()}" />
           </div>
           <div>
             <label style="font-size:10px;color:#8ab">動画の長さ（秒）· 自動取得可</label>
@@ -303,13 +303,29 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
       }
     };
 
+    const labelInput = card.querySelector("#sf-aa-label") as HTMLInputElement | null;
+    let lastAutoLabelFor = "";
     const autoFetchDuration = async (vid: string, force = false) => {
       if (!vid || vid.length < 6) return;
       if (!force && lastFetchedId === vid && durInput?.value) return;
       const gen = ++fetchGen;
-      setDurStatus("尺を取得中…", "#fe8");
-      const sec = await fetchYouTubeDurationSec(vid);
+      setDurStatus("尺・タイトルを取得中…", "#fe8");
+      const [sec, title] = await Promise.all([
+        fetchYouTubeDurationSec(vid),
+        fetchYouTubeTitle(vid),
+      ]);
       if (gen !== fetchGen) return;
+      // fill label if empty or previous auto-title for another id
+      if (
+        title &&
+        labelInput &&
+        (!labelInput.value.trim() ||
+          lastAutoLabelFor === labelInput.value ||
+          labelInput.value === vid)
+      ) {
+        labelInput.value = title.slice(0, 40);
+        lastAutoLabelFor = labelInput.value;
+      }
       if (sec && sec >= 1) {
         lastFetchedId = vid;
         if (durInput) durInput.value = String(sec);
@@ -317,7 +333,10 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
         const m = Math.floor((sec % 3600) / 60);
         const s = sec % 60;
         const human = h > 0 ? `${h}時間${m}分${s}秒` : m > 0 ? `${m}分${s}秒` : `${s}秒`;
-        setDurStatus(`自動取得: ${sec}秒（${human}）`, "#8c8");
+        const tbit = title ? ` · 「${title.slice(0, 28)}${title.length > 28 ? "…" : ""}」` : "";
+        setDurStatus(`自動取得: ${sec}秒（${human}）${tbit}`, "#8c8");
+      } else if (title) {
+        setDurStatus(`タイトル取得OK · 尺は手入力`, "#fe8");
       } else {
         setDurStatus("自動取得失敗 · 手入力するか再試行", "#f86");
       }
@@ -397,7 +416,7 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
       const idRaw =
         (card.querySelector("#sf-aa-id") as HTMLInputElement)?.value || "";
       const id = parseYouTubeVideoId(idRaw);
-      const label =
+      let label =
         (card.querySelector("#sf-aa-label") as HTMLInputElement)?.value?.trim() ||
         id;
       let durationSec = Number(
@@ -442,9 +461,13 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
           return;
         }
       }
+      if (!label || label === id) {
+        const title = await fetchYouTubeTitle(id);
+        if (title) label = title.slice(0, 40);
+      }
       const res = await saveAdminAdVideo(String(opts.playerId || ""), {
         id,
-        label: label || id,
+        label: label || id, // title may fill below
         durationSec,
         maxDisplayHours,
         active,

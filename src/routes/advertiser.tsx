@@ -86,6 +86,20 @@ function AdvertiserPortalPage() {
               {portalUrl}
             </a>
           </div>
+          <div className="mt-2 rounded-lg border border-[#345] bg-[#0a1520] px-3 py-2 text-[11px]">
+            <div className="text-[#8ab]">サポート窓口</div>
+            <a
+              href="https://discord.gg/hfDykSD2JJ"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-0.5 block font-semibold text-[#8cf] underline"
+            >
+              Discord
+            </a>
+            <div className="mt-0.5 break-all text-[10px] text-[#567] select-all">
+              https://discord.gg/hfDykSD2JJ
+            </div>
+          </div>
         </header>
 
         {phase === "loading" && (

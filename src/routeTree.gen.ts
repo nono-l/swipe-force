@@ -28,6 +28,7 @@ import { Route as ApiShareMessageRouteImport } from './routes/api/share/message'
 import { Route as ApiShareMissionRouteImport } from './routes/api/share/mission'
 import { Route as ApiShareSpendRouteImport } from './routes/api/share/spend'
 import { Route as ApiShareSyncRouteImport } from './routes/api/share/sync'
+import { Route as ApiShareYoutubeMetaRouteImport } from './routes/api/share/youtube-meta'
 import { Route as ApiSoundCommentsRouteImport } from './routes/api/sound/comments'
 import { Route as ApiSoundUrlReportRouteImport } from './routes/api/sound/url-report'
 import { Route as ApiSoundUrlVisitRouteImport } from './routes/api/sound/url-visit'
@@ -128,6 +129,11 @@ const ApiShareSyncRoute = ApiShareSyncRouteImport.update({
   path: '/api/share/sync',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiShareYoutubeMetaRoute = ApiShareYoutubeMetaRouteImport.update({
+  id: '/api/share/youtube-meta',
+  path: '/api/share/youtube-meta',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSoundCommentsRoute = ApiSoundCommentsRouteImport.update({
   id: '/api/sound/comments',
   path: '/api/sound/comments',
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/api/share/mission': typeof ApiShareMissionRoute
   '/api/share/spend': typeof ApiShareSpendRoute
   '/api/share/sync': typeof ApiShareSyncRoute
+  '/api/share/youtube-meta': typeof ApiShareYoutubeMetaRoute
   '/api/sound/comments': typeof ApiSoundCommentsRoute
   '/api/sound/url-report': typeof ApiSoundUrlReportRoute
   '/api/sound/url-visit': typeof ApiSoundUrlVisitRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/api/share/mission': typeof ApiShareMissionRoute
   '/api/share/spend': typeof ApiShareSpendRoute
   '/api/share/sync': typeof ApiShareSyncRoute
+  '/api/share/youtube-meta': typeof ApiShareYoutubeMetaRoute
   '/api/sound/comments': typeof ApiSoundCommentsRoute
   '/api/sound/url-report': typeof ApiSoundUrlReportRoute
   '/api/sound/url-visit': typeof ApiSoundUrlVisitRoute
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   '/api/share/mission': typeof ApiShareMissionRoute
   '/api/share/spend': typeof ApiShareSpendRoute
   '/api/share/sync': typeof ApiShareSyncRoute
+  '/api/share/youtube-meta': typeof ApiShareYoutubeMetaRoute
   '/api/sound/comments': typeof ApiSoundCommentsRoute
   '/api/sound/url-report': typeof ApiSoundUrlReportRoute
   '/api/sound/url-visit': typeof ApiSoundUrlVisitRoute
@@ -247,6 +256,7 @@ export interface FileRouteTypes {
     | '/api/share/mission'
     | '/api/share/spend'
     | '/api/share/sync'
+    | '/api/share/youtube-meta'
     | '/api/sound/comments'
     | '/api/sound/url-report'
     | '/api/sound/url-visit'
@@ -272,6 +282,7 @@ export interface FileRouteTypes {
     | '/api/share/mission'
     | '/api/share/spend'
     | '/api/share/sync'
+    | '/api/share/youtube-meta'
     | '/api/sound/comments'
     | '/api/sound/url-report'
     | '/api/sound/url-visit'
@@ -297,6 +308,7 @@ export interface FileRouteTypes {
     | '/api/share/mission'
     | '/api/share/spend'
     | '/api/share/sync'
+    | '/api/share/youtube-meta'
     | '/api/sound/comments'
     | '/api/sound/url-report'
     | '/api/sound/url-visit'
@@ -323,6 +335,7 @@ export interface RootRouteChildren {
   ApiShareMissionRoute: typeof ApiShareMissionRoute
   ApiShareSpendRoute: typeof ApiShareSpendRoute
   ApiShareSyncRoute: typeof ApiShareSyncRoute
+  ApiShareYoutubeMetaRoute: typeof ApiShareYoutubeMetaRoute
   ApiSoundCommentsRoute: typeof ApiSoundCommentsRoute
   ApiSoundUrlReportRoute: typeof ApiSoundUrlReportRoute
   ApiSoundUrlVisitRoute: typeof ApiSoundUrlVisitRoute
@@ -464,6 +477,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiShareSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/share/youtube-meta': {
+      id: '/api/share/youtube-meta'
+      path: '/api/share/youtube-meta'
+      fullPath: '/api/share/youtube-meta'
+      preLoaderRoute: typeof ApiShareYoutubeMetaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/sound/comments': {
       id: '/api/sound/comments'
       path: '/api/sound/comments'
@@ -515,6 +535,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiShareMissionRoute: ApiShareMissionRoute,
   ApiShareSpendRoute: ApiShareSpendRoute,
   ApiShareSyncRoute: ApiShareSyncRoute,
+  ApiShareYoutubeMetaRoute: ApiShareYoutubeMetaRoute,
   ApiSoundCommentsRoute: ApiSoundCommentsRoute,
   ApiSoundUrlReportRoute: ApiSoundUrlReportRoute,
   ApiSoundUrlVisitRoute: ApiSoundUrlVisitRoute,

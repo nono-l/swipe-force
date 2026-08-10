@@ -12,7 +12,7 @@ import {
   type AdvertiserVideo,
 } from "@/lib/ad-advertiser-api";
 import { parseYouTubeVideoId } from "@/components/game/engine/modes/ad-watch";
-import { fetchYouTubeDurationSec } from "@/lib/youtube-duration";
+import { fetchYouTubeDurationSec, fetchYouTubeTitle } from "@/lib/youtube-duration";
 import {
   createPrepaidCode,
   disablePrepaidCode,
@@ -20,6 +20,9 @@ import {
   type PrepaidCode,
 } from "@/lib/ad-advertiser-api";
 import { isPromoAdminPlayer } from "@/components/game/engine/modes/admin";
+
+/** Support desk (Discord) for advertisers */
+export const ADVERTISER_SUPPORT_URL = "https://discord.gg/hfDykSD2JJ";
 
 export type AdAdvertiserDialogOpts = {
   playerId?: string | null;
@@ -147,6 +150,11 @@ export function openAdAdvertiserDialog(opts: AdAdvertiserDialogOpts): void {
           <div style="font-size:10px;color:#8ab;margin-top:2px">プリペイドで予算を入れて配信 · <b style="color:#fe8">自分の登録分のみ</b></div>
           <div style="font-size:9px;color:#6a8;margin-top:4px;word-break:break-all">直URL: <a href="${advertiserPortalUrl()}" target="_blank" rel="noopener" style="color:#8cf;text-decoration:underline">${esc(advertiserPortalUrl())}</a>
           <button type="button" id="sf-adv-open-portal" style="margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid #456;background:#122028;color:#bcd;font-size:9px;cursor:pointer">開く</button></div>
+          <div style="font-size:9px;margin-top:6px;line-height:1.4">
+            <span style="color:#8ab">サポート窓口</span>
+            <a href="${ADVERTISER_SUPPORT_URL}" target="_blank" rel="noopener" style="color:#8cf;text-decoration:underline;margin-left:4px">Discord</a>
+            <div style="color:#567;word-break:break-all;user-select:all">${esc(ADVERTISER_SUPPORT_URL)}</div>
+          </div>
         </div>
         <button type="button" id="sf-adv-x" style="border:0;background:transparent;color:#9ab;font-size:22px;cursor:pointer">×</button>
       </div>
@@ -307,11 +315,13 @@ export function openAdAdvertiserDialog(opts: AdAdvertiserDialogOpts): void {
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
             <div style="grid-column:1/-1">
               <label style="font-size:10px;color:#8ab">YouTube URL / ID</label>
-              <input id="sf-av-id" ${editId ? "readonly" : ""} value="${esc(editing?.id || "")}" placeholder="https://youtube.com/…" style="${inputStyle(editId ? "opacity:.7" : "")}" />
+              <input id="sf-av-id" ${editId ? "readonly" : ""} value="${esc(editing?.id || "")}" placeholder="https://youtube.com/watch?v=… / live / shorts / youtu.be/…" style="${inputStyle(editId ? "opacity:.7" : "")}" />
+              <div id="sf-av-id-parsed" style="font-size:10px;color:#8ab;margin-top:4px"></div>
+              <div id="sf-av-dur-status" style="font-size:10px;color:#678;margin-top:2px"></div>
             </div>
             <div style="grid-column:1/-1">
-              <label style="font-size:10px;color:#8ab">ラベル</label>
-              <input id="sf-av-label" value="${esc(editing?.label || "")}" style="${inputStyle()}" />
+              <label style="font-size:10px;color:#8ab">ラベル（空ならタイトル自動）</label>
+              <input id="sf-av-label" value="${esc(editing?.label || "")}" placeholder="動画タイトルを自動取得" style="${inputStyle()}" />
             </div>
             <div>
               <label style="font-size:10px;color:#8ab">尺（秒）自動可</label>
@@ -623,6 +633,104 @@ export function openAdAdvertiserDialog(opts: AdAdvertiserDialogOpts): void {
       });
     });
 
+    // Live YouTube URL → ID parse + auto duration (same as admin ad form)
+    {
+      const idInput = card.querySelector("#sf-av-id") as HTMLInputElement | null;
+      const parsedEl = card.querySelector("#sf-av-id-parsed") as HTMLElement | null;
+      const durInput = card.querySelector("#sf-av-dur") as HTMLInputElement | null;
+      const durStatus = card.querySelector("#sf-av-dur-status") as HTMLElement | null;
+      let lastFetchedId = "";
+      let fetchGen = 0;
+      const setDurStatus = (msg: string, color = "#678") => {
+        if (durStatus) {
+          durStatus.textContent = msg;
+          durStatus.style.color = color;
+        }
+      };
+      const labelInput = card.querySelector("#sf-av-label") as HTMLInputElement | null;
+      let lastAutoLabelFor = "";
+      const autoFetchDuration = async (vid: string, force = false) => {
+        if (!vid || vid.length < 6) return;
+        if (!force && lastFetchedId === vid && durInput?.value) return;
+        const gen = ++fetchGen;
+        setDurStatus("尺・タイトルを取得中…", "#fe8");
+        const [sec, title] = await Promise.all([
+          fetchYouTubeDurationSec(vid),
+          fetchYouTubeTitle(vid),
+        ]);
+        if (gen !== fetchGen) return;
+        if (
+          title &&
+          labelInput &&
+          (!labelInput.value.trim() ||
+            lastAutoLabelFor === labelInput.value ||
+            labelInput.value === vid)
+        ) {
+          labelInput.value = title.slice(0, 40);
+          lastAutoLabelFor = labelInput.value;
+        }
+        if (sec && sec >= 1) {
+          lastFetchedId = vid;
+          if (durInput) durInput.value = String(sec);
+          const h = Math.floor(sec / 3600);
+          const m = Math.floor((sec % 3600) / 60);
+          const s = sec % 60;
+          const human =
+            h > 0
+              ? `${h}時間${m}分${s}秒`
+              : m > 0
+                ? `${m}分${s}秒`
+                : `${s}秒`;
+          const tbit = title
+            ? ` · 「${title.slice(0, 28)}${title.length > 28 ? "…" : ""}」`
+            : "";
+          setDurStatus(`自動取得: ${sec}秒（${human}）${tbit}`, "#8c8");
+        } else if (title) {
+          setDurStatus("タイトル取得OK · 尺は手入力", "#fe8");
+        } else {
+          setDurStatus("自動取得失敗 · 手入力するか再試行", "#f86");
+        }
+      };
+      const updateParsed = () => {
+        if (!idInput || !parsedEl || editId) {
+          if (parsedEl && editId) {
+            parsedEl.textContent = `ID: ${editId}`;
+            parsedEl.style.color = "#8ab";
+          }
+          return;
+        }
+        const parsed = parseYouTubeVideoId(idInput.value);
+        if (!idInput.value.trim()) {
+          parsedEl.textContent =
+            "フルURL（watch / live / shorts / youtu.be）を貼れます";
+          parsedEl.style.color = "#678";
+        } else if (parsed) {
+          parsedEl.textContent = `→ 動画ID: ${parsed}`;
+          parsedEl.style.color = "#8c8";
+          window.clearTimeout((updateParsed as { _t?: number })._t);
+          (updateParsed as { _t?: number })._t = window.setTimeout(() => {
+            void autoFetchDuration(parsed, false);
+          }, 450);
+        } else {
+          parsedEl.textContent = "解析できません（URLかIDを確認）";
+          parsedEl.style.color = "#f86";
+        }
+      };
+      idInput?.addEventListener("input", updateParsed);
+      idInput?.addEventListener("change", updateParsed);
+      idInput?.addEventListener("paste", () => setTimeout(updateParsed, 0));
+      updateParsed();
+      // expose for 取得 button
+      (card as unknown as { __sfAutoDur?: typeof autoFetchDuration }).__sfAutoDur =
+        autoFetchDuration;
+      if (editId && editing) {
+        setDurStatus(
+          `登録済み: ${editing.durationSec}秒 · 「取得」で再取得可`,
+          "#8ab",
+        );
+      }
+    }
+
     card.querySelector("#sf-av-cancel")?.addEventListener("click", () => {
       editId = "";
       flash = "";
@@ -631,23 +739,27 @@ export function openAdAdvertiserDialog(opts: AdAdvertiserDialogOpts): void {
 
     card.querySelector("#sf-av-dur-f")?.addEventListener("click", async () => {
       opts.sfxUi?.();
-      const raw =
-        (card.querySelector("#sf-av-id") as HTMLInputElement)?.value || editId;
-      const id = parseYouTubeVideoId(raw);
+      const idInput = card.querySelector("#sf-av-id") as HTMLInputElement | null;
+      const raw = idInput?.value || editId || "";
+      const id = parseYouTubeVideoId(raw) || editId;
       if (!id) {
         flash = "URL/ID を入力してください";
         opts.sfxFail?.();
         paint();
         return;
       }
+      if (idInput && !editId) idInput.value = id; // normalize to pure ID
+      const auto = (card as unknown as { __sfAutoDur?: (v: string, f?: boolean) => Promise<void> }).__sfAutoDur;
+      if (auto) {
+        await auto(id, true);
+        opts.sfxOk?.();
+        return;
+      }
       flash = "尺を取得中…";
       paint();
       const sec = await fetchYouTubeDurationSec(id);
-      const dur = card.querySelector("#sf-av-dur") as HTMLInputElement | null;
-      if (sec && dur) {
-        // need re-paint carefully - set flash and update via paint with temp
+      if (sec) {
         flash = `尺 ${sec}秒 を取得`;
-        // store on editing path by setting value after paint
         paint();
         const d2 = card.querySelector("#sf-av-dur") as HTMLInputElement | null;
         if (d2) d2.value = String(sec);
@@ -661,9 +773,10 @@ export function openAdAdvertiserDialog(opts: AdAdvertiserDialogOpts): void {
 
     card.querySelector("#sf-av-save")?.addEventListener("click", async () => {
       if (busy) return;
-      const idRaw =
-        (card.querySelector("#sf-av-id") as HTMLInputElement)?.value || "";
+      const idEl = card.querySelector("#sf-av-id") as HTMLInputElement | null;
+      const idRaw = idEl?.value || "";
       const id = parseYouTubeVideoId(idRaw) || editId;
+      if (idEl && id && !editId) idEl.value = id;
       let label =
         (card.querySelector("#sf-av-label") as HTMLInputElement)?.value?.trim() ||
         id;
@@ -689,6 +802,10 @@ export function openAdAdvertiserDialog(opts: AdAdvertiserDialogOpts): void {
         const got = await fetchYouTubeDurationSec(id);
         if (got) durationSec = got;
         else durationSec = 180;
+      }
+      if (!label || label === id) {
+        const title = await fetchYouTubeTitle(id);
+        if (title) label = title.slice(0, 40);
       }
       const r = await saveAdvertiserVideo(playerId, {
         id,
@@ -762,6 +879,11 @@ export function openAdAdvertiserDialog(opts: AdAdvertiserDialogOpts): void {
           <div style="font-size:10px;color:#8ab;margin-top:2px">プリペイドで予算を入れて配信 · <b style="color:#fe8">自分の登録分のみ</b></div>
           <div style="font-size:9px;color:#6a8;margin-top:4px;word-break:break-all">直URL: <a href="${advertiserPortalUrl()}" target="_blank" rel="noopener" style="color:#8cf;text-decoration:underline">${esc(advertiserPortalUrl())}</a>
           <button type="button" id="sf-adv-open-portal" style="margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid #456;background:#122028;color:#bcd;font-size:9px;cursor:pointer">開く</button></div>
+          <div style="font-size:9px;margin-top:6px;line-height:1.4">
+            <span style="color:#8ab">サポート窓口</span>
+            <a href="${ADVERTISER_SUPPORT_URL}" target="_blank" rel="noopener" style="color:#8cf;text-decoration:underline;margin-left:4px">Discord</a>
+            <div style="color:#567;word-break:break-all;user-select:all">${esc(ADVERTISER_SUPPORT_URL)}</div>
+          </div>
         </div>
         <button type="button" id="sf-adv-x" style="border:0;background:transparent;color:#9ab;font-size:22px;cursor:pointer">×</button>
       </div>
@@ -846,7 +968,10 @@ export function openAdAdvertiserDialog(opts: AdAdvertiserDialogOpts): void {
           <div style="font-size:11px;font-weight:700;color:#9ec;margin-bottom:8px">${editId ? "広告を編集" : "新規広告"}</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
             <div style="grid-column:1/-1"><label style="font-size:10px;color:#8ab">YouTube URL / ID</label>
-            <input id="sf-av-id" ${editId ? "readonly" : ""} value="${esc(editing?.id || "")}" style="${inputStyle(editId ? "opacity:.7" : "")}" /></div>
+            <input id="sf-av-id" ${editId ? "readonly" : ""} value="${esc(editing?.id || "")}" placeholder="https://youtube.com/watch?v=… / live / shorts / youtu.be/…" style="${inputStyle(editId ? "opacity:.7" : "")}" />
+            <div id="sf-av-id-parsed" style="font-size:10px;color:#8ab;margin-top:4px"></div>
+            <div id="sf-av-dur-status" style="font-size:10px;color:#678;margin-top:2px"></div>
+            </div>
             <div style="grid-column:1/-1"><label style="font-size:10px;color:#8ab">ラベル</label>
             <input id="sf-av-label" value="${esc(editing?.label || "")}" style="${inputStyle()}" /></div>
             <div><label style="font-size:10px;color:#8ab">尺（秒）</label>
