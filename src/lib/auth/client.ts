@@ -66,10 +66,16 @@ function setBearerToken(token: string | null): void {
  * popup there and a normal redirect everywhere else.
  */
 function inLivePreview(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    window.location.hostname.endsWith(".grok-sandbox.com")
-  );
+  if (typeof window === "undefined") return false;
+  // Grok sandbox host
+  if (window.location.hostname.endsWith(".grok-sandbox.com")) return true;
+  // App Builder / embedded preview: cross-origin iframe (partitioned cookies)
+  try {
+    if (window.self !== window.top) return true;
+  } catch {
+    return true;
+  }
+  return false;
 }
 
 /** Message the popup posts back to the opener once sign-in completes. */
