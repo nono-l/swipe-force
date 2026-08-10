@@ -1,0 +1,2 @@
+ALTER TABLE sound_comments ADD COLUMN IF NOT EXISTS urls_json TEXT DEFAULT '[]';
+ALTER TABLE sound_comments ADD COLUMN IF NOT EXISTS kind TEXT DEFAULT 'note';

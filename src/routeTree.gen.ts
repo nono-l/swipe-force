@@ -11,7 +11,19 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ApiAccountLinkRouteImport } from './routes/api/account/link'
+import { Route as ApiAccountProfileRouteImport } from './routes/api/account/profile'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiShareAwardRouteImport } from './routes/api/share/award'
+import { Route as ApiShareBalanceRouteImport } from './routes/api/share/balance'
+import { Route as ApiShareMessageRouteImport } from './routes/api/share/message'
+import { Route as ApiShareMissionRouteImport } from './routes/api/share/mission'
+import { Route as ApiShareSpendRouteImport } from './routes/api/share/spend'
+import { Route as ApiShareSyncRouteImport } from './routes/api/share/sync'
+import { Route as ApiSoundCommentsRouteImport } from './routes/api/sound/comments'
+import { Route as ApiSoundUrlReportRouteImport } from './routes/api/sound/url-report'
+import { Route as ApiSoundUrlVisitRouteImport } from './routes/api/sound/url-visit'
+import { Route as ApiSoundVotesRouteImport } from './routes/api/sound/votes'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,40 +35,194 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAccountLinkRoute = ApiAccountLinkRouteImport.update({
+  id: '/api/account/link',
+  path: '/api/account/link',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAccountProfileRoute = ApiAccountProfileRouteImport.update({
+  id: '/api/account/profile',
+  path: '/api/account/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShareAwardRoute = ApiShareAwardRouteImport.update({
+  id: '/api/share/award',
+  path: '/api/share/award',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShareBalanceRoute = ApiShareBalanceRouteImport.update({
+  id: '/api/share/balance',
+  path: '/api/share/balance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShareMessageRoute = ApiShareMessageRouteImport.update({
+  id: '/api/share/message',
+  path: '/api/share/message',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShareMissionRoute = ApiShareMissionRouteImport.update({
+  id: '/api/share/mission',
+  path: '/api/share/mission',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShareSpendRoute = ApiShareSpendRouteImport.update({
+  id: '/api/share/spend',
+  path: '/api/share/spend',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShareSyncRoute = ApiShareSyncRouteImport.update({
+  id: '/api/share/sync',
+  path: '/api/share/sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSoundCommentsRoute = ApiSoundCommentsRouteImport.update({
+  id: '/api/sound/comments',
+  path: '/api/sound/comments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSoundUrlReportRoute = ApiSoundUrlReportRouteImport.update({
+  id: '/api/sound/url-report',
+  path: '/api/sound/url-report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSoundUrlVisitRoute = ApiSoundUrlVisitRouteImport.update({
+  id: '/api/sound/url-visit',
+  path: '/api/sound/url-visit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSoundVotesRoute = ApiSoundVotesRouteImport.update({
+  id: '/api/sound/votes',
+  path: '/api/sound/votes',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api/account/link': typeof ApiAccountLinkRoute
+  '/api/account/profile': typeof ApiAccountProfileRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/share/award': typeof ApiShareAwardRoute
+  '/api/share/balance': typeof ApiShareBalanceRoute
+  '/api/share/message': typeof ApiShareMessageRoute
+  '/api/share/mission': typeof ApiShareMissionRoute
+  '/api/share/spend': typeof ApiShareSpendRoute
+  '/api/share/sync': typeof ApiShareSyncRoute
+  '/api/sound/comments': typeof ApiSoundCommentsRoute
+  '/api/sound/url-report': typeof ApiSoundUrlReportRoute
+  '/api/sound/url-visit': typeof ApiSoundUrlVisitRoute
+  '/api/sound/votes': typeof ApiSoundVotesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api/account/link': typeof ApiAccountLinkRoute
+  '/api/account/profile': typeof ApiAccountProfileRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/share/award': typeof ApiShareAwardRoute
+  '/api/share/balance': typeof ApiShareBalanceRoute
+  '/api/share/message': typeof ApiShareMessageRoute
+  '/api/share/mission': typeof ApiShareMissionRoute
+  '/api/share/spend': typeof ApiShareSpendRoute
+  '/api/share/sync': typeof ApiShareSyncRoute
+  '/api/sound/comments': typeof ApiSoundCommentsRoute
+  '/api/sound/url-report': typeof ApiSoundUrlReportRoute
+  '/api/sound/url-visit': typeof ApiSoundUrlVisitRoute
+  '/api/sound/votes': typeof ApiSoundVotesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api/account/link': typeof ApiAccountLinkRoute
+  '/api/account/profile': typeof ApiAccountProfileRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/share/award': typeof ApiShareAwardRoute
+  '/api/share/balance': typeof ApiShareBalanceRoute
+  '/api/share/message': typeof ApiShareMessageRoute
+  '/api/share/mission': typeof ApiShareMissionRoute
+  '/api/share/spend': typeof ApiShareSpendRoute
+  '/api/share/sync': typeof ApiShareSyncRoute
+  '/api/sound/comments': typeof ApiSoundCommentsRoute
+  '/api/sound/url-report': typeof ApiSoundUrlReportRoute
+  '/api/sound/url-visit': typeof ApiSoundUrlVisitRoute
+  '/api/sound/votes': typeof ApiSoundVotesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/api/auth/$'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/api/account/link'
+    | '/api/account/profile'
+    | '/api/auth/$'
+    | '/api/share/award'
+    | '/api/share/balance'
+    | '/api/share/message'
+    | '/api/share/mission'
+    | '/api/share/spend'
+    | '/api/share/sync'
+    | '/api/sound/comments'
+    | '/api/sound/url-report'
+    | '/api/sound/url-visit'
+    | '/api/sound/votes'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/api/auth/$'
-  id: '__root__' | '/' | '/login' | '/api/auth/$'
+  to:
+    | '/'
+    | '/login'
+    | '/api/account/link'
+    | '/api/account/profile'
+    | '/api/auth/$'
+    | '/api/share/award'
+    | '/api/share/balance'
+    | '/api/share/message'
+    | '/api/share/mission'
+    | '/api/share/spend'
+    | '/api/share/sync'
+    | '/api/sound/comments'
+    | '/api/sound/url-report'
+    | '/api/sound/url-visit'
+    | '/api/sound/votes'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/api/account/link'
+    | '/api/account/profile'
+    | '/api/auth/$'
+    | '/api/share/award'
+    | '/api/share/balance'
+    | '/api/share/message'
+    | '/api/share/mission'
+    | '/api/share/spend'
+    | '/api/share/sync'
+    | '/api/sound/comments'
+    | '/api/sound/url-report'
+    | '/api/sound/url-visit'
+    | '/api/sound/votes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  ApiAccountLinkRoute: typeof ApiAccountLinkRoute
+  ApiAccountProfileRoute: typeof ApiAccountProfileRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiShareAwardRoute: typeof ApiShareAwardRoute
+  ApiShareBalanceRoute: typeof ApiShareBalanceRoute
+  ApiShareMessageRoute: typeof ApiShareMessageRoute
+  ApiShareMissionRoute: typeof ApiShareMissionRoute
+  ApiShareSpendRoute: typeof ApiShareSpendRoute
+  ApiShareSyncRoute: typeof ApiShareSyncRoute
+  ApiSoundCommentsRoute: typeof ApiSoundCommentsRoute
+  ApiSoundUrlReportRoute: typeof ApiSoundUrlReportRoute
+  ApiSoundUrlVisitRoute: typeof ApiSoundUrlVisitRoute
+  ApiSoundVotesRoute: typeof ApiSoundVotesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,11 +241,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/account/link': {
+      id: '/api/account/link'
+      path: '/api/account/link'
+      fullPath: '/api/account/link'
+      preLoaderRoute: typeof ApiAccountLinkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/account/profile': {
+      id: '/api/account/profile'
+      path: '/api/account/profile'
+      fullPath: '/api/account/profile'
+      preLoaderRoute: typeof ApiAccountProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/award': {
+      id: '/api/share/award'
+      path: '/api/share/award'
+      fullPath: '/api/share/award'
+      preLoaderRoute: typeof ApiShareAwardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/balance': {
+      id: '/api/share/balance'
+      path: '/api/share/balance'
+      fullPath: '/api/share/balance'
+      preLoaderRoute: typeof ApiShareBalanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/message': {
+      id: '/api/share/message'
+      path: '/api/share/message'
+      fullPath: '/api/share/message'
+      preLoaderRoute: typeof ApiShareMessageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/mission': {
+      id: '/api/share/mission'
+      path: '/api/share/mission'
+      fullPath: '/api/share/mission'
+      preLoaderRoute: typeof ApiShareMissionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/spend': {
+      id: '/api/share/spend'
+      path: '/api/share/spend'
+      fullPath: '/api/share/spend'
+      preLoaderRoute: typeof ApiShareSpendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/sync': {
+      id: '/api/share/sync'
+      path: '/api/share/sync'
+      fullPath: '/api/share/sync'
+      preLoaderRoute: typeof ApiShareSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sound/comments': {
+      id: '/api/sound/comments'
+      path: '/api/sound/comments'
+      fullPath: '/api/sound/comments'
+      preLoaderRoute: typeof ApiSoundCommentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sound/url-report': {
+      id: '/api/sound/url-report'
+      path: '/api/sound/url-report'
+      fullPath: '/api/sound/url-report'
+      preLoaderRoute: typeof ApiSoundUrlReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sound/url-visit': {
+      id: '/api/sound/url-visit'
+      path: '/api/sound/url-visit'
+      fullPath: '/api/sound/url-visit'
+      preLoaderRoute: typeof ApiSoundUrlVisitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sound/votes': {
+      id: '/api/sound/votes'
+      path: '/api/sound/votes'
+      fullPath: '/api/sound/votes'
+      preLoaderRoute: typeof ApiSoundVotesRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -88,7 +338,19 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  ApiAccountLinkRoute: ApiAccountLinkRoute,
+  ApiAccountProfileRoute: ApiAccountProfileRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiShareAwardRoute: ApiShareAwardRoute,
+  ApiShareBalanceRoute: ApiShareBalanceRoute,
+  ApiShareMessageRoute: ApiShareMessageRoute,
+  ApiShareMissionRoute: ApiShareMissionRoute,
+  ApiShareSpendRoute: ApiShareSpendRoute,
+  ApiShareSyncRoute: ApiShareSyncRoute,
+  ApiSoundCommentsRoute: ApiSoundCommentsRoute,
+  ApiSoundUrlReportRoute: ApiSoundUrlReportRoute,
+  ApiSoundUrlVisitRoute: ApiSoundUrlVisitRoute,
+  ApiSoundVotesRoute: ApiSoundVotesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

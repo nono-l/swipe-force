@@ -1,0 +1,1 @@
+ALTER TABLE player_profiles ADD COLUMN IF NOT EXISTS share_blurb TEXT NOT NULL DEFAULT '';
