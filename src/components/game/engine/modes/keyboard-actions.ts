@@ -25,6 +25,7 @@ export type KeyAction =
   | { type: "attract_up" }
   | { type: "attract_down" }
   | { type: "attract_confirm" }
+  | { type: "attract_back" }
   | { type: "changelog_up" }
   | { type: "changelog_down" }
   | { type: "changelog_back" }
@@ -115,6 +116,7 @@ export function resolveKeyAction(opts: {
     if (isUp(k)) return { type: "attract_up" };
     if (isDown(k)) return { type: "attract_down" };
     if (isConfirm(k)) return { type: "attract_confirm" };
+    if (k === "Escape" || k === "Backspace") return { type: "attract_back" };
     return { type: "none" };
   }
 

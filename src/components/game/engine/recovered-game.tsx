@@ -1947,7 +1947,7 @@ function SwipeForceEngine() {
         }
 
         function leaveSoundTest() {
-            mode = `attract`, bgm.start(`attract`), trackLabel = ``, sfx.ui()
+            mode = `attract`, titleSub = `extra`, titleCursor = 0, bgm.start(`attract`), trackLabel = ``, sfx.ui()
         }
 
         function currentTrackKey() {
@@ -3032,7 +3032,16 @@ function SwipeForceEngine() {
                     let menuLen = titleMenuLen(titleSub, { isPromoAdmin: adminMenu });
                     if (act.type === `attract_up`) titleCursor = (titleCursor + menuLen - 1) % menuLen, sfx.ui();
                     else if (act.type === `attract_down`) titleCursor = (titleCursor + 1) % menuLen, sfx.ui();
-                    else if (act.type === `attract_confirm`) {
+                    else if (act.type === `attract_back`) {
+                        // one level up: extra/diff → root
+                        if (titleSub === `extra`) {
+                            titleSub = `root`, titleCursor = 4, sfx.ui();
+                        } else if (titleSub === `diff`) {
+                            titleSub = `root`, titleCursor = 0, sfx.ui();
+                        } else {
+                            // root: ignore (stay on title)
+                        }
+                    } else if (act.type === `attract_confirm`) {
                         if (titleSub === `extra`) {
                             if (titleCursor === 0) openSoundTest();
                             else if (titleCursor === 1) (typeof window.__sfOpenProfile === `function` ? window.__sfOpenProfile() : 0);
