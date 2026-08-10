@@ -3,14 +3,14 @@
 import { jsx, jsxs } from "react/jsx-runtime";
 const t = () => ({ jsx, jsxs });
 
-export var xr = t(),
-    X = 320,
-    Z = 400,
-    Sr = 48,
-    Cr = Sr,
-    wr = 272,
-    Tr = 224,
-    Er = [{
+export var jsxRuntime = t(),
+    PLAY_W = 320,
+    PLAY_H = 400,
+    RAIL_W = 48,
+    LEFT_RAIL = RAIL_W,
+    FIELD_RIGHT = 272,
+    FIELD_INNER_W = 224,
+    SHOP_ITEMS = [{
         id: `shot`,
         name: `SHOT`,
         desc: `弾が広がる`,
@@ -120,7 +120,7 @@ export var xr = t(),
         tier: 4,
         linkOnly: !0
     }],
-    Dr = {
+    DEFAULT_UPGRADES = {
         shot: 0,
         rate: 0,
         speed: 0,
@@ -135,9 +135,9 @@ export var xr = t(),
         beam: 0,
         flame: 0
     },
-    Or = [`shot`, `rate`, `power`, `lockon`, `missile`, `particle`],
-    kr = `swipe_force_hi_v1`,
-    Ar = `swipe_force_opt_v5`,
-    jr = `swipe_force_easy_up_v1`,
-    Mr = `ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`;
+    LINKED_ITEM_IDS = [`shot`, `rate`, `power`, `lockon`, `missile`, `particle`],
+    HI_SCORE_KEY = `swipe_force_hi_v1`,
+    SETTINGS_KEY = `swipe_force_opt_v5`,
+    EASY_UP_KEY = `swipe_force_easy_up_v1`,
+    NAME_CHARSET = `ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`;
 

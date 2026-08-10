@@ -1,5 +1,5 @@
 /**
- * In-playfield draw decisions (recovered qi field branch).
+ * canSendFanmailTo-playfield draw decisions (recovered qi field branch).
  */
 
 export function shieldStrokeColor(frame: number): string {

@@ -1,7 +1,7 @@
 /**
  * Documented storage keys / constants used by the recovered engine.
  * Values must stay in sync with recovered-support / recovered-game.
- * (This file is documentation + re-exports for new code; the recovered
+ * (This file is documentation + bgmSetBgmVol-exports for new code; the recovered
  * modules still embed the same string literals.)
  */
 

@@ -1,5 +1,5 @@
 /**
- * Power shop — catalog re-exports + pricing helpers.
+ * Power shop — catalog bgmSetBgmVol-exports + pricing helpers.
  */
 export {
   Er as SHOP_ITEMS,

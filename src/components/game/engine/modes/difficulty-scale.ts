@@ -1,5 +1,5 @@
 /**
- * Enemy HP scaling (recovered Xn / Yn).
+ * Enemy HP scaling (recovered loadLocalInbox / saveIdSet).
  */
 
 export { enemyHpMultiplier, scoreHpThresholds } from "./shop-pricing";

@@ -4,13 +4,13 @@
  * Storage keys + GET/POST /api/account/link helpers.
  */
 import { getBearerToken } from "@/lib/auth/client";
-import { Cn, wn, Tn, Xn } from "./share";
+import { newPlayerId, getCoins, setCoins, loadLocalInbox } from "./share";
 
-export var rr = `swipe_force_linked_player_v1`,
-    ir = `swipe_force_guest_player_v1`,
-    ar = `swipe_force_easy_up_v1`,
-    or = `swipe_force_msgs_v1`,
-    sr = {
+export var KEY_LINKED_PLAYER = `swipe_force_linked_player_v1`,
+    KEY_LOCAL_PLAYER = `swipe_force_guest_player_v1`,
+    KEY_EASY_CLOUD = `swipe_force_easy_up_v1`,
+    KEY_CLOUD_INBOX = `swipe_force_msgs_v1`,
+    EMPTY_EASY_UPGRADES = {
         shot: 0,
         rate: 0,
         speed: 0,
@@ -26,7 +26,7 @@ export var rr = `swipe_force_linked_player_v1`,
         flame: 0
     };
 
-export function cr() {
+export function authHeaders() {
     let e = {
             "Content-Type": `application/json`
         },
@@ -34,32 +34,32 @@ export function cr() {
     return t && (e.Authorization = `Bearer ${t}`), e
 }
 
-export function lr() {
+export function ensureLocalPlayerId() {
     try {
-        let e = localStorage.getItem(ir);
-        return e || (e = Cn(), localStorage.setItem(ir, e)), e
+        let e = localStorage.getItem(KEY_LOCAL_PLAYER);
+        return e || (e = newPlayerId(), localStorage.setItem(KEY_LOCAL_PLAYER, e)), e
     } catch {
-        return Cn()
+        return newPlayerId()
     }
 }
 
-export function ur() {
+export function loadPlayerId() {
     try {
-        let e = localStorage.getItem(rr);
+        let e = localStorage.getItem(KEY_LINKED_PLAYER);
         if (e && e.length >= 4) return e
     } catch {}
-    return lr()
+    return ensureLocalPlayerId()
 }
 
-export function dr(e) {
+export function setLinkedPlayerId(e) {
     try {
-        e ? localStorage.setItem(rr, e) : localStorage.removeItem(rr), e && localStorage.setItem(`swipe_force_player_v1`, e)
+        e ? localStorage.setItem(KEY_LINKED_PLAYER, e) : localStorage.removeItem(KEY_LINKED_PLAYER), e && localStorage.setItem(`swipe_force_player_v1`, e)
     } catch {}
 }
 
-export function fr() {
+export function loadEasyUpgradesCloud() {
     try {
-        let e = localStorage.getItem(ar);
+        let e = localStorage.getItem(KEY_EASY_CLOUD);
         if (!e) return {
             ...sr
         };
@@ -67,7 +67,7 @@ export function fr() {
             n = {
                 ...sr
             };
-        return Object.keys(sr).forEach(e => {
+        return Object.keys(EMPTY_EASY_UPGRADES).forEach(e => {
             let r = Number(t[e]);
             n[e] = Number.isFinite(r) ? Math.max(0, Math.min(99, r | 0)) : 0
         }), n
@@ -78,24 +78,24 @@ export function fr() {
     }
 }
 
-export function pr(e) {
+export function saveEasyUpgradesCloud(e) {
     try {
-        localStorage.setItem(ar, JSON.stringify(e))
+        localStorage.setItem(KEY_EASY_CLOUD, JSON.stringify(e))
     } catch {}
 }
 
-export function mr(e, t) {
+export function mergeEasyUpgrades(e, t) {
     let n = {
         ...e
     };
-    return Object.keys(sr).forEach(r => {
+    return Object.keys(EMPTY_EASY_UPGRADES).forEach(r => {
         n[r] = Math.max(e[r] || 0, t[r] || 0)
     }), n
 }
 
-export function hr(e, t) {
+export function mergeInboxMessages(e, t) {
     try {
-        let n = JSON.parse(localStorage.getItem(or) || `{}`),
+        let n = JSON.parse(localStorage.getItem(KEY_CLOUD_INBOX) || `{}`),
             r = n[e] || [],
             i = new Map;
         for (let e of [...r, ...t]) {
@@ -107,27 +107,27 @@ export function hr(e, t) {
                 thanksSent: t.thanksSent || e.thanksSent
             } : e)
         }
-        n[e] = [...i.values()].slice(0, 200), localStorage.setItem(or, JSON.stringify(n))
+        n[e] = [...i.values()].slice(0, 200), localStorage.setItem(KEY_CLOUD_INBOX, JSON.stringify(n))
     } catch {}
 }
 
-export function gr(e, t, n, r, i) {
-    let a = Math.max(Number(t.coins) || 0, wn(e), n);
-    Tn(e, a);
-    let o = fr(),
-        s = mr(o, t.easyUpgrades ? mr(t.easyUpgrades, r) : mr(o, r));
-    return pr(s), hr(e, [...t.inbox || [], ...i, ...Xn(e)]), {
+export function applyCloudSnapshot(e, t, n, r, i) {
+    let a = Math.max(Number(t.coins) || 0, getCoins(e), n);
+    setCoins(e, a);
+    let o = loadEasyUpgradesCloud(),
+        s = mergeEasyUpgrades(o, t.easyUpgrades ? mergeEasyUpgrades(t.easyUpgrades, r) : mergeEasyUpgrades(o, r));
+    return saveEasyUpgradesCloud(s), mergeInboxMessages(e, [...t.inbox || [], ...i, ...Xn(e)]), {
         coins: a,
         easyUpgrades: s,
-        inbox: Xn(e)
+        inbox: loadLocalInbox(e)
     }
 }
-export async function _r() {
-    let e = lr();
+export async function fetchAccountGet() {
+    let e = ensureLocalPlayerId();
     try {
         let t = await fetch(`/api/account/link`, {
             method: `GET`,
-            headers: cr(),
+            headers: authHeaders(),
             credentials: `include`
         });
         if (!t.ok) return {
@@ -138,16 +138,16 @@ export async function _r() {
             image: null
         };
         let n = await t.json().catch(() => ({}));
-        if (!n.linked || !n.user || !n.playerId) return dr(null), {
+        if (!n.linked || !n.user || !n.playerId) return setLinkedPlayerId(null), {
             linked: !1,
             playerId: e,
             name: null,
             email: null,
             image: null
         };
-        dr(n.playerId);
-        let r = gr(n.playerId, n, 0, fr(), Xn(e));
-        return hr(n.playerId, Xn(e)), {
+        setLinkedPlayerId(n.playerId);
+        let r = applyCloudSnapshot(n.playerId, n, 0, loadEasyUpgradesCloud(), loadLocalInbox(e));
+        return mergeInboxMessages(n.playerId, loadLocalInbox(e)), {
             linked: !0,
             playerId: n.playerId,
             name: n.user.name ?? null,
@@ -167,15 +167,15 @@ export async function _r() {
         }
     }
 }
-export async function vr() {
-    let e = lr(),
-        t = wn(e),
-        n = fr(),
-        r = Xn(e);
+export async function linkAccountPost() {
+    let e = ensureLocalPlayerId(),
+        t = getCoins(e),
+        n = loadEasyUpgradesCloud(),
+        r = loadLocalInbox(e);
     try {
         let res = await fetch(`/api/account/link`, {
             method: `POST`,
-            headers: cr(),
+            headers: authHeaders(),
             credentials: `include`,
             body: JSON.stringify({
                 guestPlayerId: e,
@@ -184,12 +184,12 @@ export async function vr() {
                 inbox: r
             })
         });
-        if (res.status === 401) return _r();
+        if (res.status === 401) return fetchAccountGet();
         let i = await res.json().catch(() => ({}));
         if (i.playerId) {
-            dr(i.playerId);
-            let a = gr(i.playerId, i, t, n, r);
-            return e !== i.playerId && Tn(e, 0), {
+            setLinkedPlayerId(i.playerId);
+            let a = applyCloudSnapshot(i.playerId, i, t, n, r);
+            return e !== i.playerId && setCoins(e, 0), {
                 linked: !0,
                 playerId: i.playerId,
                 name: i.user?.name ?? null,
@@ -201,34 +201,34 @@ export async function vr() {
             }
         }
     } catch {}
-    return _r()
+    return fetchAccountGet()
 }
-export async function yr() {
-    let e = ur();
+export async function syncAccountCloud() {
+    let e = loadPlayerId();
     if ((() => {
             try {
-                return !!localStorage.getItem(rr)
+                return !!localStorage.getItem(KEY_LINKED_PLAYER)
             } catch {
                 return !1
             }
         })()) try {
         await fetch(`/api/account/link`, {
             method: `POST`,
-            headers: cr(),
+            headers: authHeaders(),
             credentials: `include`,
             body: JSON.stringify({
                 guestPlayerId: e,
                 guestCoins: 0,
-                easyUpgrades: fr(),
-                inbox: Xn(e)
+                easyUpgrades: loadEasyUpgradesCloud(),
+                inbox: loadLocalInbox(e)
             })
         })
     } catch {}
 }
-export async function br() {
-    dr(null);
+export async function unlinkAccountLocal() {
+    setLinkedPlayerId(null);
     try {
-        let e = lr();
+        let e = ensureLocalPlayerId();
         localStorage.setItem(`swipe_force_player_v1`, e)
     } catch {}
 }

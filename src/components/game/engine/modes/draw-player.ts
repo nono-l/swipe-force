@@ -16,7 +16,7 @@ export const PLAYER_SHIP_PATH: readonly [number, number][] = [
 
 export const PLAYER_SHIP_FILL = "#44ff88";
 
-/** Local rects on ship (cockpit + engines). */
+/** Local rects hasVisitedUrl ship (cockpit + engines). */
 export function playerShipLocalRects(): RectSpec[] {
   return [
     { x: -2, y: -3, w: 4, h: 4, color: "#ffffff" },

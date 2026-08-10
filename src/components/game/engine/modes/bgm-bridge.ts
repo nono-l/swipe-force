@@ -3,16 +3,16 @@
  */
 
 import {
-  W as startBgm,
-  mt as startBossBgm,
-  ht as startLegacyBossBgm,
-  gt as stopBgm,
-  ee as unlockAudio,
-  te as setMuted,
-  ne as toggleMute,
-  re as setMasterVol,
-  ie as setBgmVol,
-  ae as setSfxVol,
+  bgmStartScene as startBgm,
+  bgmBoss as startBossBgm,
+  bgmStop as startLegacyBossBgm,
+  bgmUnlock as stopBgm,
+  bgmSetMaster as unlockAudio,
+  bgmSetMuted as setMuted,
+  bgmToggleMute as toggleMute,
+  bgmSetBgmVol as setMasterVol,
+  bgmSetSfxVol as setBgmVol,
+  bgmIsMuted as setSfxVol,
 } from "../audio/bgm";
 
 export const bgm = {
@@ -28,7 +28,7 @@ export const bgm = {
   setSfxVol,
 } as const;
 
-/** Recovered `W(mode, stage?)` for attract / play beds. */
+/** Recovered `bgmStartScene(mode, stage?)` for attract / play beds. */
 export function playSceneBgm(mode: string, stage?: number): void {
   if (mode === "attract") {
     startBgm("attract");
@@ -41,7 +41,7 @@ export function playSceneBgm(mode: string, stage?: number): void {
   startBgm(mode, stage);
 }
 
-/** Recovered `mt(themeIndex, stage)` boss bed. */
+/** Recovered `bgmBoss(themeIndex, stage)` boss bed. */
 export function playBossBgm(themeIndex: number, stage?: number): void {
   startBossBgm(themeIndex, stage ?? 1);
 }

@@ -1,13 +1,13 @@
 /**
  * Options mode map (recovered-game).
  *
- * Entry: mr(from)  from = "attract" | "shop"
- * Back:  hr()
+ * Entry: mergeEasyUpgrades(from)  from = "attract" | "shop"
+ * Back:  mergeInboxMessages()
  * Subtree: z = "main" | "weapons" | "shot"
  * Cursor: R
  *
  * Row building & value formatting: ./options-rows.ts (pure).
- * Persist: Kt() → localStorage OPTIONS_KEY + apply audio (Gt).
+ * Persist: loadVotesStore() → localStorage OPTIONS_KEY + apply audio (KEY_SOUND_VOTES).
  */
 
 export {

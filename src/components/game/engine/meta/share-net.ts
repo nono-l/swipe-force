@@ -1,12 +1,12 @@
 // @ts-nocheck
 /** X share intent + continue-coin / mission / inbox network API. */
-import { At } from "./sanitize";
-import { Dn, En, Fn, Mn, Nn, On, Pn, Rn, Tn, jn, kn, wn, zn } from "./player-local";
+import { sanitizeUserText } from "./sanitize";
+import { loadAllMissions, addCoins, markFanmailSent, markMissionDone, allMissionsComplete, saveAllMissions, hasSentFanmail, buildShareUrl, setCoins, isMissionDone, newShareId, getCoins, formatShareProgress } from "./player-local";
 
-export function Bn(e, t = {}) {
-    let n = kn(),
-        r = Rn(e, n),
-        i = zn(t),
+export function openShareSheet(e, t = {}) {
+    let n = newShareId(),
+        r = buildShareUrl(e, n),
+        i = formatShareProgress(t),
         a = [`SWIPEFORCE`, `GrokBuild`, `シューティング`, `indiegames`].map(e => e.trim()).filter(Boolean).join(`,`),
         prof = {};
     try { prof = shareProfilePayload() || {}; } catch (err) { prof = {}; }
@@ -18,8 +18,8 @@ export function Bn(e, t = {}) {
     try { noteHelpAsked(); } catch (err) {}
     return window.open(s, `_blank`, `noopener,noreferrer`), n
 }
-export async function Vn(e) {
-    let t = wn(e);
+export async function fetchCoinBalance(e) {
+    let t = getCoins(e);
     try {
         let n = await fetch(`/api/share/balance?playerId=${encodeURIComponent(e)}`, {
             credentials: `same-origin`
@@ -28,7 +28,7 @@ export async function Vn(e) {
         let r = await n.json(),
             i = Math.max(0, Number(r.coins) || 0),
             a = Math.max(t, i);
-        return Tn(e, a), a > i && fetch(`/api/share/sync`, {
+        return setCoins(e, a), a > i && fetch(`/api/share/sync`, {
             method: `POST`,
             headers: {
                 "Content-Type": `application/json`
@@ -42,14 +42,14 @@ export async function Vn(e) {
         return t
     }
 }
-export async function Hn(e) {
+export async function reportMissionClear(e) {
     let {
         sharerId: t,
         shareId: n,
         visitorId: r,
         missionId: i,
         playSeconds: a
-    } = e, o = Sn.find(e => e.id === i);
+    } = e, o = MISSION_DEFS.find(e => e.id === i);
     if (!o) return {
         ok: !1,
         reason: `bad`
@@ -66,13 +66,13 @@ export async function Hn(e) {
         ok: !1,
         reason: `too_fast`
     };
-    if (jn(n, i)) return {
+    if (isMissionDone(n, i)) return {
         ok: !0,
         already: !0,
-        coins: wn(t)
+        coins: getCoins(t)
     };
-    Mn(n, i);
-    let s = En(t, o.coins);
+    markMissionDone(n, i);
+    let s = addCoins(t, o.coins);
     try {
         let e = await fetch(`/api/share/mission`, {
             method: `POST`,
@@ -94,14 +94,14 @@ export async function Hn(e) {
         };
         let o = await e.json();
         if (o.ok === !1 && (o.reason === `self` || o.reason === `too_fast`)) {
-            let e = Dn();
-            return e[t] && (delete e[t][i], On(e)), En(t, -1), {
+            let e = loadAllMissions();
+            return e[t] && (delete e[t][i], saveAllMissions(e)), addCoins(t, -1), {
                 ok: !1,
                 reason: o.reason
             }
         }
         let c = Math.max(s, Number(o.coins) || 0);
-        return Tn(t, c), {
+        return setCoins(t, c), {
             ok: !0,
             already: !!o.already,
             coins: c
@@ -114,12 +114,12 @@ export async function Hn(e) {
         }
     }
 }
-export async function Un(e) {
-    if (wn(e) <= 0) return {
+export async function spendContinueCoin(e) {
+    if (getCoins(e) <= 0) return {
         ok: !1,
         coins: 0
     };
-    let t = En(e, -1);
+    let t = addCoins(e, -1);
     try {
         let n = await fetch(`/api/share/spend`, {
             method: `POST`,
@@ -134,13 +134,13 @@ export async function Un(e) {
             let r = await n.json();
             if (r.ok === !1) {
                 let t = Math.max(0, Number(r.coins) || 0);
-                return Tn(e, t), {
+                return setCoins(e, t), {
                     ok: !1,
                     coins: t
                 }
             }
             let i = Math.min(t, Math.max(0, Number(r.coins) ?? t));
-            return Tn(e, i), {
+            return setCoins(e, i), {
                 ok: !0,
                 coins: i
             }
@@ -152,11 +152,11 @@ export async function Un(e) {
     }
 }
 
-export function Wn(e) {
+export function canReplyThanks(e) {
     return e ? e.source === `mission` && e.canThanks === !0 && e.thanksSent !== !0 : !1
 }
 
-export function Gn(e) {
+export function normalizeInboxMessage(e) {
     return !e?.id || !e.from || e.body == null || e.body === `` ? null : (e.source === `thanks` || e.kind === `thanks` ? `thanks` : `mission`) == `thanks` ? {
         id: String(e.id),
         from: String(e.from),
@@ -177,10 +177,10 @@ export function Gn(e) {
         thanksSent: !!e.thanksSent
     }
 }
-export var Kn = `swipe_force_inbox_deleted_v1`,
-    qn = `swipe_force_thanks_sent_v1`;
+export var KEY_INBOX_DELETED = `swipe_force_inbox_deleted_v1`,
+    KEY_INBOX_HIDDEN = `swipe_force_thanks_sent_v1`;
 
-export function Jn(e) {
+export function loadIdSet(e) {
     try {
         let t = JSON.parse(localStorage.getItem(e) || `[]`);
         return new Set(t)
@@ -189,18 +189,18 @@ export function Jn(e) {
     }
 }
 
-export function Yn(e, t) {
+export function saveIdSet(e, t) {
     try {
         localStorage.setItem(e, JSON.stringify([...t]))
     } catch {}
 }
 
-export function Xn(e) {
+export function loadLocalInbox(e) {
     try {
         let t = JSON.parse(localStorage.getItem(`swipe_force_msgs_v1`) || `{}`),
-            n = Jn(Kn),
-            r = Jn(qn);
-        return (t[e] || []).map(e => Gn(e)).filter(e => !!e && !n.has(e.id)).map(e => r.has(e.id) ? {
+            n = loadIdSet(KEY_INBOX_DELETED),
+            r = loadIdSet(KEY_INBOX_HIDDEN);
+        return (t[e] || []).map(e => normalizeInboxMessage(e)).filter(e => !!e && !n.has(e.id)).map(e => r.has(e.id) ? {
             ...e,
             thanksSent: !0,
             canThanks: e.canThanks
@@ -210,24 +210,24 @@ export function Xn(e) {
     }
 }
 
-export function Zn(e, t) {
-    let n = Gn(t);
+export function pushLocalInbox(e, t) {
+    let n = normalizeInboxMessage(t);
     if (n) try {
         let t = JSON.parse(localStorage.getItem(`swipe_force_msgs_v1`) || `{}`);
-        t[e] = [n, ...(t[e] || []).filter(e => e.id !== n.id)].slice(0, 200), localStorage.setItem(bn, JSON.stringify(t))
+        t[e] = [n, ...(t[e] || []).filter(e => e.id !== n.id)].slice(0, 200), localStorage.setItem(KEY_MSGS, JSON.stringify(t))
     } catch {}
 }
 
-export function Qn(e, t) {
+export function removeLocalInbox(e, t) {
     try {
         let n = JSON.parse(localStorage.getItem(`swipe_force_msgs_v1`) || `{}`);
-        n[e] = (n[e] || []).filter(e => e.id !== t), localStorage.setItem(bn, JSON.stringify(n));
-        let r = Jn(Kn);
-        r.add(t), Yn(Kn, r)
+        n[e] = (n[e] || []).filter(e => e.id !== t), localStorage.setItem(KEY_MSGS, JSON.stringify(n));
+        let r = loadIdSet(KEY_INBOX_DELETED);
+        r.add(t), saveIdSet(KEY_INBOX_DELETED, r)
     } catch {}
 }
-export async function $n(e) {
-    Qn(e.playerId, e.messageId);
+export async function deleteInboxMessage(e) {
+    removeLocalInbox(e.playerId, e.messageId);
     try {
         let t = await fetch(`/api/share/message`, {
             method: `POST`,
@@ -258,18 +258,18 @@ export async function $n(e) {
         }
     }
 }
-export async function er(e) {
-    let t = At(e.text);
+export async function sendThanksReply(e) {
+    let t = sanitizeUserText(e.text);
     if (!t.ok) return {
         ok: !1,
         reason: t.reason
     };
-    let n = Xn(e.playerId).find(t => t.id === e.messageId);
-    if (n && !Wn(n)) return {
+    let n = loadLocalInbox(e.playerId).find(t => t.id === e.messageId);
+    if (n && !canReplyThanks(n)) return {
         ok: !1,
         reason: n.thanksSent ? `already` : `not_mission`
     };
-    if (Jn(qn).has(e.messageId)) return {
+    if (loadIdSet(KEY_INBOX_HIDDEN).has(e.messageId)) return {
         ok: !1,
         reason: `already`
     };
@@ -290,25 +290,25 @@ export async function er(e) {
             let r = await n.json();
             if (r.ok === !1) {
                 if (r.reason === `already`) {
-                    let t = Jn(qn);
-                    t.add(e.messageId), Yn(qn, t)
+                    let t = loadIdSet(KEY_INBOX_HIDDEN);
+                    t.add(e.messageId), saveIdSet(KEY_INBOX_HIDDEN, t)
                 }
                 return {
                     ok: !1,
                     reason: r.reason
                 }
             }
-            let i = Jn(qn);
-            i.add(e.messageId), Yn(qn, i);
+            let i = loadIdSet(KEY_INBOX_HIDDEN);
+            i.add(e.messageId), saveIdSet(KEY_INBOX_HIDDEN, i);
             try {
                 let n = JSON.parse(localStorage.getItem(`swipe_force_msgs_v1`) || `{}`),
                     i = n[e.playerId] || [];
-                n[e.playerId] = i.map(e => Gn(e)).filter(e => !!e).map(t => t.id === e.messageId ? {
+                n[e.playerId] = i.map(e => normalizeInboxMessage(e)).filter(e => !!e).map(t => t.id === e.messageId ? {
                     ...t,
                     thanksSent: !0,
                     canThanks: !0,
                     source: `mission`
-                } : t), localStorage.setItem(bn, JSON.stringify(n)), r.to && Zn(r.to, {
+                } : t), localStorage.setItem(KEY_MSGS, JSON.stringify(n)), r.to && pushLocalInbox(r.to, {
                     id: `tlocal-${e.messageId}`,
                     from: e.playerId,
                     body: t.text,
@@ -333,8 +333,8 @@ export async function er(e) {
         }
     }
 }
-export async function tr(e) {
-    let t = At(e.text);
+export async function sendFanmailMessage(e) {
+    let t = sanitizeUserText(e.text);
     if (!t.ok) return {
         ok: !1,
         reason: t.reason
@@ -344,7 +344,7 @@ export async function tr(e) {
         ok: !1,
         reason: `share`
     };
-    if (!Nn(e.shareId)) return {
+    if (!allMissionsComplete(e.shareId)) return {
         ok: !1,
         reason: `missions`
     };
@@ -352,7 +352,7 @@ export async function tr(e) {
         ok: !1,
         reason: `self`
     };
-    if (Pn(e.shareId, e.visitorId)) return {
+    if (hasSentFanmail(e.shareId, e.visitorId)) return {
         ok: !1,
         reason: `already`
     };
@@ -382,37 +382,37 @@ export async function tr(e) {
         });
         if (t.ok) {
             let n = await t.json();
-            return n.ok === !1 ? (n.reason === `already` && Fn(e.shareId, e.visitorId), {
+            return n.ok === !1 ? (n.reason === `already` && markFanmailSent(e.shareId, e.visitorId), {
                 ok: !1,
                 reason: n.reason
-            }) : (Fn(e.shareId, e.visitorId), Zn(e.sharerId, r), {
+            }) : (markFanmailSent(e.shareId, e.visitorId), pushLocalInbox(e.sharerId, r), {
                 ok: !0
             })
         }
-        return Fn(e.shareId, e.visitorId), Zn(e.sharerId, r), {
+        return markFanmailSent(e.shareId, e.visitorId), pushLocalInbox(e.sharerId, r), {
             ok: !0,
             reason: `local_only`
         }
     } catch {
-        return Fn(e.shareId, e.visitorId), Zn(e.sharerId, r), {
+        return markFanmailSent(e.shareId, e.visitorId), pushLocalInbox(e.sharerId, r), {
             ok: !0,
             reason: `local_only`
         }
     }
 }
-export async function nr(e) {
-    let t = Xn(e),
-        n = Jn(Kn),
-        r = Jn(qn);
+export async function fetchInboxMessages(e) {
+    let t = loadLocalInbox(e),
+        n = loadIdSet(KEY_INBOX_DELETED),
+        r = loadIdSet(KEY_INBOX_HIDDEN);
     try {
         let i = await fetch(`/api/share/message?playerId=${encodeURIComponent(e)}`);
         if (!i.ok) return t;
-        let a = ((await i.json()).messages || []).map(e => Gn(e)).filter(e => !!e && !n.has(e.id)),
+        let a = ((await i.json()).messages || []).map(e => normalizeInboxMessage(e)).filter(e => !!e && !n.has(e.id)),
             o = new Map;
         for (let e of t) o.set(e.id, e);
         for (let e of a) {
             let t = o.get(e.id),
-                n = Gn({
+                n = normalizeInboxMessage({
                     ...t,
                     ...e,
                     thanksSent: e.thanksSent || r.has(e.id) || t?.thanksSent
@@ -421,7 +421,7 @@ export async function nr(e) {
         }
         try {
             let t = JSON.parse(localStorage.getItem(`swipe_force_msgs_v1`) || `{}`);
-            t[e] = [...o.values()], localStorage.setItem(bn, JSON.stringify(t))
+            t[e] = [...o.values()], localStorage.setItem(KEY_MSGS, JSON.stringify(t))
         } catch {}
         return [...o.values()]
     } catch {
@@ -431,22 +431,22 @@ export async function nr(e) {
 
 // ── Account link / cloud save (split) ──
 export {
-  rr,
-  ir,
-  ar,
-  or,
-  sr,
-  cr,
-  lr,
-  ur,
-  dr,
-  fr,
-  pr,
-  mr,
-  hr,
-  gr,
-  _r,
-  vr,
-  yr,
-  br,
+  KEY_LINKED_PLAYER,
+  KEY_LOCAL_PLAYER,
+  KEY_EASY_CLOUD,
+  KEY_CLOUD_INBOX,
+  EMPTY_EASY_UPGRADES,
+  authHeaders,
+  ensureLocalPlayerId,
+  loadPlayerId,
+  setLinkedPlayerId,
+  loadEasyUpgradesCloud,
+  saveEasyUpgradesCloud,
+  mergeEasyUpgrades,
+  mergeInboxMessages,
+  applyCloudSnapshot,
+  fetchAccountGet,
+  linkAccountPost,
+  syncAccountCloud,
+  unlinkAccountLocal,
 } from "./account-cloud";

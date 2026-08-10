@@ -1,5 +1,5 @@
 /**
- * In-field overlay draw specs: stage banners (recovered qi).
+ * canSendFanmailTo-field overlay draw specs: stage banners (recovered qi).
  */
 
 export type OverlayText = {

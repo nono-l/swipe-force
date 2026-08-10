@@ -2,7 +2,7 @@
 import { bossThemeMeta, BOSS_ACTS } from "./boss-themes";
 /**
  * Recovered audio engine (SFX + BGM) — single module so shared mute/gain state stays consistent.
- * Prefer importing via ./sfx or ./bgm facades for clarity.
+ * Prefer importing via ./sfx KEY_CLOUD_INBOX ./bgm facades for clarity.
  */
 
 /** AudioContext */
@@ -23,14 +23,14 @@ export let m = 0.38;
 export let h = {};
 
 // ── throttle / rate-limit ──
-export function g(e, t) {
+export function throttleSfx(e, t) {
     let n = performance.now();
     return n - (h[e] ?? 0) < t ? !1 : (h[e] = n, !0)
 }
 
 
 // ── Web Audio context ──
-export function _() {
+export function ensureAudioCtx() {
     if (typeof window > `u`) return null;
     if (!c) {
         let e = window.AudioContext || window.webkitAudioContext;
@@ -40,12 +40,12 @@ export function _() {
     return c
 }
 
-export function v() {
-    return _(), l
+export function getMasterGain() {
+    return ensureAudioCtx(), l
 }
 
-export function ee() {
-    let e = _();
+export function bgmSetMaster() {
+    let e = ensureAudioCtx();
     if (!e) return;
     try {
         let t = e.createBuffer(1, 1, 22050),
@@ -53,55 +53,55 @@ export function ee() {
         n.buffer = t, n.connect(e.destination), n.start(0)
     } catch {}
     let t = () => {
-        if (y(), !u && T !== `off`) {
-            U();
+        if (applyMasterGain(), !u && bgmMode !== `off`) {
+            clearBgmTimer();
             try {
-                pt()
+                bgmResume()
             } catch {
-                H()
+                scheduleNextTick()
             }
         }
     };
     e.state === `suspended` || e.state === `interrupted` ? e.resume().then(() => t()).catch(() => {}) : t()
 }
 
-export function y() {
+export function applyMasterGain() {
     if (!l) return;
-    let e = _(),
+    let e = ensureAudioCtx(),
         t = u ? 0 : m * Math.max(0, Math.min(1, d));
     e ? l.gain.setTargetAtTime(t, e.currentTime, .02) : l.gain.value = t
 }
 
-export function te(e) {
-    u = e, y(), e ? U() : T !== `off` && (U(), pt())
+export function bgmSetMuted(e) {
+    u = e, applyMasterGain(), e ? clearBgmTimer() : bgmMode !== `off` && (clearBgmTimer(), bgmResume())
 }
 
-export function ne() {
-    return te(!u), u
+export function bgmToggleMute() {
+    return bgmSetMuted(!u), u
 }
 
-export function re(e) {
-    d = Math.max(0, Math.min(1, e)), y()
+export function bgmSetBgmVol(e) {
+    d = Math.max(0, Math.min(1, e)), applyMasterGain()
 }
 
-export function ie(e) {
+export function bgmSetSfxVol(e) {
     f = Math.max(0, Math.min(1, e))
 }
 
-export function ae(e) {
+export function bgmIsMuted(e) {
     p = Math.max(0, Math.min(1, e))
 }
 
-export function oe(e, t, n, r, i) {
+export function makeEnvGain(e, t, n, r, i) {
     let a = e.createGain(),
         o = e.currentTime;
     return a.gain.setValueAtTime(1e-4, o), a.gain.exponentialRampToValueAtTime(Math.max(1e-4, n), o + Math.max(.001, r)), a.gain.exponentialRampToValueAtTime(1e-4, o + r + i), a.connect(t), a
 }
 
-export function b(e, t, n = `square`, r = .12, i, a = `sfx`) {
+export function tone(e, t, n = `square`, r = .12, i, a = `sfx`) {
     if (u) return;
-    let o = _(),
-        s = v();
+    let o = ensureAudioCtx(),
+        s = getMasterGain();
     if (!o || !s) return;
     if (o.state === `suspended`) {
         o.resume();
@@ -112,14 +112,14 @@ export function b(e, t, n = `square`, r = .12, i, a = `sfx`) {
     let l = o.currentTime,
         d = o.createOscillator();
     d.type = n, d.frequency.setValueAtTime(Math.max(20, e), l), i != null && d.frequency.exponentialRampToValueAtTime(Math.max(20, i), l + t);
-    let m = oe(o, s, r * c, .002, t);
+    let m = makeEnvGain(o, s, r * c, .002, t);
     d.connect(m), d.start(l), d.stop(l + t + .03)
 }
 
-export function x(e, t = .15, n = 4e3, r = `sfx`) {
+export function noiseBurst(e, t = .15, n = 4e3, r = `sfx`) {
     if (u) return;
-    let i = _(),
-        a = v();
+    let i = ensureAudioCtx(),
+        a = getMasterGain();
     if (!i || !a) return;
     if (i.state === `suspended`) {
         i.resume();
@@ -136,81 +136,81 @@ export function x(e, t = .15, n = 4e3, r = `sfx`) {
     d.buffer = c;
     let m = i.createBiquadFilter();
     m.type = `lowpass`, m.frequency.setValueAtTime(n, i.currentTime), m.frequency.exponentialRampToValueAtTime(Math.max(80, n * .15), i.currentTime + e);
-    let h = oe(i, a, t, .001, e);
+    let h = makeEnvGain(i, a, t, .001, e);
     d.connect(m), m.connect(h), d.start(), d.stop(i.currentTime + e + .02)
 }
 
-export function S(e) {
+export function midiToHz(e) {
     return 440 * 2 ** ((e - 69) / 12)
 }
 
-export function se() {
-    g(`shoot`, 40) && b(880, .04, `square`, .07, 520)
+export function sfxShoot() {
+    throttleSfx(`shoot`, 40) && tone(880, .04, `square`, .07, 520)
 }
 
-export function ce() {
-    g(`missile`, 70) && (b(200, .1, `square`, .09, 80), b(400, .06, `square`, .05, 150))
+export function sfxMissile() {
+    throttleSfx(`missile`, 70) && (tone(200, .1, `square`, .09, 80), tone(400, .06, `square`, .05, 150))
 }
 
-export function le() {
-    g(`particle`, 80) && (b(1200, .08, `sawtooth`, .08, 400), b(600, .1, `square`, .05))
+export function sfxParticle() {
+    throttleSfx(`particle`, 80) && (tone(1200, .08, `sawtooth`, .08, 400), tone(600, .1, `square`, .05))
 }
 
-export function ue() {
-    g(`lock`, 60) && b(500, .04, `square`, .06, 1400)
+export function sfxLockon() {
+    throttleSfx(`lock`, 60) && tone(500, .04, `square`, .06, 1400)
 }
 
-export function de() {
-    g(`hit`, 28) && b(300, .03, `square`, .05, 120)
+export function sfxHit() {
+    throttleSfx(`hit`, 28) && tone(300, .03, `square`, .05, 120)
 }
 
-export function fe(e = !1) {
-    g(e ? `xbig` : `xsm`, e ? 70 : 35) && (x(e ? .28 : .12, e ? .22 : .12, e ? 2200 : 1400), e && b(100, .2, `triangle`, .1, 40))
+export function sfxExplode(e = !1) {
+    throttleSfx(e ? `xbig` : `xsm`, e ? 70 : 35) && (noiseBurst(e ? .28 : .12, e ? .22 : .12, e ? 2200 : 1400), e && tone(100, .2, `triangle`, .1, 40))
 }
 
-export function pe() {
-    g(`phit`, 90) && (x(.16, .2, 900), b(180, .15, `square`, .1, 50))
+export function sfxPlayerHit() {
+    throttleSfx(`phit`, 90) && (noiseBurst(.16, .2, 900), tone(180, .15, `square`, .1, 50))
 }
 
-export function me() {
-    g(`boss`, 400) && (b(220, .12, `square`, .12), setTimeout(() => b(220, .12, `square`, .12), 140), setTimeout(() => b(160, .2, `square`, .14, 90), 280))
+export function sfxBossWarn() {
+    throttleSfx(`boss`, 400) && (tone(220, .12, `square`, .12), setTimeout(() => tone(220, .12, `square`, .12), 140), setTimeout(() => tone(160, .2, `square`, .14, 90), 280))
 }
 
-export function he() {
-    g(`clear`, 500) && [523, 659, 784, 1046, 1318].forEach((e, t) => {
-        setTimeout(() => b(e, .1, `square`, .1), t * 70)
+export function sfxStageClear() {
+    throttleSfx(`clear`, 500) && [523, 659, 784, 1046, 1318].forEach((e, t) => {
+        setTimeout(() => tone(e, .1, `square`, .1), t * 70)
     })
 }
 
-export function ge() {
-    g(`go`, 500) && (b(400, .15, `square`, .1, 200), setTimeout(() => b(250, .2, `square`, .1, 120), 150), setTimeout(() => b(120, .35, `triangle`, .12, 55), 320))
+export function sfxGameOver() {
+    throttleSfx(`go`, 500) && (tone(400, .15, `square`, .1, 200), setTimeout(() => tone(250, .2, `square`, .1, 120), 150), setTimeout(() => tone(120, .35, `triangle`, .12, 55), 320))
 }
 
-export function _e() {
-    g(`buy`, 70) && (b(660, .05, `square`, .08), setTimeout(() => b(990, .07, `square`, .09), 45))
+export function sfxBuy() {
+    throttleSfx(`buy`, 70) && (tone(660, .05, `square`, .08), setTimeout(() => tone(990, .07, `square`, .09), 45))
 }
 
-export function C() {
-    g(`buyfail`, 90) && b(160, .08, `square`, .08, 90)
+export function sfxBuyFail() {
+    throttleSfx(`buyfail`, 90) && tone(160, .08, `square`, .08, 90)
 }
 
-export function w() {
-    g(`ui`, 45) && b(520, .03, `square`, .05)
+export function sfxUi() {
+    throttleSfx(`ui`, 45) && tone(520, .03, `square`, .05)
 }
 
 
 // ── SFX one-shots ──
-export function ve() {
-    g(`start`, 300) && [440, 554, 659, 880].forEach((e, t) => {
-        setTimeout(() => b(e, .08, `square`, .09), t * 60)
+export function sfxStart() {
+    throttleSfx(`start`, 300) && [440, 554, 659, 880].forEach((e, t) => {
+        setTimeout(() => tone(e, .08, `square`, .09), t * 60)
     })
 }
-export var T = `off`,
-    ye = 0,
-    be = 1,
-    xe = 0,
-    Se = null,
-    Ce = [
+export var bgmMode = `off`,
+    themeSeed = 0,
+    bgmStage = 1,
+    tickIndex = 0,
+    tickTimer = null,
+    CHIP_SCALES = [
         [0, 2, 3, 5, 7, 8, 10],
         [0, 2, 3, 5, 7, 8, 11],
         [0, 2, 4, 5, 7, 9, 10],
@@ -221,11 +221,11 @@ export var T = `off`,
         [0, 2, 3, 5, 6, 8, 10]
     ];
 
-export function we(e) {
+export function makeRng(e) {
     let t = (e >>> 0) + 1831565813;
     return () => (t = Math.imul(t ^ t >>> 15, t | 1), t ^= t + Math.imul(t ^ t >>> 7, t | 61), ((t ^ t >>> 14) >>> 0) / 4294967296)
 }
-export var Te = [
+export var CHIP_LEADS = [
         [0, 2, 4, 5, 4, 2, 0, -1, 5, 4, 2, 0, 2, 4, 5, 7],
         [0, -1, 0, 3, 5, -1, 7, 5, 4, 2, 0, 2, 4, -1, 5, 4],
         [4, 5, 7, 5, 4, 2, 0, -1, 0, 2, 4, 5, 7, 9, 7, 5],
@@ -235,7 +235,7 @@ export var Te = [
         [0, 1, 3, 5, 7, 5, 3, 1, 0, -1, 5, 3, 1, 0, 1, 3],
         [5, 4, 2, 0, 2, 4, 5, 7, 9, 7, 5, 4, 2, 0, 2, -1]
     ],
-    Ee = [
+    CHIP_PROGS = [
         [0, 5, 3, 4],
         [0, 3, 4, 0],
         [0, 4, 5, 3],
@@ -246,20 +246,20 @@ export var Te = [
         [0, 4, 0, 5]
     ];
 
-export function De(e, t) {
+export function makeChipPatch(e, t) {
     let n = ((Math.max(1, e) - 1) % 64 + 64) % 64,
-        r = we(n * 7919 + (t ? 4242 : 17) + ye * 99),
-        i = Ce[(n + (t ? ye : 0)) % Ce.length],
+        r = makeRng(n * 7919 + (t ? 4242 : 17) + themeSeed * 99),
+        i = CHIP_SCALES[(n + (t ? themeSeed : 0)) % CHIP_SCALES.length],
         a = [45, 47, 48, 50, 52, 53, 55, 57],
         o = a[n % a.length] - (t ? 2 : 0),
-        s = Ee[n % Ee.length].slice();
+        s = CHIP_PROGS[n % CHIP_PROGS.length].slice();
     t && (s = [0, 0, 3, 4, 0, 5, 4, 0]);
-    let c = Te[n % Te.length],
-        l = Te[(n * 3 + 1) % Te.length],
+    let c = CHIP_LEADS[n % CHIP_LEADS.length],
+        l = CHIP_LEADS[(n * 3 + 1) % CHIP_LEADS.length],
         u = [...c, ...l];
     for (let e = 0; e < u.length; e++) r() > .85 && u[e] >= 0 && (u[e] = Math.max(0, Math.min(i.length + 1, u[e] + (r() > .5 ? 1 : -1)))), t && e % 8 == 7 && (u[e] = -1);
     let d = 70 + n % 16 * 3 + n * 5 % 7;
-    t && (d = 85 + ye * 4 + n % 5 * 2), !t && n % 5 == 0 && (d = 72 + n % 8 * 2);
+    t && (d = 85 + themeSeed * 4 + n % 5 * 2), !t && n % 5 == 0 && (d = 72 + n % 8 * 2);
     let f = t ? (n + 3) % 6 : (n * 2 + 1) % 6,
         p = !t && n % 4 == 0 || n % 3 == 0 ? `triangle` : `square`;
     return {
@@ -268,21 +268,21 @@ export function De(e, t) {
         prog: s,
         lead: u,
         tempo: Math.max(68, Math.min(135, d)),
-        arpStyle: (n * 3 + ye) % 4,
+        arpStyle: (n * 3 + themeSeed) % 4,
         drum: f,
         leadDuty: p,
         style: t ? `legacy` : `chip`,
         counter: u.map((e, t) => t % 2 == 0 ? e : -1)
     }
 }
-export var E = [
+export var BAROQUE_SCALES = [
         [0, 2, 3, 5, 7, 8, 10],
         [0, 2, 3, 5, 7, 8, 11],
         [0, 2, 4, 5, 7, 9, 11],
         [0, 2, 3, 5, 7, 9, 10],
         [0, 2, 4, 5, 7, 8, 11]
     ],
-    Oe = [
+    BAROQUE_PROGS = [
         [0, 3, 4, 0],
         [0, 4, 0, 5, 3, 4, 0, 0],
         [0, 5, 3, 4, 0, 3, 4, 0],
@@ -292,7 +292,7 @@ export var E = [
         [0, 4, 5, 3, 0, 5, 4, 0],
         [0, 3, 4, 5, 3, 4, 0, 0]
     ],
-    ke = [
+    BAROQUE_LEADS = [
         [0, 2, 4, 5, 4, 2, 0, -1, 5, 4, 2, 0, 2, 4, 7, 5],
         [0, -1, 0, 2, 3, 5, 7, 5, 3, 2, 0, 2, 5, 4, 2, 0],
         [4, 2, 0, 2, 4, 5, 7, -1, 7, 5, 4, 2, 0, 2, 4, 0],
@@ -311,37 +311,37 @@ export var E = [
         [4, 5, 7, 9, 7, 5, 4, 2, 0, 2, 0, -1, 4, 5, 4, 0]
     ],
     /** @deprecated use BOSS_ACTS from boss-themes */
-    Ae = BOSS_ACTS;
+    BOSS_ACT_TABLE = BOSS_ACTS;
 
-export function D(e) {
+export function getBossThemeMeta(e) {
     return bossThemeMeta(e);
 }
 
-export function je(e) {
+export function invertDegrees(e) {
     return e.map(e => e < 0 ? -1 : Math.max(0, 7 - e))
 }
-export var Me = [
+export var FUGUE_SUBJECTS = [
         [0, -1, 2, 4, 7, -1, 5, 4, 2, 0, -1, 5, 7, 5, 4, 2],
         [0, 1, 3, -1, 5, 3, 1, 0, -1, 7, 5, 4, 2, -1, 0, 2],
         [0, 4, -1, 2, 7, 4, -1, 0, 5, -1, 4, 2, 5, 7, -1, 4],
         [0, -1, -1, 4, 7, -1, 5, 4, -1, 2, 0, -1, 5, 4, 2, 0]
     ],
-    Ne = [
+    FUGUE_COUNTERS = [
         [4, 2, 0, -1, 2, 4, 5, 4, 2, -1, 0, 2, 4, -1, 2, 0],
         [5, 3, 1, 0, -1, 1, 3, 5, 3, -1, 1, 0, 2, 3, -1, 0],
         [7, 5, 4, 2, -1, 4, 2, 0, 2, 4, -1, 5, 4, 2, 0, -1],
         [2, 0, -1, 4, 2, 0, -1, 5, 4, 2, 0, -1, 4, 5, 4, 2]
     ];
 
-export function O(e, t) {
+export function makeFuguePatch(e, t) {
     let n = Math.max(1, Math.min(64, e | 0)),
         r = Math.floor((n - 1) / 16) % 4,
-        i = E[+(r % 2 == 0)],
+        i = BAROQUE_SCALES[+(r % 2 == 0)],
         a = [47, 50, 45, 52],
         o = [118, 108, 100, 92],
-        s = Me[r].slice(),
+        s = FUGUE_SUBJECTS[r].slice(),
         c = s.map(e => e < 0 ? -1 : e + 4),
-        l = Ne[r].slice(),
+        l = FUGUE_COUNTERS[r].slice(),
         u = [...s, ...c],
         d = [...Array(s.length).fill(-1), ...l];
     return {
@@ -372,7 +372,7 @@ export function O(e, t) {
     }
 }
 
-export function Pe(e, t, n) {
+export function mutateLeadLine(e, t, n) {
     let r = e.slice();
     for (; r.length < 32;) r.push(...e);
     let i = r.slice(0, 32),
@@ -397,7 +397,7 @@ export function Pe(e, t, n) {
     return i
 }
 
-export function Fe(e, t) {
+export function makeHarmonyPatch(e, t) {
     let n = Math.max(1, Math.min(64, e | 0)),
         r = Math.floor((n - 1) / 16) % 4,
         i = [
@@ -451,7 +451,7 @@ export function Fe(e, t) {
     }
 }
 
-export function Ie(e, t) {
+export function makeWhistlePatch(e, t) {
     let n = Math.max(1, Math.min(64, e | 0)),
         r = Math.floor((n - 1) / 16) % 4,
         i = [
@@ -468,7 +468,7 @@ export function Ie(e, t) {
             [0, 3, 5, 3, 0, -1, 5, 3, 0, 0, 3, 5, 7, 5, 3, 0, 5, 5, 3, 0, -1, 3, 5, 7, 5, 3, 0, 0, 3, 5, 3, 0],
             [0, 2, 4, 5, 4, 2, 0, -1, 5, 4, 2, 0, 2, 4, 5, 7, 5, 4, 2, 0, -1, 0, 2, 4, 5, 4, 2, 0, 2, 0, 0, 0]
         ][r].slice(),
-        c = je(s).map(e => e < 0 ? -1 : e);
+        c = invertDegrees(s).map(e => e < 0 ? -1 : e);
     return {
         tonic: a[r],
         scale: i,
@@ -504,7 +504,7 @@ export function Ie(e, t) {
     }
 }
 
-export function k(e, t) {
+export function makeCanonPatch(e, t) {
     let n = Math.max(1, Math.min(64, e | 0)),
         r = Math.floor((n - 1) / 16) % 4,
         i = [
@@ -557,7 +557,7 @@ export function k(e, t) {
     }
 }
 
-export function Le(e, t) {
+export function makeOrganPatch(e, t) {
     let n = Math.max(1, Math.min(64, e | 0)),
         r = Math.floor((n - 1) / 16) % 4,
         i = [
@@ -608,7 +608,7 @@ export function Le(e, t) {
     }
 }
 
-export function Re(e, t, n, r) {
+export function makeFlavorPatch(e, t, n, r) {
     let i = Math.max(1, Math.min(64, e | 0));
     return {
         tonic: r.tonic,
@@ -642,7 +642,7 @@ export function Re(e, t, n, r) {
     }
 }
 
-export function ze(e, t) {
+export function makeDawnPatch(e, t) {
     let n = Math.floor((Math.max(1, e) - 1) / 16) % 4,
         r = [
             [0, 2, 4, 5, 4, 2, 0, -1, 2, 4, 7, 5, 4, 2, 0, 2, 0, 2, 4, 5, 7, 5, 4, 2, 0, -1, 4, 5, 4, 2, 0, 0],
@@ -654,9 +654,9 @@ export function ze(e, t) {
             let n = r[(t + r.length - 4) % r.length];
             return n < 0 ? -1 : n + 2
         });
-    return Re(e, t, `dawn`, {
+    return makeFlavorPatch(e, t, `dawn`, {
         tonic: [50, 52, 48, 53][n],
-        scale: E[0],
+        scale: BAROQUE_SCALES[0],
         prog: [0, 0, 3, 4, 0, 5, 4, 0],
         lead: r,
         counter: i,
@@ -668,7 +668,7 @@ export function ze(e, t) {
     })
 }
 
-export function Be(e, t) {
+export function makeSubjectPatch(e, t) {
     let n = Math.floor((Math.max(1, e) - 1) / 16) % 4,
         r = [
             [0, 2, 4, 7, -1, 5, 4, 2, 0, 4, 5, 7, 5, 4, 2, 0],
@@ -678,9 +678,9 @@ export function Be(e, t) {
         ][n],
         i = [...r, ...r.map(e => e < 0 ? -1 : e + 0)],
         a = [...Array(16).fill(-1), ...r.map(e => e < 0 ? -1 : e + 4)];
-    return Re(e, t, `subject`, {
+    return makeFlavorPatch(e, t, `subject`, {
         tonic: [48, 50, 47, 52][n],
-        scale: E[+(n % 2 == 0)],
+        scale: BAROQUE_SCALES[+(n % 2 == 0)],
         prog: [0, 0, 0, 0, 4, 4, 0, 0],
         lead: i,
         counter: a,
@@ -693,14 +693,14 @@ export function Be(e, t) {
     })
 }
 
-export function Ve(e, t) {
+export function makeContinuoPatch(e, t) {
     let n = Math.floor((Math.max(1, e) - 1) / 16) % 4,
         r = [0, 2, 4, 5, 4, 2, 0, 5, 4, 2, 0, 2, 4, 5, 7, 5],
         i = r.map((e, t) => t % 4 == 3 ? -1 : e + 4),
         a = r.slice();
-    return Re(e, t, `continuo`, {
+    return makeFlavorPatch(e, t, `continuo`, {
         tonic: [45, 47, 43, 48][n],
-        scale: E[1],
+        scale: BAROQUE_SCALES[1],
         prog: [0, 4, 0, 5, 3, 4, 0, 0],
         lead: i,
         counter: a,
@@ -713,7 +713,7 @@ export function Ve(e, t) {
     })
 }
 
-export function A(e, t) {
+export function makeBellsPatch(e, t) {
     let n = Math.floor((Math.max(1, e) - 1) / 16) % 4,
         r = [
             [0, -1, -1, 4, -1, -1, 7, -1, 5, -1, -1, 4, -1, 2, -1, 0],
@@ -723,9 +723,9 @@ export function A(e, t) {
         ][n],
         i = [...r, ...r],
         a = r.map(e => e < 0 ? -1 : e + 7);
-    return Re(e, t, `bells`, {
+    return makeFlavorPatch(e, t, `bells`, {
         tonic: [53, 55, 50, 57][n],
-        scale: E[0],
+        scale: BAROQUE_SCALES[0],
         prog: [0, 0, 4, 0, 0, 3, 4, 0],
         lead: i,
         counter: a,
@@ -737,7 +737,7 @@ export function A(e, t) {
     })
 }
 
-export function j(e, t) {
+export function makeChasePatch(e, t) {
     let n = Math.floor((Math.max(1, e) - 1) / 16) % 4,
         r = [
             [0, 2, 4, 5, 7, 5, 4, 2, 0, 4, 5, 7, 9, 7, 5, 4, 2, 0, 2, 4, 5, 4, 2, 0, 5, 4, 2, 0, 4, 2, 0, 0],
@@ -746,9 +746,9 @@ export function j(e, t) {
             [0, 2, 0, 4, 2, 5, 4, 7, 5, 4, 2, 5, 7, 9, 7, 5, 4, 2, 0, 4, 5, 7, 5, 4, 2, 0, 2, 4, 5, 4, 2, 0]
         ][n],
         i = r.map((e, t) => t % 2 == 0 ? -1 : (e + 3) % 10);
-    return Re(e, t, `chase`, {
+    return makeFlavorPatch(e, t, `chase`, {
         tonic: [48, 50, 52, 47][n],
-        scale: E[n % 2],
+        scale: BAROQUE_SCALES[n % 2],
         prog: [0, 4, 5, 0, 3, 4, 5, 0],
         lead: r,
         counter: i,
@@ -761,7 +761,7 @@ export function j(e, t) {
     })
 }
 
-export function M(e, t) {
+export function makeSilencePatch(e, t) {
     let n = Math.floor((Math.max(1, e) - 1) / 16) % 4,
         r = [
             [0, -1, -1, -1, -1, -1, -1, -1, 4, -1, -1, -1, -1, -1, -1, -1, 2, -1, -1, -1, 0, -1, -1, -1, -1, -1, 5, -1, -1, -1, -1, -1],
@@ -769,9 +769,9 @@ export function M(e, t) {
             [-1, -1, 0, -1, -1, -1, -1, 3, -1, -1, -1, -1, 5, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, 4, -1, -1, -1, -1, -1, -1, -1],
             [0, -1, -1, -1, -1, -1, 4, -1, -1, -1, -1, 7, -1, -1, -1, -1, 5, -1, -1, -1, -1, 2, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1]
         ][n];
-    return Re(e, t, `silence`, {
+    return makeFlavorPatch(e, t, `silence`, {
         tonic: [43, 45, 41, 47][n],
-        scale: E[2 % E.length],
+        scale: BAROQUE_SCALES[2 % BAROQUE_SCALES.length],
         prog: [0, 0, 0, 0, 0, 0, 4, 0],
         lead: r,
         counter: r.map(() => -1),
@@ -783,7 +783,7 @@ export function M(e, t) {
     })
 }
 
-export function He(e, t) {
+export function makeIronPatch(e, t) {
     let n = Math.floor((Math.max(1, e) - 1) / 16) % 4,
         r = [
             [0, 0, 4, 4, 0, 0, 5, 5, 0, 4, 0, 5, 4, 4, 0, 0],
@@ -793,9 +793,9 @@ export function He(e, t) {
         ][n],
         i = [...r, ...r],
         a = i.map(e => e + 4);
-    return Re(e, t, `iron`, {
+    return makeFlavorPatch(e, t, `iron`, {
         tonic: [40, 43, 38, 45][n],
-        scale: E[1],
+        scale: BAROQUE_SCALES[1],
         prog: [0, 0, 4, 0, 5, 4, 0, 0],
         lead: i,
         counter: a,
@@ -809,7 +809,7 @@ export function He(e, t) {
     })
 }
 
-export function Ue(e, t) {
+export function makeTearPatch(e, t) {
     let n = Math.floor((Math.max(1, e) - 1) / 16) % 4,
         r = [
             [0, 7, 2, 9, 4, 0, 11, 5, 2, 8, 0, 7, 4, 10, 2, 0],
@@ -819,9 +819,9 @@ export function Ue(e, t) {
         ][n],
         i = [...r, ...r.map(e => Math.max(0, e - 2))],
         a = i.map((e, t) => t % 3 == 0 ? e : -1);
-    return Re(e, t, `tear`, {
+    return makeFlavorPatch(e, t, `tear`, {
         tonic: [49, 51, 46, 54][n],
-        scale: E[(n + 2) % E.length],
+        scale: BAROQUE_SCALES[(n + 2) % BAROQUE_SCALES.length],
         prog: [0, 3, 5, 4, 0, 2, 4, 0],
         lead: i,
         counter: a,
@@ -834,7 +834,7 @@ export function Ue(e, t) {
     })
 }
 
-export function We(e, t) {
+export function makeStormPatch(e, t) {
     let n = Math.floor((Math.max(1, e) - 1) / 16) % 4,
         r = [
             [0, 2, 4, 5, 7, 5, 4, 2, 5, 7, 9, 7, 5, 4, 2, 0, 4, 5, 7, 9, 11, 9, 7, 5, 4, 2, 0, 2, 4, 5, 4, 0],
@@ -843,9 +843,9 @@ export function We(e, t) {
             [0, 1, 4, 7, 5, 8, 4, 7, 2, 5, 9, 5, 0, 4, 7, 4, 1, 5, 8, 5, 2, 7, 10, 7, 0, 4, 0, 5, 4, 2, 0, 0]
         ][n],
         i = r.map((e, t) => t % 2 == 0 ? e + 2 : e - 1);
-    return Re(e, t, `storm`, {
+    return makeFlavorPatch(e, t, `storm`, {
         tonic: [46, 48, 50, 44][n],
-        scale: E[n % E.length],
+        scale: BAROQUE_SCALES[n % BAROQUE_SCALES.length],
         prog: [0, 4, 5, 3, 4, 5, 0, 4],
         lead: r,
         counter: i,
@@ -859,7 +859,7 @@ export function We(e, t) {
     })
 }
 
-export function Ge(e, t) {
+export function makeAbyssPatch(e, t) {
     let n = Math.floor((Math.max(1, e) - 1) / 16) % 4,
         r = [
             [0, 0, 0, 2, 0, 0, 4, 0, 0, 0, 5, 0, 4, 2, 0, 0],
@@ -868,9 +868,9 @@ export function Ge(e, t) {
             [0, 0, 0, 0, 5, 5, 0, 0, 3, 0, 0, 2, 0, 0, 0, 0]
         ][n],
         i = r.map((e, t) => t % 4 == 0 ? e + 7 : -1);
-    return Re(e, t, `abyss`, {
+    return makeFlavorPatch(e, t, `abyss`, {
         tonic: [36, 38, 35, 40][n],
-        scale: E[1],
+        scale: BAROQUE_SCALES[1],
         prog: [0, 0, 5, 0, 0, 3, 0, 0],
         lead: [...i, ...i],
         counter: [...r, ...r],
@@ -883,7 +883,7 @@ export function Ge(e, t) {
     })
 }
 
-export function N(e, t) {
+export function makeCadencePatch(e, t) {
     let n = Math.floor((Math.max(1, e) - 1) / 16) % 4,
         r = [
             [0, 2, 4, 0, 5, 4, 2, 0, 4, 5, 7, 5, 4, 2, 0, 0],
@@ -893,9 +893,9 @@ export function N(e, t) {
         ][n],
         i = [...r, ...r],
         a = i.map(e => e + 2);
-    return Re(e, t, `cadence`, {
+    return makeFlavorPatch(e, t, `cadence`, {
         tonic: [48, 50, 52, 47][n],
-        scale: E[0],
+        scale: BAROQUE_SCALES[0],
         prog: [0, 3, 4, 0, 0, 3, 4, 0],
         lead: i,
         counter: a,
@@ -909,98 +909,95 @@ export function N(e, t) {
     })
 }
 
-export function Ke(e) {
+export function makeBossPatch(e) {
     let t = Math.max(1, Math.min(64, e | 0)),
         n = t - 1,
-        r = D(t);
-    if (r.title.includes(`星屑のフーガ`)) return O(t, r);
-    if (r.title.includes(`祈りの半終止`)) return Le(t, r);
-    if (r.title.includes(`影のカノン`)) return k(t, r);
-    if (r.title.includes(`鏡像の答`)) return Ie(t, r);
-    if (r.title.includes(`決意の和声`)) return Fe(t, r);
-    if (r.title.includes(`夜明けの対位`)) return ze(t, r);
-    if (r.title.includes(`第一主題`)) return Be(t, r);
-    if (r.title.includes(`歩む通奏`)) return Ve(t, r);
-    if (r.title.includes(`遠い鐘`)) return A(t, r);
-    if (r.title.includes(`追走曲`)) return j(t, r);
-    if (r.title.includes(`沈黙の前`)) return M(t, r);
-    if (r.title.includes(`鉄の序奏`)) return He(t, r);
-    if (r.title.includes(`裂ける旋律`)) return Ue(t, r);
-    if (r.title.includes(`嵐の展開`)) return We(t, r);
-    if (r.title.includes(`深海のバス`)) return Ge(t, r);
-    if (r.title.includes(`最後のカデンツ`)) return N(t, r);
-    let i = we(t * 11003 + 777 + t * t),
-        a = Math.max(0, Ae.findIndex(e => t >= e.from && t <= e.to)),
+        r = getBossThemeMeta(t);
+    if (r.title.includes(`星屑のフーガ`)) return makeFuguePatch(t, r);
+    if (r.title.includes(`祈りの半終止`)) return makeOrganPatch(t, r);
+    if (r.title.includes(`影のカノン`)) return makeCanonPatch(t, r);
+    if (r.title.includes(`鏡像の答`)) return makeWhistlePatch(t, r);
+    if (r.title.includes(`決意の和声`)) return makeHarmonyPatch(t, r);
+    if (r.title.includes(`夜明けの対位`)) return makeDawnPatch(t, r);
+    if (r.title.includes(`第一主題`)) return makeSubjectPatch(t, r);
+    if (r.title.includes(`歩む通奏`)) return makeContinuoPatch(t, r);
+    if (r.title.includes(`遠い鐘`)) return makeBellsPatch(t, r);
+    if (r.title.includes(`追走曲`)) return makeChasePatch(t, r);
+    if (r.title.includes(`沈黙の前`)) return makeSilencePatch(t, r);
+    if (r.title.includes(`鉄の序奏`)) return makeIronPatch(t, r);
+    if (r.title.includes(`裂ける旋律`)) return makeTearPatch(t, r);
+    if (r.title.includes(`嵐の展開`)) return makeStormPatch(t, r);
+    if (r.title.includes(`深海のバス`)) return makeAbyssPatch(t, r);
+    if (r.title.includes(`最後のカデンツ`)) return makeCadencePatch(t, r);
+    let i = makeRng(t * 11003 + 777 + t * t),
+        a = Math.max(0, BOSS_ACT_TABLE.findIndex(e => t >= e.from && t <= e.to)),
         o = (t - 1) % 16,
-        s = E[(n * 3 + a + o) % E.length],
+        s = BAROQUE_SCALES[(n * 3 + a + o) % BAROQUE_SCALES.length],
         c = [40, 41, 43, 45, 46, 47, 48, 50, 52, 53, 55, 57],
         l = c[(n * 5 + a * 2) % c.length],
-        u = Oe[(n * 7 + o) % Oe.length].slice();
+        u = BAROQUE_PROGS[(n * 7 + o) % BAROQUE_PROGS.length].slice();
     o % 4 == 0 && (u = [0, 0, ...u]), o % 5 == 2 && (u = [...u, 4, 0, 5, 0]), a >= 2 && n % 2 == 0 && (u = u.map((e, t) => t % 2 == 0 ? e : (e + 3) % 7));
-    let d = ke[n % ke.length],
-        f = ke[(n * 5 + 3) % ke.length],
-        p = Pe([...d, ...f], i, n),
+    let d = BAROQUE_LEADS[n % BAROQUE_LEADS.length],
+        f = BAROQUE_LEADS[(n * 5 + 3) % BAROQUE_LEADS.length],
+        p = mutateLeadLine([...d, ...f], i, n),
         m, h = n % 4;
-    m = h === 0 ? [...Array(8).fill(-1), ...p.slice(0, 24)] : h === 1 ? je(p) : h === 2 ? p.map(e => e < 0 ? -1 : e + 4) : p.map((e, t) => t % 2 == 0 ? e : -1);
-    let g = Math.max(72, Math.min(138, 78 + n % 16 * 3 + a * 4 + o % 3 * 2)),
-        _ = (n + a) % 6,
-        v = (n * 2 + o) % 6,
-        ee = (n + 3) % 5,
-        y = (n * 3 + 1) % 6,
-        te = [1, 2, 2, 4, 2, 1][(n + o) % 6],
-        ne = [0, 12, 12, 24, 12, 0][n % 6],
-        re = [12, 12, 24, 0, 12][ee],
-        ie = [0, 0, 12, 0, -12, 12][y],
-        ae = [4, 8, 8, 16, 8, 4][(n + a) % 6],
-        oe = n % 2 == 0 ? `triangle` : `square`,
-        b = 20 + (n * 3 + a) % 16,
-        x = ee,
-        S = y,
-        se = _,
-        ce = v,
-        le = g;
-    return o === 3 ? (se = 2, ce = 2, x = 4, S = 0) : o === 4 ? (ce = 4, se = 3, x = 0, S = 3, le = Math.min(140, le + 12)) : o === 5 ? (le = Math.max(72, le - 18), x = 2, se = 4, ce = 3) : o === 6 ? (p = p.map((e, t) => t % 3 == 0 ? e : -1), se = 3, x = 0, S = 1, le += 10) : o === 9 ? (se = 5, S = 3, x = 3, ce = 0) : o === 10 ? (S = 2, x = 2, ce = 1) : o === 12 ? (le = Math.max(72, le - 22), se = 4, x = 2, S = 3, ce = 3) : o === 13 ? (se = 1, ce = 2, S = 4, x = 4) : o === 15 && (u = [0, 4, 0, 0, 3, 4, 0, 0], S = 3, ce = 0), {
+    m = h === 0 ? [...Array(8).fill(-1), ...p.slice(0, 24)] : h === 1 ? invertDegrees(p) : h === 2 ? p.map(e => e < 0 ? -1 : e + 4) : p.map((e, t) => t % 2 == 0 ? e : -1);
+    let tempo = Math.max(72, Math.min(138, 78 + n % 16 * 3 + a * 4 + o % 3 * 2)),
+        bassMode = (n + a) % 6,
+        leadMode = (n * 2 + o) % 6,
+        gtrModePick = (n + 3) % 5,
+        brassModePick = (n * 3 + 1) % 6,
+        leadEvery = [1, 2, 2, 4, 2, 1][(n + o) % 6],
+        leadOct = [0, 12, 12, 24, 12, 0][n % 6],
+        gtrOct = [12, 12, 24, 0, 12][gtrModePick],
+        brassOct = [0, 0, 12, 0, -12, 12][brassModePick],
+        chordTicks = [4, 8, 8, 16, 8, 4][(n + a) % 6],
+        leadDuty = n % 2 == 0 ? `triangle` : `square`,
+        drum = 20 + (n * 3 + a) % 16,
+        gtrMode = gtrModePick,
+        brassMode = brassModePick;
+    return o === 3 ? (bassMode = 2, leadMode = 2, gtrMode = 4, brassMode = 0) : o === 4 ? (leadMode = 4, bassMode = 3, gtrMode = 0, brassMode = 3, tempo = Math.min(140, tempo + 12)) : o === 5 ? (tempo = Math.max(72, tempo - 18), gtrMode = 2, bassMode = 4, leadMode = 3) : o === 6 ? (p = p.map((e, t) => t % 3 == 0 ? e : -1), bassMode = 3, gtrMode = 0, brassMode = 1, tempo += 10) : o === 9 ? (bassMode = 5, brassMode = 3, gtrMode = 3, leadMode = 0) : o === 10 ? (brassMode = 2, gtrMode = 2, leadMode = 1) : o === 12 ? (tempo = Math.max(72, tempo - 22), bassMode = 4, gtrMode = 2, brassMode = 3, leadMode = 3) : o === 13 ? (bassMode = 1, leadMode = 2, brassMode = 4, gtrMode = 4) : o === 15 && (u = [0, 4, 0, 0, 3, 4, 0, 0], brassMode = 3, leadMode = 0), {
         tonic: l,
         scale: s,
         prog: u,
         lead: p,
         counter: m,
-        tempo: Math.max(72, Math.min(140, le)),
+        tempo: Math.max(72, Math.min(140, tempo)),
         arpStyle: (n + a) % 4,
-        drum: b,
-        leadDuty: oe,
+        drum: drum,
+        leadDuty: leadDuty,
         style: `baroque`,
         story: r.title,
         fugue: !1,
         arr: n,
-        bassMode: se,
-        leadMode: ce,
-        gtrMode: x,
-        brassMode: S,
-        leadEvery: te,
-        leadOct: o === 13 ? 0 : ne,
-        gtrOct: re,
-        brassOct: o === 13 ? -12 : ie,
-        chordTicks: ae,
+        bassMode: bassMode,
+        leadMode: leadMode,
+        gtrMode: gtrMode,
+        brassMode: brassMode,
+        leadEvery: leadEvery,
+        leadOct: o === 13 ? 0 : leadOct,
+        gtrOct: gtrOct,
+        brassOct: o === 13 ? -12 : brassOct,
+        chordTicks: chordTicks,
         leadPeak: .07 + n % 5 * .008
     }
 }
-export var P = De(1, !1);
+export var activePatch = makeChipPatch(1, !1);
 
-export function F(e, t = 0) {
-    let n = P.scale,
+export function degreeToMidi(e, t = 0) {
+    let n = activePatch.scale,
         r = e,
         i = t;
     for (; r < 0;) r += n.length, i -= 12;
     for (; r >= n.length;) r -= n.length, i += 12;
-    return P.tonic + n[r] + i
+    return activePatch.tonic + n[r] + i
 }
 
-export function qe(e) {
+export function arpSteps(e) {
     return [e, e + 2, e + 4, e + 6, e + 7]
 }
 
-export function Je(e, t, n) {
+export function pickArpStep(e, t, n) {
     let r = e.length;
     if (t === 0) return e[n % r];
     if (t === 1) return e[r - 1 - n % r];
@@ -1012,27 +1009,27 @@ export function Je(e, t, n) {
     return e[n % 2 == 0 ? 0 : 2 + n % 3]
 }
 
-export function Ye() {
-    b(140, .07, `triangle`, .14, 45, `bgm`), x(.025, .06, 600, `bgm`)
+export function drumKickLight() {
+    tone(140, .07, `triangle`, .14, 45, `bgm`), noiseBurst(.025, .06, 600, `bgm`)
 }
 
-export function I(e = 0) {
-    e === 0 ? (b(120, .09, `triangle`, .16, 38, `bgm`), x(.03, .07, 500, `bgm`)) : e === 1 ? (b(70, .14, `triangle`, .18, 32, `bgm`), b(110, .06, `sine`, .08, 40, `bgm`), x(.04, .05, 400, `bgm`)) : e === 2 ? (b(130, .05, `triangle`, .14, 42, `bgm`), setTimeout(() => {
-        b(95, .08, `triangle`, .12, 36, `bgm`), x(.03, .06, 550, `bgm`)
-    }, 45)) : (b(100, .16, `triangle`, .15, 30, `bgm`), x(.08, .08, 350, `bgm`))
+export function drumKick(e = 0) {
+    e === 0 ? (tone(120, .09, `triangle`, .16, 38, `bgm`), noiseBurst(.03, .07, 500, `bgm`)) : e === 1 ? (tone(70, .14, `triangle`, .18, 32, `bgm`), tone(110, .06, `sine`, .08, 40, `bgm`), noiseBurst(.04, .05, 400, `bgm`)) : e === 2 ? (tone(130, .05, `triangle`, .14, 42, `bgm`), setTimeout(() => {
+        tone(95, .08, `triangle`, .12, 36, `bgm`), noiseBurst(.03, .06, 550, `bgm`)
+    }, 45)) : (tone(100, .16, `triangle`, .15, 30, `bgm`), noiseBurst(.08, .08, 350, `bgm`))
 }
 
-export function Xe() {
-    x(.06, .12, 3500, `bgm`), b(220, .03, `square`, .04, 100, `bgm`)
+export function drumSnare() {
+    noiseBurst(.06, .12, 3500, `bgm`), tone(220, .03, `square`, .04, 100, `bgm`)
 }
 
-export function L(e = !1) {
-    x(e ? .05 : .02, e ? .045 : .03, e ? 9e3 : 7e3, `bgm`)
+export function drumHat(e = !1) {
+    noiseBurst(e ? .05 : .02, e ? .045 : .03, e ? 9e3 : 7e3, `bgm`)
 }
 
-export function Ze(e, t) {
-    let n = _(),
-        r = v();
+export function playBell(e, t) {
+    let n = ensureAudioCtx(),
+        r = getMasterGain();
     if (!n || !r || u) return;
     if (n.state === `suspended`) {
         n.resume();
@@ -1048,36 +1045,36 @@ export function Ze(e, t) {
         let l = n.createGain();
         l.gain.setValueAtTime(1e-4, i), l.gain.exponentialRampToValueAtTime(a * s[t], i + .01), l.gain.exponentialRampToValueAtTime(1e-4, i + .55 + t * .05), c.connect(l), l.connect(r), c.start(i), c.stop(i + .7)
     }
-    b(e, .08, `sine`, t * .25, void 0, `bgm`)
+    tone(e, .08, `sine`, t * .25, void 0, `bgm`)
 }
 
-export function R(e, t) {
-    let n = S(F(e, -12));
-    b(n, .12, `square`, t, void 0, `bgm`), b(S(F(e + 4, -12)), .12, `square`, t * .75, void 0, `bgm`), b(n * 2, .06, `square`, t * .35, void 0, `bgm`), x(.03, t * .2, 1800, `bgm`)
+export function playDistorted(e, t) {
+    let n = midiToHz(degreeToMidi(e, -12));
+    tone(n, .12, `square`, t, void 0, `bgm`), tone(midiToHz(degreeToMidi(e + 4, -12)), .12, `square`, t * .75, void 0, `bgm`), tone(n * 2, .06, `square`, t * .35, void 0, `bgm`), noiseBurst(.03, t * .2, 1800, `bgm`)
 }
 
-export function z(e, t, n) {
-    let r = S(F(e, 12)),
-        i = S(F(t, 12));
-    b(r, .16, `square`, n, i, `bgm`), b(r * .5, .14, `triangle`, n * .4, i * .5, `bgm`)
+export function playSlide(e, t, n) {
+    let r = midiToHz(degreeToMidi(e, 12)),
+        i = midiToHz(degreeToMidi(t, 12));
+    tone(r, .16, `square`, n, i, `bgm`), tone(r * .5, .14, `triangle`, n * .4, i * .5, `bgm`)
 }
 
-export function Qe(e, t, n) {
+export function playBrassFanfare(e, t, n) {
     let r = [0, 2, 4, 6, 7];
     for (let i = 0; i < r.length; i++) {
-        let a = S(F(e + r[i], t)),
+        let a = midiToHz(degreeToMidi(e + r[i], t)),
             o = n * (1 - i * .08);
-        b(a, .16, `triangle`, o, void 0, `bgm`), b(a, .12, `square`, o * .42, a * (1 + (i - 2) * .0015), `bgm`)
+        tone(a, .16, `triangle`, o, void 0, `bgm`), tone(a, .12, `square`, o * .42, a * (1 + (i - 2) * .0015), `bgm`)
     }
 }
 
-export function $e(e, t, n, r = .14) {
+export function playFugueVoice(e, t, n, r = .14) {
     if (!Number.isFinite(e) || e < 40 || e > 2800) return;
     let i = Math.max(.02, t);
-    n === 0 ? (b(e, r, `square`, i, void 0, `bgm`), b(e, r * .9, `triangle`, i * .55, void 0, `bgm`), b(e * 2, r * .5, `triangle`, i * .18, void 0, `bgm`)) : n === 1 ? (b(e, r * 1.05, `triangle`, i * 1.05, void 0, `bgm`), b(e, r * .7, `square`, i * .35, void 0, `bgm`)) : n === 2 ? (b(e, r * 1.1, `triangle`, i, void 0, `bgm`), b(e * .5, r * .9, `triangle`, i * .35, void 0, `bgm`)) : n === 3 ? (b(e, r * .95, `square`, i * .85, void 0, `bgm`), b(e * 1.5, r * .4, `triangle`, i * .15, void 0, `bgm`)) : b(e, r * 1.15, `triangle`, i * .9, void 0, `bgm`)
+    n === 0 ? (tone(e, r, `square`, i, void 0, `bgm`), tone(e, r * .9, `triangle`, i * .55, void 0, `bgm`), tone(e * 2, r * .5, `triangle`, i * .18, void 0, `bgm`)) : n === 1 ? (tone(e, r * 1.05, `triangle`, i * 1.05, void 0, `bgm`), tone(e, r * .7, `square`, i * .35, void 0, `bgm`)) : n === 2 ? (tone(e, r * 1.1, `triangle`, i, void 0, `bgm`), tone(e * .5, r * .9, `triangle`, i * .35, void 0, `bgm`)) : n === 3 ? (tone(e, r * .95, `square`, i * .85, void 0, `bgm`), tone(e * 1.5, r * .4, `triangle`, i * .15, void 0, `bgm`)) : tone(e, r * 1.15, `triangle`, i * .9, void 0, `bgm`)
 }
 
-export function et(e, t) {
+export function playChoirChord(e, t) {
     for (let n of [{
             d: 0,
             o: -12,
@@ -1103,31 +1100,31 @@ export function et(e, t) {
             gender: `f`,
             vow: `e`
         }]) {
-        let r = S(F(e + n.d, n.o));
-        r < 60 || r > 1400 || it(r, .3, t * n.p, n.vow, n.gender)
+        let r = midiToHz(degreeToMidi(e + n.d, n.o));
+        r < 60 || r > 1400 || playFormant(r, .3, t * n.p, n.vow, n.gender)
     }
 }
 
-export function tt(e, t) {
-    let n = S(F(e, 0));
-    n < 50 || n > 900 || (it(n, .22, t * 1.2, `o`, `m`), it(Math.max(60, n * .5), .24, t * .7, `u`, `m`))
+export function playBassVowel(e, t) {
+    let n = midiToHz(degreeToMidi(e, 0));
+    n < 50 || n > 900 || (playFormant(n, .22, t * 1.2, `o`, `m`), playFormant(Math.max(60, n * .5), .24, t * .7, `u`, `m`))
 }
-export var nt = null;
+export var noiseBufCache = null;
 
-export function rt(e) {
-    if (nt && nt.sampleRate === e.sampleRate) return nt;
+export function getNoiseBuffer(e) {
+    if (noiseBufCache && noiseBufCache.sampleRate === e.sampleRate) return noiseBufCache;
     let t = Math.max(1, Math.floor(e.sampleRate * .2)),
         n = e.createBuffer(1, t, e.sampleRate),
         r = n.getChannelData(0);
     for (let e = 0; e < r.length; e++) r[e] = Math.random() * 2 - 1;
-    return nt = n, n
+    return noiseBufCache = n, n
 }
 
-export function it(e, t, n, r = `a`, i = `m`) {
+export function playFormant(e, t, n, r = `a`, i = `m`) {
     try {
         if (u) return;
-        let a = _(),
-            o = v();
+        let a = ensureAudioCtx(),
+            o = getMasterGain();
         if (!a || !o) return;
         if (a.state === `suspended`) {
             a.resume();
@@ -1145,17 +1142,17 @@ export function it(e, t, n, r = `a`, i = `m`) {
             },
             [d, p, m] = l[r] || l.a;
         i === `f` && (d *= 1.1, p *= 1.12, m *= 1.08);
-        let h = a.createOscillator(),
-            g = a.createOscillator();
-        h.type = `sawtooth`, g.type = `sawtooth`, h.frequency.setValueAtTime(e, s), g.frequency.setValueAtTime(e * 1.005, s);
-        let ee = a.createOscillator();
-        ee.type = `sine`, ee.frequency.value = i === `f` ? 5.6 : 5.1;
-        let y = a.createGain();
-        y.gain.value = Math.min(12, e * .009), ee.connect(y), y.connect(h.frequency), y.connect(g.frequency);
-        let te = a.createGain();
-        te.gain.value = .4, h.connect(te), g.connect(te);
-        let ne = a.createGain();
-        ne.gain.value = 1;
+        let oscA = a.createOscillator(),
+            oscB = a.createOscillator();
+        oscA.type = `sawtooth`, oscB.type = `sawtooth`, oscA.frequency.setValueAtTime(e, s), oscB.frequency.setValueAtTime(e * 1.005, s);
+        let lfo = a.createOscillator();
+        lfo.type = `sine`, lfo.frequency.value = i === `f` ? 5.6 : 5.1;
+        let lfoGain = a.createGain();
+        lfoGain.gain.value = Math.min(12, e * .009), lfo.connect(lfoGain), lfoGain.connect(oscA.frequency), lfoGain.connect(oscB.frequency);
+        let mix = a.createGain();
+        mix.gain.value = .4, oscA.connect(mix), oscB.connect(mix);
+        let formantBus = a.createGain();
+        formantBus.gain.value = 1;
         for (let [e, t, n] of [
                 [d, 6, 1.15],
                 [p, 8, .9],
@@ -1164,51 +1161,51 @@ export function it(e, t, n, r = `a`, i = `m`) {
             let r = a.createBiquadFilter();
             r.type = `bandpass`, r.frequency.value = Math.min(7e3, Math.max(90, e)), r.Q.value = t;
             let i = a.createGain();
-            i.gain.value = n, te.connect(r), r.connect(i), i.connect(ne)
+            i.gain.value = n, mix.connect(r), r.connect(i), i.connect(formantBus)
         }
-        let re = a.createGain();
-        re.gain.value = .32, te.connect(re), re.connect(ne);
+        let body = a.createGain();
+        body.gain.value = .32, mix.connect(body), body.connect(formantBus);
         try {
             let e = a.createBufferSource();
-            e.buffer = rt(a);
+            e.buffer = getNoiseBuffer(a);
             let n = a.createBiquadFilter();
             n.type = `bandpass`, n.frequency.value = Math.min(6e3, p), n.Q.value = 3;
             let r = a.createGain();
-            r.gain.value = .045, e.connect(n), n.connect(r), r.connect(ne), e.start(s), e.stop(s + Math.min(t, .2))
+            r.gain.value = .045, e.connect(n), n.connect(r), r.connect(formantBus), e.start(s), e.stop(s + Math.min(t, .2))
         } catch {}
-        let ie = a.createGain();
-        ie.gain.setValueAtTime(1e-4, s), ie.gain.exponentialRampToValueAtTime(c, s + .03), ie.gain.setValueAtTime(c * .9, s + Math.max(.05, t * .5)), ie.gain.exponentialRampToValueAtTime(1e-4, s + t);
-        let ae = a.createBiquadFilter();
-        ae.type = `lowpass`, ae.frequency.value = i === `f` ? 4800 : 3800, ne.connect(ie), ie.connect(ae), ae.connect(o);
-        let oe = s + t + .03;
-        h.start(s), g.start(s), ee.start(s), h.stop(oe), g.stop(oe), ee.stop(oe)
+        let env = a.createGain();
+        env.gain.setValueAtTime(1e-4, s), env.gain.exponentialRampToValueAtTime(c, s + .03), env.gain.setValueAtTime(c * .9, s + Math.max(.05, t * .5)), env.gain.exponentialRampToValueAtTime(1e-4, s + t);
+        let lp = a.createBiquadFilter();
+        lp.type = `lowpass`, lp.frequency.value = i === `f` ? 4800 : 3800, formantBus.connect(env), env.connect(lp), lp.connect(o);
+        let stopAt = s + t + .03;
+        oscA.start(s), oscB.start(s), lfo.start(s), oscA.stop(stopAt), oscB.stop(stopAt), lfo.stop(stopAt)
     } catch {}
 }
 
-export function at(e, t, n = .14) {
-    b(e, n, `sine`, t, void 0, `bgm`), b(e, n * .85, `triangle`, t * .45, void 0, `bgm`), x(.02, t * .15, 6e3, `bgm`)
+export function playWhistleTone(e, t, n = .14) {
+    tone(e, n, `sine`, t, void 0, `bgm`), tone(e, n * .85, `triangle`, t * .45, void 0, `bgm`), noiseBurst(.02, t * .15, 6e3, `bgm`)
 }
 
-export function ot(e, t, n) {
+export function playWhistleArp(e, t, n) {
     let r = [0, 1, 2, 3, 4, 5];
     for (let i = 0; i < 6; i++) {
-        let a = S(F(e + r[i], t + (i >= 4 ? 12 : 0))),
+        let a = midiToHz(degreeToMidi(e + r[i], t + (i >= 4 ? 12 : 0))),
             o = n * (1 - i * .1);
-        at(a, Math.max(.015, o), .13 + (i === 0 ? .04 : 0))
+        playWhistleTone(a, Math.max(.015, o), .13 + (i === 0 ? .04 : 0))
     }
 }
 
-export function st(e, t = 12, n = .08) {
-    let r = S(F(e, t));
-    b(r, .09, `triangle`, n, r * .985, `bgm`), b(r, .05, `square`, n * .35, void 0, `bgm`), b(r * 2, .04, `triangle`, n * .22, void 0, `bgm`)
+export function playCanonLead(e, t = 12, n = .08) {
+    let r = midiToHz(degreeToMidi(e, t));
+    tone(r, .09, `triangle`, n, r * .985, `bgm`), tone(r, .05, `square`, n * .35, void 0, `bgm`), tone(r * 2, .04, `triangle`, n * .22, void 0, `bgm`)
 }
 
-export function ct(e, t = .12) {
-    let n = S(F(e, -12));
-    b(n, .14, `triangle`, t, n * .96, `bgm`), b(n * .5, .1, `triangle`, t * .45, void 0, `bgm`)
+export function playCanonFollow(e, t = .12) {
+    let n = midiToHz(degreeToMidi(e, -12));
+    tone(n, .14, `triangle`, t, n * .96, `bgm`), tone(n * .5, .1, `triangle`, t * .45, void 0, `bgm`)
 }
 
-export function lt(e, t, n) {
+export function playOrganStack(e, t, n) {
     let r = [{
         d: 0,
         o: t,
@@ -1231,183 +1228,183 @@ export function lt(e, t, n) {
         p: .35
     }];
     for (let t of r) {
-        let r = S(F(e + t.d, t.o));
-        b(r, .28, `triangle`, n * t.p, void 0, `bgm`), b(r * 1.003, .22, `triangle`, n * t.p * .35, void 0, `bgm`)
+        let r = midiToHz(degreeToMidi(e + t.d, t.o));
+        tone(r, .28, `triangle`, n * t.p, void 0, `bgm`), tone(r * 1.003, .22, `triangle`, n * t.p * .35, void 0, `bgm`)
     }
 }
 
-export function ut(e) {
-    let t = S(F(e, -12));
-    b(t, .32, `triangle`, .14, void 0, `bgm`), b(t * .5, .36, `triangle`, .1, void 0, `bgm`), b(t * 2, .2, `triangle`, .04, void 0, `bgm`)
+export function playOrganPedal(e) {
+    let t = midiToHz(degreeToMidi(e, -12));
+    tone(t, .32, `triangle`, .14, void 0, `bgm`), tone(t * .5, .36, `triangle`, .1, void 0, `bgm`), tone(t * 2, .2, `triangle`, .04, void 0, `bgm`)
 }
 
-export function B(e, t, n, r) {
-    let i = S(F(e, t)),
-        a = S(F(e + 2, t)),
-        o = S(F(e + 4, t));
-    b(i, .13, r, n, void 0, `bgm`), b(a, .12, r, n * .72, void 0, `bgm`), b(o, .12, r, n * .55, void 0, `bgm`)
+export function playTriad(e, t, n, r) {
+    let i = midiToHz(degreeToMidi(e, t)),
+        a = midiToHz(degreeToMidi(e + 2, t)),
+        o = midiToHz(degreeToMidi(e + 4, t));
+    tone(i, .13, r, n, void 0, `bgm`), tone(a, .12, r, n * .72, void 0, `bgm`), tone(o, .12, r, n * .55, void 0, `bgm`)
 }
 
-export function V(e, t = 12) {
-    let n = S(F(e, t));
-    b(n, .07, `square`, .07, n * .97, `bgm`), b(n * 2, .04, `square`, .03, void 0, `bgm`)
+export function playPluck(e, t = 12) {
+    let n = midiToHz(degreeToMidi(e, t));
+    tone(n, .07, `square`, .07, n * .97, `bgm`), tone(n * 2, .04, `square`, .03, void 0, `bgm`)
 }
 
-export function dt(e, t = 0) {
-    let n = S(F(e, t));
-    b(n, .16, `triangle`, .08, void 0, `bgm`), b(n, .12, `square`, .045, n * 1.01, `bgm`), b(S(F(e + 4, t)), .12, `triangle`, .04, void 0, `bgm`)
+export function playBrassNote(e, t = 0) {
+    let n = midiToHz(degreeToMidi(e, t));
+    tone(n, .16, `triangle`, .08, void 0, `bgm`), tone(n, .12, `square`, .045, n * 1.01, `bgm`), tone(midiToHz(degreeToMidi(e + 4, t)), .12, `triangle`, .04, void 0, `bgm`)
 }
 
-export function ft(e) {
-    let t = P.drum,
+export function playDrums(e) {
+    let t = activePatch.drum,
         n = e % 16;
-    if (P.style === `baroque`) {
-        if (P.organ || P.drum === 40) {
-            n === 0 && xe % 64 < 2 && x(.02, .02, 400, `bgm`);
+    if (activePatch.style === `baroque`) {
+        if (activePatch.organ || activePatch.drum === 40) {
+            n === 0 && tickIndex % 64 < 2 && noiseBurst(.02, .02, 400, `bgm`);
             return
         }
-        if (P.canon || P.drum === 41) {
-            n === 0 && I(0), n === 8 && x(.03, .035, 900, `bgm`), (n === 4 || n === 12) && x(.025, .03, 2500, `bgm`), n % 4 == 2 && L(!1);
+        if (activePatch.canon || activePatch.drum === 41) {
+            n === 0 && drumKick(0), n === 8 && noiseBurst(.03, .035, 900, `bgm`), (n === 4 || n === 12) && noiseBurst(.025, .03, 2500, `bgm`), n % 4 == 2 && drumHat(!1);
             return
         }
-        if (P.whistle || P.drum === 42) {
-            n === 0 && xe % 32 == 0 && x(.015, .02, 3e3, `bgm`);
+        if (activePatch.whistle || activePatch.drum === 42) {
+            n === 0 && tickIndex % 32 == 0 && noiseBurst(.015, .02, 3e3, `bgm`);
             return
         }
-        if (P.choir || P.drum === 43) {
-            (n === 0 || n === 8) && I(1), (n === 4 || n === 12) && (x(.05, .08, 4e3, `bgm`), b(800, .02, `square`, .03, void 0, `bgm`)), (n === 6 || n === 14) && x(.025, .04, 3500, `bgm`);
+        if (activePatch.choir || activePatch.drum === 43) {
+            (n === 0 || n === 8) && drumKick(1), (n === 4 || n === 12) && (noiseBurst(.05, .08, 4e3, `bgm`), tone(800, .02, `square`, .03, void 0, `bgm`)), (n === 6 || n === 14) && noiseBurst(.025, .04, 3500, `bgm`);
             return
         }
-        let e = P.drum >= 20 ? (P.drum - 20) % 16 : Math.max(0, P.drum - 10);
-        e === 0 ? ((n === 0 || n === 8) && I(1), (n === 4 || n === 12) && I(0)) : e === 1 ? (n % 4 == 0 && I(0), (n === 6 || n === 14) && I(2), (n === 4 || n === 12) && Xe()) : e === 2 ? ((n === 0 || n === 3 || n === 6 || n === 8 || n === 11 || n === 14) && I(0), (n === 4 || n === 12) && Xe(), n % 2 == 1 && L(!1)) : e === 3 ? (n === 0 && I(1), n === 8 && I(3), (n === 4 || n === 12) && x(.05, .06, 900, `bgm`)) : e === 4 ? (n === 0 && I(1), n === 8 && I(1), n === 12 && Xe(), n === 4 && L(!0)) : e === 5 ? (n % 2 == 0 && I(+(n % 4 == 0)), (n === 7 || n === 15) && I(2), n % 4 == 1 && L(!1)) : e === 6 ? ((n === 0 || n === 5 || n === 8 || n === 13) && I(0), (n === 4 || n === 12) && Xe(), (n === 2 || n === 6 || n === 10 || n === 14) && L(!1)) : e === 7 ? (n === 0 && I(3), n === 10 && I(0), n === 15 && x(.06, .05, 600, `bgm`)) : e === 8 ? ((n === 0 || n === 8) && I(1), (n === 2 || n === 6 || n === 10 || n === 14) && I(0), (n === 4 || n === 12) && (Xe(), I(0))) : e === 9 ? (n % 4 == 0 && I(1), n % 4 == 2 && I(0), (n === 4 || n === 12) && Xe(), n % 2 == 1 && L(!0)) : e === 10 ? ((n === 0 || n === 7 || n === 8 || n === 15) && I(2), (n === 4 || n === 12) && Xe()) : e === 11 ? ((n === 0 || n === 8) && I(3), (n === 4 || n === 12) && x(.04, .04, 500, `bgm`)) : e === 12 ? (n % 2 == 0 && I(0), n % 4 == 3 && I(2), (n === 4 || n === 6 || n === 12 || n === 14) && Xe(), L(n % 3 == 0)) : e === 13 ? ((n === 0 || n === 8) && I(1), (n === 4 || n === 12) && I(1), (n === 2 || n === 10) && x(.05, .05, 300, `bgm`)) : e === 14 ? (n === 0 && I(0), (n === 3 || n === 6) && I(0), n === 8 && I(1), (n === 11 || n === 14) && I(0), (n === 4 || n === 12) && Xe()) : ((n === 0 || n === 8) && I(1), n === 4 && Xe(), n === 12 && (Xe(), I(2)), (n === 14 || n === 15) && I(0));
+        let e = activePatch.drum >= 20 ? (activePatch.drum - 20) % 16 : Math.max(0, activePatch.drum - 10);
+        e === 0 ? ((n === 0 || n === 8) && drumKick(1), (n === 4 || n === 12) && drumKick(0)) : e === 1 ? (n % 4 == 0 && drumKick(0), (n === 6 || n === 14) && drumKick(2), (n === 4 || n === 12) && drumSnare()) : e === 2 ? ((n === 0 || n === 3 || n === 6 || n === 8 || n === 11 || n === 14) && drumKick(0), (n === 4 || n === 12) && drumSnare(), n % 2 == 1 && drumHat(!1)) : e === 3 ? (n === 0 && drumKick(1), n === 8 && drumKick(3), (n === 4 || n === 12) && noiseBurst(.05, .06, 900, `bgm`)) : e === 4 ? (n === 0 && drumKick(1), n === 8 && drumKick(1), n === 12 && drumSnare(), n === 4 && drumHat(!0)) : e === 5 ? (n % 2 == 0 && drumKick(+(n % 4 == 0)), (n === 7 || n === 15) && drumKick(2), n % 4 == 1 && drumHat(!1)) : e === 6 ? ((n === 0 || n === 5 || n === 8 || n === 13) && drumKick(0), (n === 4 || n === 12) && drumSnare(), (n === 2 || n === 6 || n === 10 || n === 14) && drumHat(!1)) : e === 7 ? (n === 0 && drumKick(3), n === 10 && drumKick(0), n === 15 && noiseBurst(.06, .05, 600, `bgm`)) : e === 8 ? ((n === 0 || n === 8) && drumKick(1), (n === 2 || n === 6 || n === 10 || n === 14) && drumKick(0), (n === 4 || n === 12) && (drumSnare(), drumKick(0))) : e === 9 ? (n % 4 == 0 && drumKick(1), n % 4 == 2 && drumKick(0), (n === 4 || n === 12) && drumSnare(), n % 2 == 1 && drumHat(!0)) : e === 10 ? ((n === 0 || n === 7 || n === 8 || n === 15) && drumKick(2), (n === 4 || n === 12) && drumSnare()) : e === 11 ? ((n === 0 || n === 8) && drumKick(3), (n === 4 || n === 12) && noiseBurst(.04, .04, 500, `bgm`)) : e === 12 ? (n % 2 == 0 && drumKick(0), n % 4 == 3 && drumKick(2), (n === 4 || n === 6 || n === 12 || n === 14) && drumSnare(), drumHat(n % 3 == 0)) : e === 13 ? ((n === 0 || n === 8) && drumKick(1), (n === 4 || n === 12) && drumKick(1), (n === 2 || n === 10) && noiseBurst(.05, .05, 300, `bgm`)) : e === 14 ? (n === 0 && drumKick(0), (n === 3 || n === 6) && drumKick(0), n === 8 && drumKick(1), (n === 11 || n === 14) && drumKick(0), (n === 4 || n === 12) && drumSnare()) : ((n === 0 || n === 8) && drumKick(1), n === 4 && drumSnare(), n === 12 && (drumSnare(), drumKick(2)), (n === 14 || n === 15) && drumKick(0));
         return
     }
-    if (T === `attract`) {
-        (n === 0 || n === 8) && Ye(), (n === 4 || n === 12) && L(!1), n === 14 && Xe();
+    if (bgmMode === `attract`) {
+        (n === 0 || n === 8) && drumKickLight(), (n === 4 || n === 12) && drumHat(!1), n === 14 && drumSnare();
         return
     }
-    t === 0 ? (n % 4 == 0 && Ye(), (n === 4 || n === 12) && Xe(), n % 2 == 1 && L(!1)) : t === 1 ? ((n === 0 || n === 6 || n === 8 || n === 14) && Ye(), (n === 4 || n === 12) && Xe(), n % 2 == 0 && L(n % 4 == 2)) : t === 2 ? ((n === 0 || n === 3 || n === 8 || n === 10) && Ye(), (n === 4 || n === 11 || n === 14) && Xe(), L(n % 3 == 0)) : t === 3 ? ((n === 0 || n === 8) && Ye(), (n === 4 || n === 12) && Xe(), (n === 2 || n === 6 || n === 10 || n === 14) && L(!0)) : t === 4 ? (n % 2 == 0 && Ye(), (n === 4 || n === 6 || n === 12 || n === 14) && Xe(), n % 2 == 1 && L(!1)) : ((n === 0 || n === 8) && Ye(), (n === 4 || n === 12) && Xe(), n % 2 == 1 && L(!1), n === 15 && Math.random() > .6 && x(.08, .08, 5e3, `bgm`))
+    t === 0 ? (n % 4 == 0 && drumKickLight(), (n === 4 || n === 12) && drumSnare(), n % 2 == 1 && drumHat(!1)) : t === 1 ? ((n === 0 || n === 6 || n === 8 || n === 14) && drumKickLight(), (n === 4 || n === 12) && drumSnare(), n % 2 == 0 && drumHat(n % 4 == 2)) : t === 2 ? ((n === 0 || n === 3 || n === 8 || n === 10) && drumKickLight(), (n === 4 || n === 11 || n === 14) && drumSnare(), drumHat(n % 3 == 0)) : t === 3 ? ((n === 0 || n === 8) && drumKickLight(), (n === 4 || n === 12) && drumSnare(), (n === 2 || n === 6 || n === 10 || n === 14) && drumHat(!0)) : t === 4 ? (n % 2 == 0 && drumKickLight(), (n === 4 || n === 6 || n === 12 || n === 14) && drumSnare(), n % 2 == 1 && drumHat(!1)) : ((n === 0 || n === 8) && drumKickLight(), (n === 4 || n === 12) && drumSnare(), n % 2 == 1 && drumHat(!1), n === 15 && Math.random() > .6 && noiseBurst(.08, .08, 5e3, `bgm`))
 }
 
-export function pt() {
-    if (u || T === `off`) return;
-    let e = _(),
-        t = v();
+export function bgmResume() {
+    if (u || bgmMode === `off`) return;
+    let e = ensureAudioCtx(),
+        t = getMasterGain();
     if (!e || !t) {
-        H();
+        scheduleNextTick();
         return
     }
     if (e.state === `suspended`) {
         e.resume().then(() => {
-            !u && T !== `off` && H()
-        }), H();
+            !u && bgmMode !== `off` && scheduleNextTick()
+        }), scheduleNextTick();
         return
     }
-    let n = xe++,
+    let n = tickIndex++,
         r = n % 16,
-        i = Math.floor(n / 8) % P.prog.length,
-        a = P.prog[i];
-    if (P.fugue || P.flavor === `silence` || P.flavor === `bells`) {
+        i = Math.floor(n / 8) % activePatch.prog.length,
+        a = activePatch.prog[i];
+    if (activePatch.fugue || activePatch.flavor === `silence` || activePatch.flavor === `bells`) {
         let e = r;
-        e === 0 && b(80, .04, `triangle`, .035, void 0, `bgm`), e === 8 && P.flavor !== `silence` && x(.02, .02, 2e3, `bgm`)
-    } else if (P.flavor === `dawn` || P.flavor === `abyss` || P.flavor === `continuo`) {
+        e === 0 && tone(80, .04, `triangle`, .035, void 0, `bgm`), e === 8 && activePatch.flavor !== `silence` && noiseBurst(.02, .02, 2e3, `bgm`)
+    } else if (activePatch.flavor === `dawn` || activePatch.flavor === `abyss` || activePatch.flavor === `continuo`) {
         let e = r;
-        (e === 0 || e === 8) && b(70, .05, `triangle`, .05, void 0, `bgm`), (e === 4 || e === 12) && x(.02, .025, 2500, `bgm`)
-    } else if (P.flavor === `iron` || P.flavor === `storm` || P.flavor === `chase`) ft(r);
-    else if (P.flavor) {
+        (e === 0 || e === 8) && tone(70, .05, `triangle`, .05, void 0, `bgm`), (e === 4 || e === 12) && noiseBurst(.02, .025, 2500, `bgm`)
+    } else if (activePatch.flavor === `iron` || activePatch.flavor === `storm` || activePatch.flavor === `chase`) playDrums(r);
+    else if (activePatch.flavor) {
         let e = r;
-        (e === 0 || e === 8) && b(90, .05, `triangle`, .06, void 0, `bgm`), (e === 4 || e === 12) && x(.03, .03, 3e3, `bgm`)
-    } else ft(r);
-    if (P.style === `baroque`) {
-        if (P.choir) {
+        (e === 0 || e === 8) && tone(90, .05, `triangle`, .06, void 0, `bgm`), (e === 4 || e === 12) && noiseBurst(.03, .03, 3e3, `bgm`)
+    } else playDrums(r);
+    if (activePatch.style === `baroque`) {
+        if (activePatch.choir) {
             try {
-                let e = P.leadEvery || 2;
-                if (n % 8 == 0 && it(S(F(a, -12)), .34, .1, `u`, `m`), n % e === 0) {
+                let e = activePatch.leadEvery || 2;
+                if (n % 8 == 0 && playFormant(midiToHz(degreeToMidi(a, -12)), .34, .1, `u`, `m`), n % e === 0) {
                     let t = Math.floor(n / e),
-                        r = t % P.lead.length,
-                        i = P.lead[r],
+                        r = t % activePatch.lead.length,
+                        i = activePatch.lead[r],
                         o = Math.floor(t / 8) % 4;
                     if (i >= 0) {
-                        if (o === 0) tt(i, .12);
-                        else if (o === 1) et(i, P.leadPeak ?? .09);
+                        if (o === 0) playBassVowel(i, .12);
+                        else if (o === 1) playChoirChord(i, activePatch.leadPeak ?? .09);
                         else if (o === 2) {
-                            et(i, (P.leadPeak ?? .09) * 1.15);
-                            let e = P.counter[r];
-                            e >= 0 && t % 2 == 0 && it(S(F(e, 12)), .24, .08, `a`, `f`)
-                        } else et(i, P.leadPeak ?? .09), t % 4 == 0 && it(S(F(a + 4, 12)), .26, .07, `a`, `f`)
+                            playChoirChord(i, (activePatch.leadPeak ?? .09) * 1.15);
+                            let e = activePatch.counter[r];
+                            e >= 0 && t % 2 == 0 && playFormant(midiToHz(degreeToMidi(e, 12)), .24, .08, `a`, `f`)
+                        } else playChoirChord(i, activePatch.leadPeak ?? .09), t % 4 == 0 && playFormant(midiToHz(degreeToMidi(a + 4, 12)), .26, .07, `a`, `f`)
                     }
                 }
-                n % 32 == 28 && (it(S(F(3, 0)), .3, .09, `a`, `m`), it(S(F(3, 12)), .28, .07, `a`, `f`)), n % 32 == 30 && (it(S(F(0, 0)), .32, .1, `o`, `m`), it(S(F(0, 12)), .3, .08, `o`, `f`))
+                n % 32 == 28 && (playFormant(midiToHz(degreeToMidi(3, 0)), .3, .09, `a`, `m`), playFormant(midiToHz(degreeToMidi(3, 12)), .28, .07, `a`, `f`)), n % 32 == 30 && (playFormant(midiToHz(degreeToMidi(0, 0)), .32, .1, `o`, `m`), playFormant(midiToHz(degreeToMidi(0, 12)), .3, .08, `o`, `f`))
             } catch {}
-            H();
+            scheduleNextTick();
             return
         }
-        if (P.whistle) {
-            let e = P.leadEvery || 2;
-            if (n % 16 == 0 && b(S(F(a, -12)), .25, `triangle`, .025, void 0, `bgm`), n % e === 0) {
+        if (activePatch.whistle) {
+            let e = activePatch.leadEvery || 2;
+            if (n % 16 == 0 && tone(midiToHz(degreeToMidi(a, -12)), .25, `triangle`, .025, void 0, `bgm`), n % e === 0) {
                 let t = Math.floor(n / e),
                     r = Math.floor(t / 16) % 2,
-                    i = t % P.lead.length;
+                    i = t % activePatch.lead.length;
                 if (r === 0) {
-                    let e = P.lead[i];
-                    e >= 0 && ot(e, P.leadOct ?? 12, P.leadPeak ?? .07)
+                    let e = activePatch.lead[i];
+                    e >= 0 && playWhistleArp(e, activePatch.leadOct ?? 12, activePatch.leadPeak ?? .07)
                 } else {
-                    let e = P.counter[i];
-                    e >= 0 && ot(e, (P.leadOct ?? 12) + 12, (P.leadPeak ?? .07) * .9)
+                    let e = activePatch.counter[i];
+                    e >= 0 && playWhistleArp(e, (activePatch.leadOct ?? 12) + 12, (activePatch.leadPeak ?? .07) * .9)
                 }
             }
             if (n % 16 == 12) {
-                let t = P.lead[Math.floor(n / e) % P.lead.length];
-                t >= 0 && at(S(F(t, 24)), .04, .18)
+                let t = activePatch.lead[Math.floor(n / e) % activePatch.lead.length];
+                t >= 0 && playWhistleTone(midiToHz(degreeToMidi(t, 24)), .04, .18)
             }
-            H();
+            scheduleNextTick();
             return
         }
-        if (P.canon) {
-            let e = Math.max(2, P.chordTicks || 4),
+        if (activePatch.canon) {
+            let e = Math.max(2, activePatch.chordTicks || 4),
                 t = Math.floor(n / 2);
-            if (n % 16 == 0 && b(S(F(a, -12)), .2, `triangle`, .03, void 0, `bgm`), n % 2 == 0) {
-                let e = t % P.lead.length,
-                    n = P.lead[e];
-                n >= 0 && (st(n, P.leadOct ?? 12, P.leadPeak ?? .09), t % 8 == 0 && st(n + 2, (P.leadOct ?? 12) - 12, .035))
+            if (n % 16 == 0 && tone(midiToHz(degreeToMidi(a, -12)), .2, `triangle`, .03, void 0, `bgm`), n % 2 == 0) {
+                let e = t % activePatch.lead.length,
+                    n = activePatch.lead[e];
+                n >= 0 && (playCanonLead(n, activePatch.leadOct ?? 12, activePatch.leadPeak ?? .09), t % 8 == 0 && playCanonLead(n + 2, (activePatch.leadOct ?? 12) - 12, .035))
             }
             if (n % 2 == 0) {
                 let n = t - e;
                 if (n >= 0) {
-                    let e = n % P.lead.length,
-                        t = P.lead[e];
-                    t >= 0 && (ct(t, .13), n % 4 == 0 && b(S(F(t, 0)), .08, `triangle`, .04, void 0, `bgm`))
+                    let e = n % activePatch.lead.length,
+                        t = activePatch.lead[e];
+                    t >= 0 && (playCanonFollow(t, .13), n % 4 == 0 && tone(midiToHz(degreeToMidi(t, 0)), .08, `triangle`, .04, void 0, `bgm`))
                 }
             }
             if (n % 8 == 5) {
-                let e = P.lead[(t + 2) % P.lead.length];
-                e >= 0 && st(e + 4, 24, .03)
+                let e = activePatch.lead[(t + 2) % activePatch.lead.length];
+                e >= 0 && playCanonLead(e + 4, 24, .03)
             }
-            H();
+            scheduleNextTick();
             return
         }
-        if (P.organ) {
-            if (n % 8 == 0 && ut(a), n % (P.leadEvery || 4) === 0) {
-                let e = Math.floor(n / (P.leadEvery || 4)) % P.lead.length,
-                    t = P.lead[e];
+        if (activePatch.organ) {
+            if (n % 8 == 0 && playOrganPedal(a), n % (activePatch.leadEvery || 4) === 0) {
+                let e = Math.floor(n / (activePatch.leadEvery || 4)) % activePatch.lead.length,
+                    t = activePatch.lead[e];
                 if (t >= 0) {
-                    lt(t, P.leadOct ?? 12, P.leadPeak ?? .08);
-                    let n = P.counter[e];
-                    n >= 0 && lt(n, (P.leadOct ?? 12) - 12, .04)
+                    playOrganStack(t, activePatch.leadOct ?? 12, activePatch.leadPeak ?? .08);
+                    let n = activePatch.counter[e];
+                    n >= 0 && playOrganStack(n, (activePatch.leadOct ?? 12) - 12, .04)
                 }
             }
-            n % 16 == 0 && lt(a, 0, .05), (n % 32 == 24 || n % 32 == 28) && (lt(4, 12, .07), ut(4)), H();
+            n % 16 == 0 && playOrganStack(a, 0, .05), (n % 32 == 24 || n % 32 == 28) && (playOrganStack(4, 12, .07), playOrganPedal(4)), scheduleNextTick();
             return
         }
-        if (P.fugue && P.fugueSubject) {
-            let e = P.fugueSubject,
+        if (activePatch.fugue && activePatch.fugueSubject) {
+            let e = activePatch.fugueSubject,
                 t = e.length,
-                r = Ne[Math.floor((P.arr ?? 0) / 16) % 4] || Ne[0],
-                i = P.arr != null && P.arr >= 48 ? Math.max(10, t - 2) : P.arr != null && P.arr >= 24 ? Math.max(12, t - 1) : t,
+                r = FUGUE_COUNTERS[Math.floor((activePatch.arr ?? 0) / 16) % 4] || FUGUE_COUNTERS[0],
+                i = activePatch.arr != null && activePatch.arr >= 48 ? Math.max(10, t - 2) : activePatch.arr != null && activePatch.arr >= 24 ? Math.max(12, t - 1) : t,
                 o = [0, 4, 0, 4, 7],
                 s = [12, 0, 12, 24, 0],
                 c = [.12, .11, .1, .095, .09];
-            n % 8 == 0 && b(S(F(a, -12)), .2, `triangle`, .08, void 0, `bgm`), n % 16 == 0 && b(S(F(a, -24)), .22, `triangle`, .05, void 0, `bgm`);
+            n % 8 == 0 && tone(midiToHz(degreeToMidi(a, -12)), .2, `triangle`, .08, void 0, `bgm`), n % 16 == 0 && tone(midiToHz(degreeToMidi(a, -24)), .22, `triangle`, .05, void 0, `bgm`);
             let l = n,
                 u = i * 5,
                 d = u + t * 2;
@@ -1423,285 +1420,285 @@ export function pt() {
                 } else if (u >= t) {
                     let e = r[(u - t) % r.length];
                     if (e < 0) continue;
-                    $e(S(F(e + o[n] % 4, s[n])), c[n] * .55, n, .12);
+                    playFugueVoice(midiToHz(degreeToMidi(e + o[n] % 4, s[n])), c[n] * .55, n, .12);
                     continue
                 }
                 let f = e[(u % t + t) % t];
-                f < 0 || (f += o[n], $e(S(F(f, s[n])), c[n], n, .15))
+                f < 0 || (f += o[n], playFugueVoice(midiToHz(degreeToMidi(f, s[n])), c[n], n, .15))
             }
-            l > u && l % (t * 2) == t - 1 && Qe(a, 12, .05), l > d && l % t === t - 1 && Qe(a + 4, 12, .045), H();
+            l > u && l % (t * 2) == t - 1 && playBrassFanfare(a, 12, .05), l > d && l % t === t - 1 && playBrassFanfare(a + 4, 12, .045), scheduleNextTick();
             return
         }
-        if (P.flavor) {
-            let e = P.flavor,
-                t = P.leadEvery ?? 2,
-                i = P.leadPeak ?? .09,
-                o = P.leadOct ?? 12;
+        if (activePatch.flavor) {
+            let e = activePatch.flavor,
+                t = activePatch.leadEvery ?? 2,
+                i = activePatch.leadPeak ?? .09,
+                o = activePatch.leadOct ?? 12;
             if (e === `dawn`) {
-                if (n % 8 == 0 && b(S(F(a, -12)), .22, `triangle`, .06, void 0, `bgm`), n % t === 0) {
-                    let e = Math.floor(n / t) % P.lead.length,
-                        r = P.lead[e];
-                    r >= 0 && (b(S(F(r, 12)), .14, `triangle`, i, void 0, `bgm`), b(S(F(r, 12)), .1, `sine`, i * .4, void 0, `bgm`));
-                    let a = P.counter[e];
-                    a >= 0 && b(S(F(a, 0)), .13, `triangle`, i * .7, void 0, `bgm`)
+                if (n % 8 == 0 && tone(midiToHz(degreeToMidi(a, -12)), .22, `triangle`, .06, void 0, `bgm`), n % t === 0) {
+                    let e = Math.floor(n / t) % activePatch.lead.length,
+                        r = activePatch.lead[e];
+                    r >= 0 && (tone(midiToHz(degreeToMidi(r, 12)), .14, `triangle`, i, void 0, `bgm`), tone(midiToHz(degreeToMidi(r, 12)), .1, `sine`, i * .4, void 0, `bgm`));
+                    let a = activePatch.counter[e];
+                    a >= 0 && tone(midiToHz(degreeToMidi(a, 0)), .13, `triangle`, i * .7, void 0, `bgm`)
                 }
-                n % 16 == 12 && b(S(F(a + 4, 24)), .2, `sine`, .04, void 0, `bgm`), H();
+                n % 16 == 12 && tone(midiToHz(degreeToMidi(a + 4, 24)), .2, `sine`, .04, void 0, `bgm`), scheduleNextTick();
                 return
             }
             if (e === `subject`) {
                 let e = Math.floor(n / t),
-                    r = P.lead.length / 2;
+                    r = activePatch.lead.length / 2;
                 if (n % t === 0) {
-                    let t = e % P.lead.length,
-                        n = P.lead[t];
-                    n >= 0 && (b(S(F(n, 12)), .15, `square`, i * 1.1, void 0, `bgm`), b(S(F(n, 12)), .12, `triangle`, i * .5, void 0, `bgm`))
+                    let t = e % activePatch.lead.length,
+                        n = activePatch.lead[t];
+                    n >= 0 && (tone(midiToHz(degreeToMidi(n, 12)), .15, `square`, i * 1.1, void 0, `bgm`), tone(midiToHz(degreeToMidi(n, 12)), .12, `triangle`, i * .5, void 0, `bgm`))
                 }
-                if (e >= r && (n % 4 == 0 && b(S(F(a, -12)), .16, `triangle`, .09, void 0, `bgm`), n % t === 0)) {
-                    let t = e % P.counter.length,
-                        n = P.counter[t];
-                    n >= 0 && b(S(F(n, 0)), .12, `triangle`, i * .55, void 0, `bgm`)
+                if (e >= r && (n % 4 == 0 && tone(midiToHz(degreeToMidi(a, -12)), .16, `triangle`, .09, void 0, `bgm`), n % t === 0)) {
+                    let t = e % activePatch.counter.length,
+                        n = activePatch.counter[t];
+                    n >= 0 && tone(midiToHz(degreeToMidi(n, 0)), .12, `triangle`, i * .55, void 0, `bgm`)
                 }
-                H();
+                scheduleNextTick();
                 return
             }
             if (e === `continuo`) {
                 if (n % 1 == 0 && n % 2 == 0) {
-                    let e = Math.floor(n / 2) % P.counter.length,
-                        t = P.counter[e];
-                    t >= 0 && (b(S(F(t, -12)), .12, `triangle`, .13, void 0, `bgm`), b(S(F(t, -24)), .14, `triangle`, .06, void 0, `bgm`))
+                    let e = Math.floor(n / 2) % activePatch.counter.length,
+                        t = activePatch.counter[e];
+                    t >= 0 && (tone(midiToHz(degreeToMidi(t, -12)), .12, `triangle`, .13, void 0, `bgm`), tone(midiToHz(degreeToMidi(t, -24)), .14, `triangle`, .06, void 0, `bgm`))
                 }
-                if (n % 4 == 2 && (b(S(F(a, 12)), .08, `square`, .05, void 0, `bgm`), b(S(F(a + 2, 12)), .08, `square`, .04, void 0, `bgm`), b(S(F(a + 4, 12)), .08, `triangle`, .04, void 0, `bgm`)), n % t === 0) {
-                    let e = Math.floor(n / t) % P.lead.length,
-                        r = P.lead[e];
-                    r >= 0 && b(S(F(r, 12)), .1, `triangle`, i * .8, void 0, `bgm`)
+                if (n % 4 == 2 && (tone(midiToHz(degreeToMidi(a, 12)), .08, `square`, .05, void 0, `bgm`), tone(midiToHz(degreeToMidi(a + 2, 12)), .08, `square`, .04, void 0, `bgm`), tone(midiToHz(degreeToMidi(a + 4, 12)), .08, `triangle`, .04, void 0, `bgm`)), n % t === 0) {
+                    let e = Math.floor(n / t) % activePatch.lead.length,
+                        r = activePatch.lead[e];
+                    r >= 0 && tone(midiToHz(degreeToMidi(r, 12)), .1, `triangle`, i * .8, void 0, `bgm`)
                 }
-                H();
+                scheduleNextTick();
                 return
             }
             if (e === `bells`) {
                 if (n % t === 0) {
-                    let e = Math.floor(n / t) % P.lead.length,
-                        r = P.lead[e];
+                    let e = Math.floor(n / t) % activePatch.lead.length,
+                        r = activePatch.lead[e];
                     if (r >= 0) {
-                        Ze(S(F(r, o > 12 ? 12 : o)), i);
-                        let t = P.counter[e];
-                        t >= 0 && n % 8 == 0 && Ze(S(F(t, 12)), i * .35)
+                        playBell(midiToHz(degreeToMidi(r, o > 12 ? 12 : o)), i);
+                        let t = activePatch.counter[e];
+                        t >= 0 && n % 8 == 0 && playBell(midiToHz(degreeToMidi(t, 12)), i * .35)
                     }
                 }
-                n % 32 == 0 && x(.15, .02, 800, `bgm`), H();
+                n % 32 == 0 && noiseBurst(.15, .02, 800, `bgm`), scheduleNextTick();
                 return
             }
             if (e === `chase`) {
-                n % 2 == 0 && b(S(F(a + (n % 8 == 0 ? 0 : 4), -12)), .08, `triangle`, .08, void 0, `bgm`);
-                let e = P.lead[n % P.lead.length];
-                e >= 0 && b(S(F(e, 12)), .08, `square`, i, void 0, `bgm`);
-                let t = P.lead[(n + P.lead.length - 1) % P.lead.length];
-                t >= 0 && b(S(F(t + 3, 0)), .07, `triangle`, i * .65, void 0, `bgm`), n % 4 == 0 && b(S(F(a, 24)), .05, `square`, .04, void 0, `bgm`), H();
+                n % 2 == 0 && tone(midiToHz(degreeToMidi(a + (n % 8 == 0 ? 0 : 4), -12)), .08, `triangle`, .08, void 0, `bgm`);
+                let e = activePatch.lead[n % activePatch.lead.length];
+                e >= 0 && tone(midiToHz(degreeToMidi(e, 12)), .08, `square`, i, void 0, `bgm`);
+                let t = activePatch.lead[(n + activePatch.lead.length - 1) % activePatch.lead.length];
+                t >= 0 && tone(midiToHz(degreeToMidi(t + 3, 0)), .07, `triangle`, i * .65, void 0, `bgm`), n % 4 == 0 && tone(midiToHz(degreeToMidi(a, 24)), .05, `square`, .04, void 0, `bgm`), scheduleNextTick();
                 return
             }
             if (e === `silence`) {
                 if (n % t === 0) {
-                    let e = Math.floor(n / t) % P.lead.length,
-                        r = P.lead[e];
-                    r >= 0 && (b(S(F(r, 0)), .35, `sine`, i, void 0, `bgm`), b(S(F(r, 0)), .3, `triangle`, i * .5, void 0, `bgm`))
+                    let e = Math.floor(n / t) % activePatch.lead.length,
+                        r = activePatch.lead[e];
+                    r >= 0 && (tone(midiToHz(degreeToMidi(r, 0)), .35, `sine`, i, void 0, `bgm`), tone(midiToHz(degreeToMidi(r, 0)), .3, `triangle`, i * .5, void 0, `bgm`))
                 }
-                n % 64 == 32 && x(.2, .015, 400, `bgm`), H();
+                n % 64 == 32 && noiseBurst(.2, .015, 400, `bgm`), scheduleNextTick();
                 return
             }
             if (e === `iron`) {
-                if (n % 4 == 0 && R(a, .1), n % t === 0) {
-                    let e = Math.floor(n / t) % P.lead.length,
-                        r = P.lead[e];
-                    r >= 0 && (b(S(F(r, 0)), .12, `square`, i, void 0, `bgm`), b(S(F(r + 4, 0)), .12, `square`, i * .7, void 0, `bgm`))
-                }(r === 0 || r === 8) && b(60, .08, `square`, .1, 40, `bgm`), H();
+                if (n % 4 == 0 && playDistorted(a, .1), n % t === 0) {
+                    let e = Math.floor(n / t) % activePatch.lead.length,
+                        r = activePatch.lead[e];
+                    r >= 0 && (tone(midiToHz(degreeToMidi(r, 0)), .12, `square`, i, void 0, `bgm`), tone(midiToHz(degreeToMidi(r + 4, 0)), .12, `square`, i * .7, void 0, `bgm`))
+                }(r === 0 || r === 8) && tone(60, .08, `square`, .1, 40, `bgm`), scheduleNextTick();
                 return
             }
             if (e === `tear`) {
                 if (n % t === 0) {
-                    let e = Math.floor(n / t) % P.lead.length,
-                        r = P.lead[e],
-                        a = P.lead[(e + P.lead.length - 1) % P.lead.length];
-                    r >= 0 && a >= 0 && Math.abs(r - a) >= 4 ? z(a, r, i) : r >= 0 && (b(S(F(r, 12)), .12, `square`, i, void 0, `bgm`), b(S(F(r, 24)), .06, `triangle`, i * .3, void 0, `bgm`))
+                    let e = Math.floor(n / t) % activePatch.lead.length,
+                        r = activePatch.lead[e],
+                        a = activePatch.lead[(e + activePatch.lead.length - 1) % activePatch.lead.length];
+                    r >= 0 && a >= 0 && Math.abs(r - a) >= 4 ? playSlide(a, r, i) : r >= 0 && (tone(midiToHz(degreeToMidi(r, 12)), .12, `square`, i, void 0, `bgm`), tone(midiToHz(degreeToMidi(r, 24)), .06, `triangle`, i * .3, void 0, `bgm`))
                 }
-                n % 8 == 4 && b(S(F(a, -12)), .1, `triangle`, .08, void 0, `bgm`), H();
+                n % 8 == 4 && tone(midiToHz(degreeToMidi(a, -12)), .1, `triangle`, .08, void 0, `bgm`), scheduleNextTick();
                 return
             }
             if (e === `storm`) {
-                n % 2 == 0 && b(S(F(a + n % 4, -12)), .08, `triangle`, .09, void 0, `bgm`);
-                let e = P.lead[n % P.lead.length];
-                e >= 0 && B(e, 12, i * .85, `square`);
-                let t = P.counter[n % P.counter.length];
-                t >= 0 && n % 2 == 1 && b(S(F(t, 24)), .06, `square`, i * .45, void 0, `bgm`), r === 0 && Qe(a, 0, .05), n % 3 == 0 && x(.02, .03, 5e3, `bgm`), H();
+                n % 2 == 0 && tone(midiToHz(degreeToMidi(a + n % 4, -12)), .08, `triangle`, .09, void 0, `bgm`);
+                let e = activePatch.lead[n % activePatch.lead.length];
+                e >= 0 && playTriad(e, 12, i * .85, `square`);
+                let t = activePatch.counter[n % activePatch.counter.length];
+                t >= 0 && n % 2 == 1 && tone(midiToHz(degreeToMidi(t, 24)), .06, `square`, i * .45, void 0, `bgm`), r === 0 && playBrassFanfare(a, 0, .05), n % 3 == 0 && noiseBurst(.02, .03, 5e3, `bgm`), scheduleNextTick();
                 return
             }
             if (e === `abyss`) {
                 if (n % 2 == 0) {
-                    let e = Math.floor(n / 2) % P.counter.length,
-                        t = P.counter[e];
+                    let e = Math.floor(n / 2) % activePatch.counter.length,
+                        t = activePatch.counter[e];
                     if (t >= 0) {
-                        let e = S(F(t, -24));
-                        b(e, .2, `triangle`, .16, void 0, `bgm`), b(e * 1.5, .16, `triangle`, .05, void 0, `bgm`), b(Math.max(30, e * .5), .22, `sine`, .08, void 0, `bgm`)
+                        let e = midiToHz(degreeToMidi(t, -24));
+                        tone(e, .2, `triangle`, .16, void 0, `bgm`), tone(e * 1.5, .16, `triangle`, .05, void 0, `bgm`), tone(Math.max(30, e * .5), .22, `sine`, .08, void 0, `bgm`)
                     }
                 }
                 if (n % t === 0) {
-                    let e = Math.floor(n / t) % P.lead.length,
-                        r = P.lead[e];
-                    r >= 0 && b(S(F(r, 12)), .2, `sine`, i * .6, void 0, `bgm`)
+                    let e = Math.floor(n / t) % activePatch.lead.length,
+                        r = activePatch.lead[e];
+                    r >= 0 && tone(midiToHz(degreeToMidi(r, 12)), .2, `sine`, i * .6, void 0, `bgm`)
                 }
-                n % 16 == 8 && x(.12, .025, 300, `bgm`), H();
+                n % 16 == 8 && noiseBurst(.12, .025, 300, `bgm`), scheduleNextTick();
                 return
             }
             if (e === `cadence`) {
-                if (n % 4 == 0 && b(S(F(a, -12)), .14, `triangle`, .1, void 0, `bgm`), n % t === 0) {
-                    let e = Math.floor(n / t) % P.lead.length,
-                        r = P.lead[e];
-                    r >= 0 && (b(S(F(r, 12)), .12, `square`, i, void 0, `bgm`), b(S(F(r + 2, 12)), .12, `triangle`, i * .55, void 0, `bgm`), b(S(F(r + 4, 12)), .12, `triangle`, i * .4, void 0, `bgm`))
+                if (n % 4 == 0 && tone(midiToHz(degreeToMidi(a, -12)), .14, `triangle`, .1, void 0, `bgm`), n % t === 0) {
+                    let e = Math.floor(n / t) % activePatch.lead.length,
+                        r = activePatch.lead[e];
+                    r >= 0 && (tone(midiToHz(degreeToMidi(r, 12)), .12, `square`, i, void 0, `bgm`), tone(midiToHz(degreeToMidi(r + 2, 12)), .12, `triangle`, i * .55, void 0, `bgm`), tone(midiToHz(degreeToMidi(r + 4, 12)), .12, `triangle`, i * .4, void 0, `bgm`))
                 }
-                r === 0 && Qe(a, 12, .07), r === 8 && Qe(a + 4, 12, .055), n % 32 == 30 && Qe(0, 12, .08), H();
+                r === 0 && playBrassFanfare(a, 12, .07), r === 8 && playBrassFanfare(a + 4, 12, .055), n % 32 == 30 && playBrassFanfare(0, 12, .08), scheduleNextTick();
                 return
             }
         }
-        let e = P.bassMode ?? 1,
-            t = P.leadMode ?? 0,
-            i = P.gtrMode ?? 1,
-            o = P.brassMode ?? 1,
-            s = P.leadEvery ?? 2,
-            c = P.leadOct ?? 12,
-            l = P.gtrOct ?? 12,
-            u = P.brassOct ?? 0,
-            d = P.leadPeak ?? .09;
-        if (e === 0) n % 4 == 0 && b(S(F(a, -12)), .16, `triangle`, .12, void 0, `bgm`);
-        else if (e === 1) n % 2 == 0 && b(S(F(n % 8 == 0 ? a : n % 8 == 2 ? a + 2 : n % 8 == 4 ? a + 4 : a + 3, -12)), .11, `triangle`, .11, void 0, `bgm`);
+        let e = activePatch.bassMode ?? 1,
+            t = activePatch.leadMode ?? 0,
+            i = activePatch.gtrMode ?? 1,
+            o = activePatch.brassMode ?? 1,
+            s = activePatch.leadEvery ?? 2,
+            c = activePatch.leadOct ?? 12,
+            l = activePatch.gtrOct ?? 12,
+            u = activePatch.brassOct ?? 0,
+            d = activePatch.leadPeak ?? .09;
+        if (e === 0) n % 4 == 0 && tone(midiToHz(degreeToMidi(a, -12)), .16, `triangle`, .12, void 0, `bgm`);
+        else if (e === 1) n % 2 == 0 && tone(midiToHz(degreeToMidi(n % 8 == 0 ? a : n % 8 == 2 ? a + 2 : n % 8 == 4 ? a + 4 : a + 3, -12)), .11, `triangle`, .11, void 0, `bgm`);
         else if (e === 2) {
             if (n % 2 == 0) {
                 let e = [a, a, a + 4, a + 5][n / 2 % 4];
-                b(S(F(e, -12)), .1, `triangle`, .13, void 0, `bgm`), b(S(F(e, -24)), .12, `triangle`, .06, void 0, `bgm`)
+                tone(midiToHz(degreeToMidi(e, -12)), .1, `triangle`, .13, void 0, `bgm`), tone(midiToHz(degreeToMidi(e, -24)), .12, `triangle`, .06, void 0, `bgm`)
             }
-        } else e === 3 ? n % 8 == 0 && b(S(F(a, -12)), .18, `triangle`, .14, void 0, `bgm`) : e === 4 ? (n % 4 == 1 || n % 4 == 2) && b(S(F(a + (n % 8 == 1 ? 0 : 4), -12)), .09, `triangle`, .1, void 0, `bgm`) : n % 2 == 0 && (b(S(F(a, -12)), .1, `square`, .08, void 0, `bgm`), b(S(F(a + 4, -12)), .1, `triangle`, .07, void 0, `bgm`));
+        } else e === 3 ? n % 8 == 0 && tone(midiToHz(degreeToMidi(a, -12)), .18, `triangle`, .14, void 0, `bgm`) : e === 4 ? (n % 4 == 1 || n % 4 == 2) && tone(midiToHz(degreeToMidi(a + (n % 8 == 1 ? 0 : 4), -12)), .09, `triangle`, .1, void 0, `bgm`) : n % 2 == 0 && (tone(midiToHz(degreeToMidi(a, -12)), .1, `square`, .08, void 0, `bgm`), tone(midiToHz(degreeToMidi(a + 4, -12)), .1, `triangle`, .07, void 0, `bgm`));
         if (n % s === 0) {
-            let e = Math.floor(n / s) % P.lead.length,
-                r = P.lead[e];
+            let e = Math.floor(n / s) % activePatch.lead.length,
+                r = activePatch.lead[e];
             if (r >= 0) {
-                if (t === 0 || t === 1) B(r, c, d, P.leadDuty);
-                else if (t === 2) b(S(F(r, c)), .12, P.leadDuty, d * 1.15, void 0, `bgm`);
+                if (t === 0 || t === 1) playTriad(r, c, d, activePatch.leadDuty);
+                else if (t === 2) tone(midiToHz(degreeToMidi(r, c)), .12, activePatch.leadDuty, d * 1.15, void 0, `bgm`);
                 else if (t === 3) {
                     let e = [0, 2, 4, 7][n / s % 4];
-                    b(S(F(r + e, c)), .08, `square`, d, void 0, `bgm`)
-                } else if (t === 4) Qe(r, c > 12 ? 12 : c, d * .7);
-                else if (Math.floor(n / s) % 2 == 0) B(r, c, d, P.leadDuty);
+                    tone(midiToHz(degreeToMidi(r + e, c)), .08, `square`, d, void 0, `bgm`)
+                } else if (t === 4) playBrassFanfare(r, c > 12 ? 12 : c, d * .7);
+                else if (Math.floor(n / s) % 2 == 0) playTriad(r, c, d, activePatch.leadDuty);
                 else {
-                    let t = P.counter[e] ?? r;
-                    t >= 0 && b(S(F(t, c)), .11, `square`, d, void 0, `bgm`)
+                    let t = activePatch.counter[e] ?? r;
+                    t >= 0 && tone(midiToHz(degreeToMidi(t, c)), .11, `square`, d, void 0, `bgm`)
                 }
             }
         }
         if (i === 1 && n % 2 == 1) {
-            let e = Math.floor(n / 2) % Math.max(1, P.counter.length),
-                t = P.counter[e];
-            t >= 0 ? V(t, l) : n % 4 == 1 && V(a + 4, l)
+            let e = Math.floor(n / 2) % Math.max(1, activePatch.counter.length),
+                t = activePatch.counter[e];
+            t >= 0 ? playPluck(t, l) : n % 4 == 1 && playPluck(a + 4, l)
         } else if (i === 2) {
-            let e = P.counter[n % Math.max(1, P.counter.length)];
-            e >= 0 && n % 1 == 0 && (n % 2 == 0 || n % 3 == 0) && V(e, l)
+            let e = activePatch.counter[n % Math.max(1, activePatch.counter.length)];
+            e >= 0 && n % 1 == 0 && (n % 2 == 0 || n % 3 == 0) && playPluck(e, l)
         } else if (i === 3 && n % 4 == 0) {
-            let e = S(F(a, l));
-            b(e, .1, `square`, .08, void 0, `bgm`), b(S(F(a + 4, l)), .1, `square`, .06, void 0, `bgm`), b(e * 2, .06, `square`, .04, void 0, `bgm`)
-        } else i === 4 && n % 8 == 2 && V(a + 2, l);
-        if (o === 1 && n % 4 == 0) dt(a, u);
-        else if (o === 2 && n % 2 == 0) dt(a + (n / 2 % 2 == 0 ? 0 : 2), u);
-        else if (o === 3 && r === 0) Qe(a, u, .06);
-        else if (o === 4 && n % 8 == 0) B(a, u, .05, `triangle`);
+            let e = midiToHz(degreeToMidi(a, l));
+            tone(e, .1, `square`, .08, void 0, `bgm`), tone(midiToHz(degreeToMidi(a + 4, l)), .1, `square`, .06, void 0, `bgm`), tone(e * 2, .06, `square`, .04, void 0, `bgm`)
+        } else i === 4 && n % 8 == 2 && playPluck(a + 2, l);
+        if (o === 1 && n % 4 == 0) playBrassNote(a, u);
+        else if (o === 2 && n % 2 == 0) playBrassNote(a + (n / 2 % 2 == 0 ? 0 : 2), u);
+        else if (o === 3 && r === 0) playBrassFanfare(a, u, .06);
+        else if (o === 4 && n % 8 == 0) playTriad(a, u, .05, `triangle`);
         else if (o === 5 && n % 4 == 2) {
-            let e = Math.floor(n / 2) % Math.max(1, P.counter.length),
-                t = P.counter[e];
-            t >= 0 && dt(t, u)
+            let e = Math.floor(n / 2) % Math.max(1, activePatch.counter.length),
+                t = activePatch.counter[e];
+            t >= 0 && playBrassNote(t, u)
         }
-        o === 3 && r === 8 && (P.arr ?? 0) % 2 == 0 && dt(a + 4, u), H();
+        o === 3 && r === 8 && (activePatch.arr ?? 0) % 2 == 0 && playBrassNote(a + 4, u), scheduleNextTick();
         return
     }
-    if (n % 2 == 0 && b(S(F(n % 8 == 6 ? a + 4 : a, -12)), .09, `triangle`, T === `attract` ? .07 : .11, void 0, `bgm`), b(S(F(Je(qe(a), P.arpStyle, n), 12)), .055, `square`, T === `attract` ? .035 : .055, void 0, `bgm`), n % 2 == 0) {
-        let e = Math.floor(n / 2) % P.lead.length,
-            t = P.lead[e];
+    if (n % 2 == 0 && tone(midiToHz(degreeToMidi(n % 8 == 6 ? a + 4 : a, -12)), .09, `triangle`, bgmMode === `attract` ? .07 : .11, void 0, `bgm`), tone(midiToHz(degreeToMidi(pickArpStep(arpSteps(a), activePatch.arpStyle, n), 12)), .055, `square`, bgmMode === `attract` ? .035 : .055, void 0, `bgm`), n % 2 == 0) {
+        let e = Math.floor(n / 2) % activePatch.lead.length,
+            t = activePatch.lead[e];
         if (t >= 0) {
-            let e = S(F(t, 12)),
-                r = T === `attract` ? .07 : .1;
-            b(e, .1, P.leadDuty, r, void 0, `bgm`), T !== `attract` && n % 4 == 0 && b(e * 2, .06, `square`, r * .35, void 0, `bgm`)
+            let e = midiToHz(degreeToMidi(t, 12)),
+                r = bgmMode === `attract` ? .07 : .1;
+            tone(e, .1, activePatch.leadDuty, r, void 0, `bgm`), bgmMode !== `attract` && n % 4 == 0 && tone(e * 2, .06, `square`, r * .35, void 0, `bgm`)
         }
     }
-    P.style === `legacy` && r === 0 && [7, 5, 4, 2].forEach((e, t) => {
-        setTimeout(() => b(S(F(e, 24)), .05, `square`, .06, void 0, `bgm`), t * (P.tempo * .45))
-    }), H()
+    activePatch.style === `legacy` && r === 0 && [7, 5, 4, 2].forEach((e, t) => {
+        setTimeout(() => tone(midiToHz(degreeToMidi(e, 24)), .05, `square`, .06, void 0, `bgm`), t * (activePatch.tempo * .45))
+    }), scheduleNextTick()
 }
 
-export function H() {
-    if (Se && clearTimeout(Se), T === `off` || u) return;
-    let e = T === `attract` && xe % 2 == 1 ? P.tempo * .06 : 0;
-    Se = setTimeout(pt, Math.max(55, P.tempo + e))
+export function scheduleNextTick() {
+    if (tickTimer && clearTimeout(tickTimer), bgmMode === `off` || u) return;
+    let e = bgmMode === `attract` && tickIndex % 2 == 1 ? activePatch.tempo * .06 : 0;
+    tickTimer = setTimeout(bgmResume, Math.max(55, activePatch.tempo + e))
 }
 
-export function U() {
-    Se &&= (clearTimeout(Se), null)
+export function clearBgmTimer() {
+    tickTimer &&= (clearTimeout(tickTimer), null)
 }
 
 
 // ── BGM scheduler ──
-export function W(e, t = 1) {
-    if (U(), T = e, be = Math.max(1, t | 0), ye = 0, xe = 0, P = De(e === `attract` ? 1 : be, !1), e === `attract` && (P = {
-            ...De(8, !1),
+export function bgmStartScene(e, t = 1) {
+    if (clearBgmTimer(), bgmMode = e, bgmStage = Math.max(1, t | 0), themeSeed = 0, tickIndex = 0, activePatch = makeChipPatch(e === `attract` ? 1 : bgmStage, !1), e === `attract` && (activePatch = {
+            ...makeChipPatch(8, !1),
             tempo: 110,
             drum: 5,
             leadDuty: `triangle`
         }), u) return;
-    let n = _();
+    let n = ensureAudioCtx();
     if (n && n.state === `suspended`) {
         n.resume().then(() => {
-            !u && T === e && pt()
-        }), H();
+            !u && bgmMode === e && bgmResume()
+        }), scheduleNextTick();
         return
     }
-    pt()
+    bgmResume()
 }
 
-export function mt(e = 0, t = 1) {
-    if (U(), T = `boss`, ye = ((e | 0) % 8 + 8) % 8, be = Math.max(1, t | 0), xe = 0, P = Ke(be), u) return;
-    let n = _();
+export function bgmBoss(e = 0, t = 1) {
+    if (clearBgmTimer(), bgmMode = `boss`, themeSeed = ((e | 0) % 8 + 8) % 8, bgmStage = Math.max(1, t | 0), tickIndex = 0, activePatch = makeBossPatch(bgmStage), u) return;
+    let n = ensureAudioCtx();
     if (n && n.state === `suspended`) {
         n.resume().then(() => {
-            !u && T === `boss` && pt()
-        }), H();
+            !u && bgmMode === `boss` && bgmResume()
+        }), scheduleNextTick();
         return
     }
-    pt()
+    bgmResume()
 }
 
-export function ht(e = 0, t = 1) {
-    if (U(), T = `boss`, ye = ((e | 0) % 8 + 8) % 8, be = Math.max(1, t | 0), xe = 0, P = De(be, !0), P.style = `legacy`, P.tempo = Math.max(70, P.tempo - ye), P.arpStyle = (P.arpStyle + ye) % 4, u) return;
-    let n = _();
+export function bgmStop(e = 0, t = 1) {
+    if (clearBgmTimer(), bgmMode = `boss`, themeSeed = ((e | 0) % 8 + 8) % 8, bgmStage = Math.max(1, t | 0), tickIndex = 0, activePatch = makeChipPatch(bgmStage, !0), activePatch.style = `legacy`, activePatch.tempo = Math.max(70, activePatch.tempo - themeSeed), activePatch.arpStyle = (activePatch.arpStyle + themeSeed) % 4, u) return;
+    let n = ensureAudioCtx();
     if (n && n.state === `suspended`) {
         n.resume().then(() => {
-            !u && T === `boss` && pt()
-        }), H();
+            !u && bgmMode === `boss` && bgmResume()
+        }), scheduleNextTick();
         return
     }
-    pt()
+    bgmResume()
 }
 
-export function gt() {
-    U(), T = `off`
+export function bgmUnlock() {
+    clearBgmTimer(), bgmMode = `off`
 }
 
-export function _t(e, t = 1) {
+export function playBgmForMode(e, t = 1) {
     let n = Math.max(1, Math.min(64, t | 0));
-    return e === `title` ? (W(`attract`), `TITLE THEME`) : e === `stage` ? (W(`play`, n), `STAGE ${String(n).padStart(2,`0`)} BGM`) : e === `legacy` ? (ht((n - 1) % 8, n), `旧ボス ${String(n).padStart(2,`0`)} (CHIP)`) : (mt((n - 1) % 8, n), D(n).title)
+    return e === `title` ? (bgmStartScene(`attract`), `TITLE THEME`) : e === `stage` ? (bgmStartScene(`play`, n), `STAGE ${String(n).padStart(2,`0`)} BGM`) : e === `legacy` ? (bgmStop((n - 1) % 8, n), `旧ボス ${String(n).padStart(2,`0`)} (CHIP)`) : (bgmBoss((n - 1) % 8, n), getBossThemeMeta(n).title)
 }
 
-export function vt() {
+export function soundCatalogMeta() {
     return {
         stages: 64,
         bosses: 64,
         labels: {
             title: `TITLE THEME`,
             stage: e => `STAGE ${String(e).padStart(2,`0`)}`,
-            boss: e => D(e).title,
+            boss: e => getBossThemeMeta(e).title,
             legacy: e => `旧B${String(e).padStart(2,`0`)} CHIP`
         }
     }

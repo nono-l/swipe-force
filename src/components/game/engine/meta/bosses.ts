@@ -1,41 +1,43 @@
 /**
  * Recovered-game API for the 64-stage boss roster.
- * Data lives in `@/lib/stages` — this file only aliases minified names.
+ * Data lives in `@/lib/stages` — readable re-exports only.
  */
 import {
   STAGE_COUNT,
   STAGE_BOSS_NAMES,
   STAGE_PALETTES,
   STAGE_BOSSES,
-  bossForStage,
-  bossById,
+  bossForStage as bossForStageImpl,
+  bossById as bossByIdImpl,
   stageDef,
   STAGES,
   type StageBossDef,
 } from "@/lib/stages";
 
-/** Boss names (recovered `Y`) */
-export const Y = STAGE_BOSS_NAMES as string[];
+/** Boss display names in stage order */
+export const BOSS_NAMES = STAGE_BOSS_NAMES as string[];
+/** @deprecated minified alias — use BOSS_NAMES */
+export const Y = BOSS_NAMES;
 
-/** Palettes (recovered `dn`) */
-export const dn = STAGE_PALETTES as [string, string, string][];
+/** Stage color palettes */
+export const STAGE_PALETTE_LIST = STAGE_PALETTES as [string, string, string][];
 
-/** Build roster (recovered `fn`) — returns same data as STAGE_BOSSES */
-export function fn(): StageBossDef[] {
+/** Clone of full boss roster */
+export function buildBossRoster(): StageBossDef[] {
   return STAGE_BOSSES.map((b) => ({ ...b }));
 }
 
-/** Full roster array (recovered `pn` in meta — not the local particle list) */
-export const pn: StageBossDef[] = STAGE_BOSSES as StageBossDef[];
+/** Full roster array (id 0..63) */
+export const BOSS_BY_ID_MAP: StageBossDef[] = STAGE_BOSSES as StageBossDef[];
 
-/** Boss for 1-based stage (recovered `mn`) */
-export function mn(stage: number): StageBossDef {
-  return bossForStage(stage);
+/** Boss for 1-based stage */
+export function bossForStage(stage: number): StageBossDef {
+  return bossForStageImpl(stage);
 }
 
-/** Boss by id 0..63 (recovered `hn`) */
-export function hn(id: number): StageBossDef {
-  return bossById(id);
+/** Boss by id 0..63 */
+export function bossById(id: number): StageBossDef {
+  return bossByIdImpl(id);
 }
 
 export {
@@ -43,8 +45,6 @@ export {
   STAGE_BOSSES,
   STAGE_BOSS_NAMES,
   STAGE_PALETTES,
-  bossForStage,
-  bossById,
   stageDef,
   STAGES,
 };

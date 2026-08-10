@@ -1,5 +1,5 @@
 /**
- * Default settings + localStorage merge (recovered Vt / Ht / load).
+ * Default settings + localStorage merge (recovered getLocalTrackComments / cacheLocalComment / load).
  */
 
 export type WepLvTable = Record<string, number>;

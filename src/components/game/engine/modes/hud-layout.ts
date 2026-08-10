@@ -1,5 +1,5 @@
 /**
- * In-play HUD text lines (recovered $r pure).
+ * canSendFanmailTo-play HUD text lines (recovered $r pure).
  */
 
 export type HudTopLine = {

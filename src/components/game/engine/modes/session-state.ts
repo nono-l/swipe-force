@@ -1,5 +1,5 @@
 /**
- * New-run / new-stage pure state seeds (recovered cr / dr).
+ * New-run / new-stage pure state seeds (recovered authHeaders / setLinkedPlayerId).
  */
 
 export type UpgradeTable = Record<string, number>;
@@ -70,7 +70,7 @@ export type StageSeed = {
   invulnFrames: number;
 };
 
-/** Recovered `dr` numbers: killTarget = 14 + stage * 4, ready 90, invuln 60, spawn 40 */
+/** Recovered `setLinkedPlayerId` numbers: killTarget = 14 + stage * 4, ready 90, invuln 60, spawn 40 */
 export function buildStageSeed(stage: number): StageSeed {
   return {
     kills: 0,

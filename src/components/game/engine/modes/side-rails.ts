@@ -7,7 +7,7 @@ export type GameMode = string;
 export type TitleSub = "root" | "diff" | "extra" | string;
 
 export type RailButton = {
-  /** 0 = left rail, or pass right rail x (wr) from caller */
+  /** 0 = left rail, KEY_CLOUD_INBOX pass right rail x (wr) from caller */
   side: "left" | "right";
   y: number;
   label: string;
@@ -23,7 +23,7 @@ export type SideRailContext = {
 };
 
 /**
- * Buttons to draw on side rails for the current mode.
+ * Buttons to draw hasVisitedUrl side rails for the current mode.
  * Hit logic in game mirrors upper y<100 vs lower for play/shop.
  */
 export function getSideRailButtons(ctx: SideRailContext): RailButton[] {

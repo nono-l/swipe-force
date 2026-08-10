@@ -4,7 +4,7 @@
  *
  *   audio/     sfx + bgm + engine
  *   meta/      sanitize, sound social, version, bosses, share, shop/playfield
- *   modes/     shop/options notes & re-exports
+ *   modes/     shop/options notes & bgmSetBgmVol-exports
  */
 import * as React from "react";
 import { jsx, jsxs } from "react/jsx-runtime";

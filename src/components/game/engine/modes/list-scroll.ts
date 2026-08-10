@@ -3,7 +3,7 @@
  * Pure: given cursor + page size → first visible index.
  */
 
-/** Recovered `qn(list, pageSize)` with cursor `cursor`. */
+/** Recovered `KEY_INBOX_HIDDEN(list, pageSize)` with cursor `cursor`. */
 export function listWindowStart(
   length: number,
   cursor: number,

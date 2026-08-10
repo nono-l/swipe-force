@@ -1,13 +1,13 @@
 // @ts-nocheck
 /** Player id, continue coins, missions (localStorage). */
 
-export var gn = `swipe_force_player_v1`,
-    _n = `swipe_force_coins_v1`,
-    vn = `swipe_force_coin_ledger_v1`,
-    yn = `swipe_force_missions_v1`,
-    bn = `swipe_force_msgs_v1`,
-    xn = `swipe_force_msg_sent_v1`,
-    Sn = [{
+export var KEY_PLAYER_ID = `swipe_force_player_v1`,
+    KEY_COINS_LEGACY = `swipe_force_coins_v1`,
+    KEY_COIN_LEDGER = `swipe_force_coin_ledger_v1`,
+    KEY_MISSIONS = `swipe_force_missions_v1`,
+    KEY_MSGS = `swipe_force_msgs_v1`,
+    KEY_MSG_SENT = `swipe_force_msg_sent_v1`,
+    MISSION_DEFS = [{
         id: `m1`,
         label: `M1`,
         detail: `1面ボス到達`,
@@ -33,16 +33,16 @@ export var gn = `swipe_force_player_v1`,
         coins: 1
     }];
 
-export function Cn() {
+export function newPlayerId() {
     try {
-        let e = localStorage.getItem(gn);
-        return (!e || e.length < 6) && (e = Array.from(crypto.getRandomValues(new Uint8Array(6))).map(e => (e % 36).toString(36)).join(``), localStorage.setItem(gn, e)), e
+        let e = localStorage.getItem(KEY_PLAYER_ID);
+        return (!e || e.length < 6) && (e = Array.from(crypto.getRandomValues(new Uint8Array(6))).map(e => (e % 36).toString(36)).join(``), localStorage.setItem(KEY_PLAYER_ID, e)), e
     } catch {
         return `guest`
     }
 }
 
-export function wn(e) {
+export function getCoins(e) {
     try {
         let t = JSON.parse(localStorage.getItem(`swipe_force_coin_ledger_v1`) || `{}`);
         if (typeof t[e] == `number`) return Math.max(0, t[e] | 0);
@@ -53,19 +53,19 @@ export function wn(e) {
     }
 }
 
-export function Tn(e, t) {
+export function setCoins(e, t) {
     try {
         let n = JSON.parse(localStorage.getItem(`swipe_force_coin_ledger_v1`) || `{}`);
-        n[e] = Math.max(0, t | 0), localStorage.setItem(vn, JSON.stringify(n)), localStorage.setItem(_n, String(n[e]))
+        n[e] = Math.max(0, t | 0), localStorage.setItem(KEY_COIN_LEDGER, JSON.stringify(n)), localStorage.setItem(KEY_COINS_LEGACY, String(n[e]))
     } catch {}
 }
 
-export function En(e, t) {
-    let n = Math.max(0, wn(e) + t);
-    return Tn(e, n), n
+export function addCoins(e, t) {
+    let n = Math.max(0, getCoins(e) + t);
+    return setCoins(e, n), n
 }
 
-export function Dn() {
+export function loadAllMissions() {
     try {
         return JSON.parse(localStorage.getItem(`swipe_force_missions_v1`) || `{}`)
     } catch {
@@ -73,13 +73,13 @@ export function Dn() {
     }
 }
 
-export function On(e) {
+export function saveAllMissions(e) {
     try {
-        localStorage.setItem(yn, JSON.stringify(e))
+        localStorage.setItem(KEY_MISSIONS, JSON.stringify(e))
     } catch {}
 }
 
-export function kn() {
+export function newShareId() {
     try {
         return Array.from(crypto.getRandomValues(new Uint8Array(8))).map(e => (e % 36).toString(36)).join(``)
     } catch {
@@ -87,30 +87,30 @@ export function kn() {
     }
 }
 
-export function An(e) {
+export function getMissionsForShare(e) {
     return e ? {
         ...Dn()[e]
     } : {}
 }
 
-export function jn(e, t) {
-    return !!An(e)[t]
+export function isMissionDone(e, t) {
+    return !!getMissionsForShare(e)[t]
 }
 
-export function Mn(e, t) {
-    let n = Dn();
+export function markMissionDone(e, t) {
+    let n = loadAllMissions();
     n[e] = {
         ...n[e] || {},
         [t]: !0
-    }, On(n)
+    }, saveAllMissions(n)
 }
 
-export function Nn(e) {
-    let t = An(e);
-    return Sn.every(e => t[e.id])
+export function allMissionsComplete(e) {
+    let t = getMissionsForShare(e);
+    return MISSION_DEFS.every(e => t[e.id])
 }
 
-export function Pn(e, t) {
+export function hasSentFanmail(e, t) {
     if (!e || !t) return !1;
     try {
         return !!JSON.parse(localStorage.getItem(`swipe_force_msg_sent_v1`) || `{}`)[`${t}>${e}`]
@@ -119,18 +119,18 @@ export function Pn(e, t) {
     }
 }
 
-export function Fn(e, t) {
+export function markFanmailSent(e, t) {
     try {
         let n = JSON.parse(localStorage.getItem(`swipe_force_msg_sent_v1`) || `{}`);
-        n[`${t}>${e}`] = !0, localStorage.setItem(xn, JSON.stringify(n))
+        n[`${t}>${e}`] = !0, localStorage.setItem(KEY_MSG_SENT, JSON.stringify(n))
     } catch {}
 }
 
-export function In(e, t, n) {
-    return !!e && !!t && !!n && t !== n && Nn(e) && !Pn(e, n)
+export function canSendFanmailTo(e, t, n) {
+    return !!e && !!t && !!n && t !== n && allMissionsComplete(e) && !hasSentFanmail(e, n)
 }
 
-export function Ln() {
+export function parseShareParams() {
     try {
         let e = new URL(window.location.href),
             t = e.searchParams.get(`ref`) || e.searchParams.get(`share`),
@@ -152,7 +152,7 @@ export function Ln() {
     }
 }
 
-export function Rn(e, t) {
+export function buildShareUrl(e, t) {
     try {
         let n = new URL(window.location.href);
         return n.searchParams.set(`ref`, e), n.searchParams.set(`sid`, t), n.hash = ``, n.toString()
@@ -161,7 +161,7 @@ export function Rn(e, t) {
     }
 }
 
-export function zn(e) {
+export function formatShareProgress(e) {
     let t = Math.max(1, e.stage || 1),
         n = e.difficulty === `normal` ? `NORMAL` : e.difficulty === `easy` ? `EASY` : ``,
         r = typeof e.score == `number` && e.score > 0 ? ` SCORE ${String(e.score).padStart(7,`0`)}` : ``,

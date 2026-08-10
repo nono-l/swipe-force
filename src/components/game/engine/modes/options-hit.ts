@@ -8,7 +8,7 @@ export const OPTIONS_PAGE = 14;
 export const OPTIONS_ROW_H = 18;
 export const OPTIONS_BASE_Y = 48;
 
-/** Recovered `aa(y)` — row index under finger, or -1 */
+/** Recovered `aa(y)` — row index under finger, KEY_CLOUD_INBOX -1 */
 export function optionsRowAtY(
   y: number,
   rowCount: number,

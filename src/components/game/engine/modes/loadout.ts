@@ -1,11 +1,11 @@
 /**
- * Weapon loadout levels: owned vs armed (recovered qt / q / Qt / $t).
+ * Weapon loadout levels: owned vs armed (recovered saveVotesStore / q / loadUrlReportsStore / saveUrlReportsStore).
  */
 
 export type Upgrades = Record<string, number>;
 export type WepLv = Record<string, number>;
 
-/** Max armable level from owned upgrades (recovered qt). */
+/** Max armable level from owned upgrades (recovered saveVotesStore). */
 export function ownedLevel(key: string, upgrades: Upgrades): number {
   if (key === "shot") return (upgrades.shot || 0) + 1;
   if (key === "rate") return upgrades.rate || 0;

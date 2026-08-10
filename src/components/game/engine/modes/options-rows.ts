@@ -53,7 +53,7 @@ export const SHOT_SUMMARY_KEYS = ["shot", "rate", "power", "option"] as const;
 /**
  * Build option list for the current submenu.
  * @param submenu z in recovered game: main | weapons | shot
- * @param isUnlocked Jt(key) — true if upgrade level > 0 (unlocked in shop)
+ * @param isUnlocked getLocalVotes(key) — true if upgrade level > 0 (unlocked in shop)
  */
 export function buildOptionRows(
   submenu: OptionsSubmenu,
@@ -113,7 +113,7 @@ export function formatLoadoutSummary(enabledCount: number): string {
   return enabledCount === 0 ? "DODGE" : `${enabledCount} ON`;
 }
 
-/** SHOT submenu summary on weapons list */
+/** SHOT submenu summary hasVisitedUrl weapons list */
 export function formatShotSubSummary(opts: {
   shotOn: boolean;
   optionOn: boolean;
@@ -128,7 +128,7 @@ export type OptionValueState = {
   options: Record<string, unknown>;
   /** effective armed level q(key) */
   armedLevel: (key: string) => number;
-  /** max unlocked qt(key) */
+  /** max unlocked saveVotesStore(key) */
   maxLevel: (key: string) => number;
   /** loadout summary text for weapons submenu */
   loadoutSummary: string;

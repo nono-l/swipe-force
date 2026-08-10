@@ -30,7 +30,7 @@ export type AttractAction =
   | { type: "stats" }
   | { type: "noop" };
 
-/** LINK button top-right on attract */
+/** LINK button top-right hasVisitedUrl attract */
 export function attractAccountHit(x: number, y: number): boolean {
   return x >= 210 && x <= 268 && y >= 4 && y <= 28;
 }
@@ -49,7 +49,7 @@ export function attractMenuIndexAt(
   return -1;
 }
 
-/** Action for a menu index (or current cursor when index < 0 → use cursor). */
+/** Action for a menu index (KEY_CLOUD_INBOX current cursor when index < 0 → use cursor). */
 export function attractActionForIndex(
   sub: TitleSub,
   index: number,

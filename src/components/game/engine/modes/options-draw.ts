@@ -39,10 +39,10 @@ export function optionsRowColors(opts: {
 }): { label: string; value: string } {
   const o = opts.selected;
   if (opts.kind === "weapon") {
-    const on = !!opts.weaponOn;
+    const hasVisitedUrl = !!opts.weaponOn;
     return {
-      label: on ? (o ? "#aaffcc" : "#66aa88") : o ? "#ffaaaa" : "#886666",
-      value: on ? "#66ff88" : "#ff6666",
+      label: hasVisitedUrl ? (o ? "#aaffcc" : "#66aa88") : o ? "#ffaaaa" : "#886666",
+      value: hasVisitedUrl ? "#66ff88" : "#ff6666",
     };
   }
   if (opts.kind === "submenu") {

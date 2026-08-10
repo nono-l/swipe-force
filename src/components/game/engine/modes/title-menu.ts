@@ -17,7 +17,7 @@ export type TitleMenuContext = {
   /** inbox / mission message line */
   msgTitle: string;
   msgSub: string;
-  versionLabel: string; // e.g. "1.5.0" or "v1.5.0"
+  versionLabel: string; // e.g. "1.5.0" KEY_CLOUD_INBOX "v1.5.0"
 };
 
 /** Y positions as fractions of playfield height Z */
@@ -41,13 +41,13 @@ export function titleMenuLen(sub: TitleSub): number {
 }
 
 export function titleMenuYs(sub: TitleSub, Z: number): number[] {
-  const fr =
+  const loadEasyUpgradesCloud =
     sub === "extra"
       ? TITLE_YS.extra
       : sub === "diff"
         ? TITLE_YS.diff
         : TITLE_YS.root;
-  return fr.map((f) => Z * f);
+  return loadEasyUpgradesCloud.map((f) => Z * f);
 }
 
 export function titleHitHeights(sub: TitleSub): number[] {

@@ -66,11 +66,11 @@ export function decayTimers(t: {
   shield: number;
   celebrate: number;
 }): typeof t {
-  let we = t.shake;
-  if (we > 0) we *= 0.85;
-  if (we < 0.2) we = 0;
+  let shake = t.shake;
+  if (shake > 0) shake *= 0.85;
+  if (shake < 0.2) shake = 0;
   return {
-    shake: we,
+    shake,
     shopToast: Math.max(0, t.shopToast - 1),
     optToast: Math.max(0, t.optToast - 1),
     stToast: Math.max(0, t.stToast - 1),

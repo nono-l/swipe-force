@@ -1,234 +1,64 @@
 // @ts-nocheck
 /**
  * Recovered canvas game loop (production bundle decompiled).
- * Behavior frozen — rename internals gradually with playtests.
+ * Readable renames applied — behavior preserved.
  */
+import * as React from "react";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+
+const jsxRuntime = { jsx: _jsx, jsxs: _jsxs };
+
 import {
-  A,
-  An,
-  Ar,
-  At,
-  B,
-  Be,
-  Bn,
-  Bt,
-  C,
-  Ce,
-  Cn,
-  Cr,
-  Ct,
-  D,
-  De,
-  Dn,
-  Dr,
-  Dt,
-  E,
-  Ee,
-  En,
-  Er,
-  F,
-  Fe,
-  Fn,
-  Ft,
-  G,
-  Ge,
-  Gn,
-  Gt,
-  H,
-  He,
-  Hn,
-  Ht,
-  I,
-  Ie,
-  In,
-  It,
-  J,
-  Je,
-  Jn,
-  Jt,
-  K,
-  Ke,
-  Kn,
-  Kt,
-  L,
-  Le,
-  Ln,
-  Lt,
-  M,
-  Me,
-  Mn,
-  Mr,
-  Mt,
-  N,
-  Ne,
-  Nn,
-  Nt,
-  O,
-  Oe,
-  On,
-  Or,
-  Ot,
-  P,
-  Pe,
-  Pn,
-  Pt,
-  Qe,
-  Qn,
-  Qt,
-  R,
-  Re,
-  Rn,
-  Rt,
-  S,
-  Se,
-  Sn,
-  Sr,
-  St,
-  T,
-  Te,
-  Tn,
-  Tr,
-  U,
-  Ue,
-  Un,
-  Ut,
-  V,
-  Ve,
-  Vn,
-  Vt,
-  W,
-  We,
-  Wn,
-  Wt,
-  X,
-  Xe,
-  Xn,
-  Xt,
-  Y,
-  Ye,
-  Yn,
-  Yt,
-  Z,
-  Ze,
-  Zn,
-  _,
-  _e,
-  _n,
-  _r,
-  _t,
-  ae,
-  an,
-  ar,
-  at,
-  b,
-  be,
-  bn,
-  br,
-  bt,
-  c,
-  cn,
-  cr,
-  ct,
-  d,
-  de,
-  dn,
-  dr,
-  dt,
-  ee,
-  en,
-  er,
-  et,
-  f,
-  fe,
-  fn,
-  fr,
-  ft,
-  g,
-  ge,
-  gn,
-  gr,
-  gt,
-  h,
-  he,
-  hn,
-  hr,
-  ht,
-  ie,
-  ir,
-  it,
-  j,
-  je,
-  jn,
-  jr,
-  jt,
-  k,
-  ke,
-  kn,
-  kr,
-  kt,
-  l,
-  ln,
-  lr,
-  lt,
-  m,
-  me,
-  mn,
-  mr,
-  mt,
-  ne,
-  nr,
-  nt,
-  oe,
-  or,
-  ot,
-  p,
-  pe,
-  pn,
-  pr,
-  pt,
-  q,
-  qe,
-  qn,
-  qt,
-  re,
-  rn,
-  rr,
-  rt,
-  s,
-  sr,
-  st,
-  te,
-  tr,
-  tt,
-  u,
-  ue,
-  un,
-  ur,
-  ut,
-  v,
-  ve,
-  vn,
-  vr,
-  vt,
-  w,
-  we,
-  wn,
-  wr,
-  x,
-  xe,
-  xn,
-  xr,
-  xt,
-  y,
-  ye,
-  yn,
-  yr,
-  yt,
-  z,
-  ze,
-  zn,
-  zt
+  PLAY_W,
+  PLAY_H,
+  RAIL_W,
+  FIELD_RIGHT,
+  FIELD_INNER_W,
+  DEFAULT_UPGRADES,
+  SHOP_ITEMS,
+  LINKED_ITEM_IDS,
+  SETTINGS_KEY,
+  EASY_UP_KEY,
+  HI_SCORE_KEY,
+  NAME_CHARSET,
+  MISSION_DEFS as MISSION_DEFS,
+  loadPlayerId as loadPlayerId,
+  linkAccountPost as linkAccountPost,
+  fetchAccountGet as fetchAccountGet,
+  syncAccountCloud as syncAccountCloud,
+  unlinkAccountLocal as unlinkAccountLocal,
+  ensureLocalPlayerId as ensureLocalPlayerId,
+  getMissionsForShare as loadMissionsDone,
+  parseShareParams as parseShareParams,
+  getCoins as loadContinueCoins,
+  canSendFanmailTo as canSendFanmailTo,
+  allMissionsComplete as allMissionsDoneFor,
+  hasSentFanmail as alreadySentFanmailTo,
+  canReplyThanks as canReplyThanks,
+  deleteInboxMessage as deleteInboxMessage,
+  bossForStage as bossForStage,
+  bossById as bossById,
+  openShareSheet as openShareSheet,
+  reportMissionClear as reportMissionClear,
+  spendContinueCoin as spendContinueCoin,
+  fetchCoinBalance as fetchCoinBalance,
+  sendThanksReply as sendThanksReply,
+  fetchInboxMessages as fetchInboxMessages,
+  sendFanmailMessage as sendFanmailMessage,
+  sanitizeUserText as sanitizeUserText,
+  sanitizeReasonText as sanitizeReasonText,
+  makeTrackKey as makeTrackKey,
+  fetchTrackComments as fetchTrackComments,
+  postTrackComment as postTrackComment,
+  fetchTrackVotes as fetchTrackVotes,
+  castTrackVote as castTrackVote,
+  playBgmForMode as playBgmForMode,
+  soundCatalogMeta as soundCatalogMeta,
+  APP_VERSION as APP_VERSION,
+  VERSION_HISTORY as VERSION_HISTORY,
+  versionShortLabel as versionShortLabel,
 } from "./support/runtime";
+
 import {
   GROK_PROVIDERS,
   signIn,
@@ -489,1125 +319,1121 @@ import {
   planSpawn,
 } from "./modes/game-api";
 
-
-// Auth bindings expected by recovered account UI
-const r = GROK_PROVIDERS;
-const i = signIn;
-const a = signOut;
-const o = getBearerToken;
+// Auth bindings (readable names; openAccountDialog may still expect short aliases via props)
+const authProviders = GROK_PROVIDERS;
+const authSignIn = signIn;
+const authSignOut = signOut;
+const authGetBearer = getBearerToken;
 
 /*
-  MODE / HANDLER MAP (recovered names)
+  MODE / HANDLER MAP
   -----------------------------------
-  pi()  start run          fr()  shop open       mr() options
-  Ci()  sound test         ai()  version history  _i() account
-  Wi()  X share            bi()  inbox            yi() fanmail
-  Ki()  update tick        cr()  reset run        dr() stage start
-  Mode var: p
-  Score m · PTS h · Lives _ · Stage v · Attract cursor k
+  startRun / openShop / openOptions
+  openSoundTest / openChangelog / openAccount
+  shareProgress / openInbox / openFanmail
+  tickGame / resetRun / startStage
+  state: mode, score, pts, lives, stage, titleCursor
 */
 
-function Nr() {
-    let e = (0, s.useRef)(null),
-        t = (0, s.useRef)(null);
-    return (0, s.useEffect)(() => {
-        let n = e.current,
-            o = t.current;
-        if (!n || !o) return;
-        let s = o,
-            c = s.getContext(`2d`);
-        if (!c) return;
-        let l = c,
-            u = !0,
-            d = 0,
-            f = 1,
-            p = `attract`, // mode: attract|ready|playing|bossintro|shop|options|gameover|name|changelog|soundtest|inbox|...
-            m = 0, // score
-            h = 0, // pts (shop currency)
-            g = Number(localStorage.getItem(kr) || `50000`) || 5e4,
-            _ = 3, // lives
-            v = 1, // stage
-            y = 0,
-            oe = 0,
-            b = 0,
-            x = 0,
-            S = 0,
-            T = 0,
-            ye = 0,
-            be = 0,
-            xe = 0,
-            Se = 0,
-            Ce = 0,
-            we = 0,
-            Te = 0,
-            Ee = 18,
-            De = !1,
-            E = ``,
-            Oe = 0,
-            ke = [`A`, `A`, `A`],
-            Ae = 0,
-            D = 0,
-            je = ``,
-            Me = 0,
-            Ne = !1,
-            O = {
-                ...Dr
+function SwipeForceEngine() {
+    let hostRef = React.useRef(null),
+        canvasRef = React.useRef(null);
+    return React.useEffect(() => {
+        let hostEl = hostRef.current,
+            canvasEl = canvasRef.current;
+        if (!hostEl || !canvasEl) return;
+        let canvas = canvasEl,
+            rawCtx = canvas.getContext(`2d`);
+        if (!rawCtx) return;
+        let ctx = rawCtx,
+            running = !0,
+            rafId = 0,
+            nextEntityId = 1,
+            mode = `attract`, // mode: attract|ready|playing|bossintro|shop|options|gameover|name|changelog|soundtest|inbox|...
+            score = 0, // score
+            pts = 0, // pts (shop currency)
+            highScore = Number(localStorage.getItem(HI_SCORE_KEY) || `50000`) || 5e4,
+            lives = 3, // lives
+            stage = 1, // stage
+            frame = 0,
+            readyTimer = 0,
+            spawnTimer = 0,
+            shotTimer = 0,
+            missileTimer = 0,
+            particleTimer = 0,
+            lockonTimer = 0,
+            beamTimer = 0,
+            flameTimer = 0,
+            invuln = 0,
+            shield = 0,
+            shake = 0,
+            kills = 0,
+            killsForBoss = 18,
+            bossActive = !1,
+            bossName = ``,
+            nameCursor = 0,
+            nameLetters = [`A`, `A`, `A`],
+            nameBlink = 0,
+            shopCursor = 0,
+            shopToast = ``,
+            shopToastLife = 0,
+            shopPaused = !1,
+            upgrades = {
+                ...DEFAULT_UPGRADES
             },
-            Pe = 0,
-            Fe = !1,
-            Ie = `easy`,
-            k = 0,
-            tSub = `root`, // title: root | diff | extra
-            Le = 0,
-            Re = !1,
-            ze = 0,
-            Be = 0,
-            Ve = !1,
-            A = `menu`,
-            j = 0,
-            M = ``,
-            He = !1,
-            Ue = 0,
-            We = 0,
-            Ge = !1,
-            N = `title`,
-            Ke = 0,
-            P = ``,
-            F = [],
-            qe = 0,
-            Je = ``,
-            Ye = 0,
-            I = !1,
-            Xe = `menu`,
-            L = {
+            celebrate = 0,
+            mutedFlag = !1,
+            difficulty = `easy`,
+            titleCursor = 0,
+            titleSub = `root`, // title: root | diff | extra
+            changelogScroll = 0,
+            changelogDragOn = !1,
+            changelogDragY = 0,
+            changelogDragAcc = 0,
+            changelogDragMoved = !1,
+            soundListMode = `menu`,
+            soundCursor = 0,
+            trackLabel = ``,
+            soundDragOn = !1,
+            soundDragY = 0,
+            soundDragAcc = 0,
+            soundDragged = !1,
+            soundPlayMode = `title`,
+            soundIndex = 0,
+            trackKey = ``,
+            comments = [],
+            commentCursor = 0,
+            soundToast = ``,
+            soundToastLife = 0,
+            composing = !1,
+            commentsReturn = `menu`,
+            ratings = {
                 likes: 0,
                 dislikes: 0,
                 mine: null
             },
-            Ze = `shop`,
-            R = 0,
-            z = `main`,
-            Qe = ``,
-            $e = 0,
-            et = !1,
-            tt = 0,
-            nt = 0,
-            rt = 0,
-            it = 0,
-            at = !1,
-            ot = !1,
-            st = 0,
-            ct = 0,
-            lt = 0,
-            ut = !1;
-        lr();
-        let B = ur(),
-            V = {
+            optionsFrom = `shop`,
+            optionsCursor = 0,
+            optionsSub = `main`,
+            optionsToast = ``,
+            optionsToastLife = 0,
+            optionsDragOn = !1,
+            optionsDragX = 0,
+            optionsDragY = 0,
+            optionsDragAccX = 0,
+            optionsDragAccY = 0,
+            optionsDragged = !1,
+            shopDragOn = !1,
+            shopDragX = 0,
+            shopDragY = 0,
+            shopDragAcc = 0,
+            shopDragged = !1;
+        ensureLocalPlayerId();
+        let playerId = loadPlayerId(),
+            account = {
                 linked: !1,
-                playerId: B,
+                playerId: playerId,
                 name: null,
                 email: null,
                 image: null
             },
-            dt = !1;
-        async function ft(e = !1) {
+            accountBusy = !1;
+        async function refreshAccount(e = !1) {
             try {
-                const acc = e ? await vr() : await _r();
-                V = {
+                const acc = e ? await linkAccountPost() : await fetchAccountGet();
+                account = {
                     linked: !!acc.linked,
-                    playerId: acc.playerId || ur(),
+                    playerId: acc.playerId || loadPlayerId(),
                     name: acc.name ?? null,
                     email: acc.email ?? null,
                     image: acc.image ?? null
                 };
-                B = V.linked && V.playerId ? V.playerId : ur();
-                ht = wn(B);
-                It();
-                Bt();
+                playerId = account.linked && account.playerId ? account.playerId : loadPlayerId();
+                continueCoins = loadContinueCoins(playerId);
+                reloadInbox();
+                refreshCoins();
                 sfx.ui();
-                return V;
+                return account;
             } catch (err) {
                 console.warn("[SWIPE FORCE] account refresh failed", err);
-                return V;
+                return account;
             }
         }
-        ft(!1);
-        let pt = Ln(),
-            H = pt.ref,
-            U = pt.sid;
-        H && H === B && (H = null, U = null), (!H || !U) && (H = null, U = null);
-        let ht = wn(B),
-            yt = 0,
-            bt = !1,
-            xt = ``,
-            St = 0,
-            Ct = !1,
-            wt = 0,
-            Tt = ``,
-            Et = 0,
-            Dt = U ? An(U) : {};
+        refreshAccount(!1);
+        let shareParams = parseShareParams(),
+            sharerId = shareParams.ref,
+            shareId = shareParams.sid;
+        sharerId && sharerId === playerId && (sharerId = null, shareId = null), (!sharerId || !shareId) && (sharerId = null, shareId = null);
+        let continueCoins = loadContinueCoins(playerId),
+            runStartedAt = 0,
+            firstBossFlagged = !1,
+            shareToast = ``,
+            shareToastLife = 0,
+            continueBusy = !1,
+            missionBannerLife = 0,
+            missionToast = ``,
+            missionToastLife = 0,
+            missionsDone = shareId ? loadMissionsDone(shareId) : {};
 
-        function Ot() {
-            Dt = U ? An(U) : {}
+        function reloadMissions() {
+            missionsDone = shareId ? loadMissionsDone(shareId) : {}
         }
 
-        function kt() {
-            return !!U && Nn(U)
+        function allMissionsClear() {
+            return !!shareId && allMissionsDoneFor(shareId)
         }
 
-        function jt() {
-            return !!H && !!U && In(U, H, B)
+        function canSendFanmail() {
+            return !!sharerId && !!shareId && canSendFanmailTo(shareId, sharerId, playerId)
         }
 
-        function Mt() {
-            return !!U && Pn(U, B)
+        function alreadySentFanmail() {
+            return !!shareId && alreadySentFanmailTo(shareId, playerId)
         }
-        let G = [],
-            Pt = 0,
-            Ft = !1;
+        let inbox = [],
+            inboxCursor = 0,
+            inboxDetail = !1;
 
-        function It() {
-            nr(B).then(e => {
-                G = e, Pt >= G.length && (Pt = Math.max(0, G.length - 1))
+        function reloadInbox() {
+            fetchInboxMessages(playerId).then(e => {
+                inbox = e, inboxCursor >= inbox.length && (inboxCursor = Math.max(0, inbox.length - 1))
             })
         }
-        It();
-        let Lt = !1;
+        reloadInbox();
+        let mailBusy = !1;
 
-        function zt(e) {
-            if (!Wn(e)) {
-                sfx.buyFail(), xt = thanksBlockedMessage(e), St = 80;
+        function openThanks(e) {
+            if (!canReplyThanks(e)) {
+                sfx.buyFail(), shareToast = thanksBlockedMessage(e), shareToastLife = 80;
                 return
             }
-            if (Lt) return;
-            Lt = !0, sfx.ui();
+            if (mailBusy) return;
+            mailBusy = !0, sfx.ui();
             openThanksDialog({
-                host: n,
-                sanitize: (raw) => At(raw),
-                reasonText: (reason) => Nt(reason),
-                send: (text) => er({
-                    playerId: B,
+                host: hostEl,
+                sanitize: (raw) => sanitizeUserText(raw),
+                reasonText: (reason) => sanitizeReasonText(reason),
+                send: (text) => sendThanksReply({
+                    playerId: playerId,
                     messageId: e.id,
                     text
                 }),
-                onClose: () => { vi() },
-                onSent: () => { It(), yr() },
+                onClose: () => { closeMailDialog() },
+                onSent: () => { reloadInbox(), syncAccountCloud() },
                 playOk: () => sfx.buy(),
                 playError: () => sfx.buyFail(),
                 playUi: () => sfx.ui()
             })
         }
 
-        function Bt() {
-            Vn(B).then(e => {
-                ht = e
+        function refreshCoins() {
+            fetchCoinBalance(playerId).then(e => {
+                continueCoins = e
             })
         }
-        Bt();
-        let Vt = () => defaultWepLv(),
-            Ht = () => defaultSettings(),
-            K = mergeSettingsFromStorage(localStorage.getItem(Ar));
+        refreshCoins();
+        let settings = mergeSettingsFromStorage(localStorage.getItem(SETTINGS_KEY));
 
-        function Gt() {
-            bgm.setMasterVol(K.master / 10), bgm.setBgmVol(K.bgm / 10), bgm.setSfxVol(K.sfx / 10), bgm.setMuted(K.muted), Fe = K.muted
+        function applyAudioSettings() {
+            bgm.setMasterVol(settings.master / 10), bgm.setBgmVol(settings.bgm / 10), bgm.setSfxVol(settings.sfx / 10), bgm.setMuted(settings.muted), mutedFlag = settings.muted
         }
 
-        function Kt() {
+        function persistSettings() {
             try {
-                localStorage.setItem(Ar, JSON.stringify(K))
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
             } catch {}
-            Gt()
+            applyAudioSettings()
         }
-        Gt();
+        applyAudioSettings();
 
-        function qt(e) {
-            return ownedLevel(e, O)
-        }
-
-        function Jt(e) {
-            return qt(e) > 0
+        function weaponLevelCap(e) {
+            return ownedLevel(e, upgrades)
         }
 
-        function q(e) {
-            return armedLevel(e, O, K.wepLv)
+        function loadHighScore(e) {
+            return weaponLevelCap(e) > 0
         }
 
-        function Qt(e) {
-            return isArmed(e, O, K.wepLv)
+        function armedLevelOf(e) {
+            return armedLevel(e, upgrades, settings.wepLv)
         }
 
-        function $t() {
-            return countArmedWeapons(LOADOUT_COUNT_KEYS, O, K.wepLv)
+        function isWeaponArmed(e) {
+            return isArmed(e, upgrades, settings.wepLv)
         }
 
-        function en() {
-            return formatLoadoutSummary($t());
+        function armedWeaponCount() {
+            return countArmedWeapons(LOADOUT_COUNT_KEYS, upgrades, settings.wepLv)
         }
 
-        function rn() {
-            const detailOn = SHOT_SUMMARY_KEYS.filter(e => Qt(e)).length;
+        function loadoutSummaryText() {
+            return formatLoadoutSummary(armedWeaponCount());
+        }
+
+        function shotSubSummaryText() {
+            const detailOn = SHOT_SUMMARY_KEYS.filter(e => isWeaponArmed(e)).length;
             return formatShotSubSummary({
-                shotOn: Qt(`shot`),
-                optionOn: Qt(`option`),
+                shotOn: isWeaponArmed(`shot`),
+                optionOn: isWeaponArmed(`option`),
                 detailOnCount: detailOn,
             });
         }
 
-        function an() {
-            return buildOptionRows(z, Jt);
+        function optionRows() {
+            return buildOptionRows(optionsSub, loadHighScore);
         }
-        let J = {
-                x: X / 2,
+        let player = {
+                x: PLAY_W / 2,
                 y: 352,
                 w: 14,
                 h: 12
             },
-            Y = [],
-            dn = [],
-            fn = [],
-            pn = [],
-            gn = [],
-            _n = [];
-        for (let e = 0; e < 48; e++) _n.push({
-            x: Cr + Math.random() * Tr,
-            y: Math.random() * Z,
+            bullets = [],
+            enemies = [],
+            fxParticles = [],
+            floatTexts = [],
+            lockBeams = [],
+            stars = [];
+        for (let e = 0; e < 48; e++) stars.push({
+            x: RAIL_W + Math.random() * FIELD_INNER_W,
+            y: Math.random() * PLAY_H,
             s: 1 + e % 2,
-            sp: .4 + e % 5 * .25
+            speed: .4 + e % 5 * .25
         });
-        let vn = !1,
-            yn = J.x,
-            bn = J.y,
-            xn = !1,
-            Cn = 88,
-            Tn = 348,
-            En = 0,
-            Dn = 0,
-            On = new Set;
+        let swipeActive = !1,
+            swipeX = player.x,
+            swipeY = player.y,
+            vstickActive = !1,
+            vstickX = 88,
+            vstickY = 348,
+            vstickAxisX = 0,
+            vstickAxisY = 0,
+            keysDown = new Set;
 
-        function kn() {
-            xn = !1, En = 0, Dn = 0
+        function clearInput() {
+            vstickActive = !1, vstickAxisX = 0, vstickAxisY = 0
         }
 
-        function jn() {
-            let e = n.getBoundingClientRect(),
-                t = Math.min(e.width / X, e.height / Z),
-                r = Math.min(window.devicePixelRatio || 1, 2);
-            s.style.width = `${Math.floor(X*t)}px`, s.style.height = `${Math.floor(Z*t)}px`;
-            let i = Math.max(1, Math.floor(t * r));
-            s.width = X * i, s.height = Z * i, l.setTransform(i, 0, 0, i, 0, 0), l.imageSmoothingEnabled = !1
+        function layoutCanvas() {
+            let rect = hostEl.getBoundingClientRect(),
+                scale = Math.min(rect.width / PLAY_W, rect.height / PLAY_H),
+                dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.style.width = `${Math.floor(PLAY_W*scale)}px`, canvas.style.height = `${Math.floor(PLAY_H*scale)}px`;
+            let px = Math.max(1, Math.floor(scale * dpr));
+            canvas.width = PLAY_W * px, canvas.height = PLAY_H * px, ctx.setTransform(px, 0, 0, px, 0, 0), ctx.imageSmoothingEnabled = !1
         }
-        jn();
-        let Mn = new ResizeObserver(jn);
-        Mn.observe(n);
+        layoutCanvas();
+        let resizeObserver = new ResizeObserver(layoutCanvas);
+        resizeObserver.observe(hostEl);
 
-        function Fn() {
-            return O.shot >= 3 && O.rate >= 3 && O.speed >= 3 && O.power >= 3 && O.option >= 2
-        }
-
-        function Rn() {
-            return O.lockon >= 3 && O.missile >= 3 && O.particle >= 3
+        function tier2Unlocked() {
+            return upgrades.shot >= 3 && upgrades.rate >= 3 && upgrades.speed >= 3 && upgrades.power >= 3 && upgrades.option >= 2
         }
 
-        function zn() {
-            return shopUnlockTier(!!V.linked, Rn(), Fn());
+        function tier3Unlocked() {
+            return upgrades.lockon >= 3 && upgrades.missile >= 3 && upgrades.particle >= 3
         }
 
-        function Gn(e) {
-            return shopItemMax(e, !!V.linked, Or);
+        function currentShopTier() {
+            return shopUnlockTier(!!account.linked, tier3Unlocked(), tier2Unlocked());
         }
 
-        function Kn() {
-            return filterShopCatalog(Er, zn(), !!V.linked);
+        function itemMaxOf(e) {
+            return shopItemMax(e, !!account.linked, LINKED_ITEM_IDS);
         }
 
-        function qn(e, t) {
-            return listWindowStart(e.length, D, t)
+        function shopCatalog() {
+            return filterShopCatalog(SHOP_ITEMS, currentShopTier(), !!account.linked);
         }
 
-        function Jn() {
+        function shopListWindow(e, t) {
+            return listWindowStart(e.length, shopCursor, t)
+        }
+
+        function saveHighScore() {
             return scoreHpThresholds();
         }
 
-        function Yn() {
-            return enemyHpMultiplier(m);
+        function scoreHpMult() {
+            return enemyHpMultiplier(score);
         }
 
-        function Xn() {
-            return totalHpScale(Ie, m)
+        function enemyHpScale() {
+            return totalHpScale(difficulty, score)
         }
 
-        function Zn(e) {
-            return normalCostScale(e, Ie);
+        function normalCostMult(e) {
+            return normalCostScale(e, difficulty);
         }
 
-        function Qn(e) {
-            return shopItemCost(e, O, Ie);
+        function itemCostOf(e) {
+            return shopItemCost(e, upgrades, difficulty);
         }
 
-        function rr(e) {
-            return e.consumable ? e.id === `life` && _ >= 5 || e.id === `shield` && Ce > 0 ? !1 : h >= Qn(e) : (e.linkOnly || e.tier >= 4) && !V.linked || O[e.id] >= Gn(e) ? !1 : h >= Qn(e)
+        function canBuyItem(e) {
+            return e.consumable ? e.id === `life` && lives >= 5 || e.id === `shield` && shield > 0 ? !1 : pts >= itemCostOf(e) : (e.linkOnly || e.tier >= 4) && !account.linked || upgrades[e.id] >= itemMaxOf(e) ? !1 : pts >= itemCostOf(e)
         }
 
-        function ir() {
-            if (Ie === `easy`) {
+        function syncEasyCarry() {
+            if (difficulty === `easy`) {
                 try {
-                    localStorage.setItem(jr, serializeEasyCarry(O))
+                    localStorage.setItem(EASY_UP_KEY, serializeEasyCarry(upgrades))
                 } catch {}
-                yr()
+                syncAccountCloud()
             }
         }
 
-        function ar() {
+        function loadEasyCarryState() {
             try {
-                return loadEasyCarry(localStorage.getItem(jr), Dr)
+                return loadEasyCarry(localStorage.getItem(EASY_UP_KEY), DEFAULT_UPGRADES)
             } catch {
-                return { ...Dr }
+                return { ...DEFAULT_UPGRADES }
             }
         }
 
-        function or(e) {
-            return Object.keys(Dr).reduce((t, n) => t + e[n], 0)
+        function easyCarryLevelOf(e) {
+            return Object.keys(DEFAULT_UPGRADES).reduce((t, n) => t + e[n], 0)
         }
 
-        function sr(e) {
-            let before = { ...O };
+        function buyShopItem(e) {
+            let before = { ...upgrades };
             let result = applyShopPurchase({
                 item: e,
-                cost: Qn(e),
-                pts: h,
-                lives: _,
-                shieldFrames: Ce,
-                upgrades: O,
-                maxLevel: Gn(e),
-                canBuy: rr(e),
-                difficulty: Ie,
-                wepLv: K.wepLv,
-                wepCap: qt
+                cost: itemCostOf(e),
+                pts: pts,
+                lives: lives,
+                shieldFrames: shield,
+                upgrades: upgrades,
+                maxLevel: itemMaxOf(e),
+                canBuy: canBuyItem(e),
+                difficulty: difficulty,
+                wepLv: settings.wepLv,
+                wepCap: weaponLevelCap
             }, {
                 tier2Ready: false,
                 tier3Ready: false,
                 linkedSpecial: false
             });
             if (!result.ok) {
-                je = `PTS不足 / MAX`, Me = 60, sfx.buyFail();
+                shopToast = `PTS不足 / MAX`, shopToastLife = 60, sfx.buyFail();
                 return
             }
-            h = result.pts, _ = result.lives, Ce = result.shieldFrames, O = result.upgrades;
+            pts = result.pts, lives = result.lives, shield = result.shieldFrames, upgrades = result.upgrades;
             if (result.wepLvChanged) {
-                K.wepLv = result.wepLv, Kt()
+                settings.wepLv = result.wepLv, persistSettings()
             }
-            if (e.id !== `life` && e.id !== `shield`) ir();
-            sfx.buy(), je = result.message, Me = 50;
+            if (e.id !== `life` && e.id !== `shield`) syncEasyCarry();
+            sfx.buy(), shopToast = result.message, shopToastLife = 50;
             // celebrate after state applied (match original)
-            if (Fn() || Rn() || V.linked && (O.beam > 0 || O.flame > 0)) Pe = 90
+            if (tier2Unlocked() || tier3Unlocked() || account.linked && (upgrades.beam > 0 || upgrades.flame > 0)) celebrate = 90
         }
 
         
         // ── reset run state ──
-        function cr() {
+        function resetRun() {
             let seed = buildNewRunSeed({
-                difficulty: Ie,
-                easyCarry: ar(),
-                defaults: Dr,
-                fieldW: X
+                difficulty: difficulty,
+                easyCarry: loadEasyCarryState(),
+                defaults: DEFAULT_UPGRADES,
+                fieldW: PLAY_W
             });
-            m = seed.score, h = seed.pts, _ = seed.lives, v = seed.stage;
-            O = seed.upgrades, Ce = seed.shieldFrames, Se = seed.invulnFrames;
-            Y.length = 0, dn.length = 0, fn.length = 0, pn.length = 0, gn.length = 0;
-            J.x = seed.playerX, J.y = seed.playerY, kn()
+            score = seed.score, pts = seed.pts, lives = seed.lives, stage = seed.stage;
+            upgrades = seed.upgrades, shield = seed.shieldFrames, invuln = seed.invulnFrames;
+            bullets.length = 0, enemies.length = 0, fxParticles.length = 0, floatTexts.length = 0, lockBeams.length = 0;
+            player.x = seed.playerX, player.y = seed.playerY, clearInput()
         }
 
         
         // ── begin stage ──
-        function dr() {
-            let seed = buildStageSeed(v);
-            Te = seed.kills, Ee = seed.killTarget, De = seed.bossActive, E = seed.bossName;
-            b = seed.spawnTimer, x = seed.shotCd, S = seed.missileCd, T = seed.particleCd, ye = seed.lockonCd;
-            Y.length = 0, dn.length = 0, gn.length = 0;
-            p = seed.mode, oe = seed.readyFrames, Se = seed.invulnFrames;
-            kn(), bgm.start(`play`, v)
+        function startStage() {
+            let seed = buildStageSeed(stage);
+            kills = seed.kills, killsForBoss = seed.killTarget, bossActive = seed.bossActive, bossName = seed.bossName;
+            spawnTimer = seed.spawnTimer, shotTimer = seed.shotCd, missileTimer = seed.missileCd, particleTimer = seed.particleCd, lockonTimer = seed.lockonCd;
+            bullets.length = 0, enemies.length = 0, lockBeams.length = 0;
+            mode = seed.mode, readyTimer = seed.readyFrames, invuln = seed.invulnFrames;
+            clearInput(), bgm.start(`play`, stage)
         }
 
         
         // ── open shop ──
-        function fr(e = !1) {
+        function openShop(e = !1) {
             let seed = openShopSeed(!!e);
-            p = seed.mode, Ne = seed.paused, D = seed.cursor, je = seed.toast, Me = seed.toastLife;
-            vn = !1, kn();
-            if (seed.clearEntities) Y.length = 0, dn.length = 0, gn.length = 0;
+            mode = seed.mode, shopPaused = seed.paused, shopCursor = seed.cursor, shopToast = seed.toast, shopToastLife = seed.toastLife;
+            swipeActive = !1, clearInput();
+            if (seed.clearEntities) bullets.length = 0, enemies.length = 0, lockBeams.length = 0;
             sfx.ui(), bgm.start(`attract`)
         }
 
-        function pr() {
-            let seed = closeShopSeed(!!Ne);
+        function closeShop() {
+            let seed = closeShopSeed(!!shopPaused);
             if (seed.type === `resume_play`) {
-                p = `playing`, Se = Math.max(Se, seed.invulnMin), Ne = !1;
-                De ? bgm.boss(mn(v).vibe, v) : bgm.start(`play`, v)
+                mode = `playing`, invuln = Math.max(invuln, seed.invulnMin), shopPaused = !1;
+                bossActive ? bgm.boss(bossForStage(stage).vibe, stage) : bgm.start(`play`, stage)
             } else {
-                v++, dr()
+                stage++, startStage()
             }
             sfx.ui()
         }
 
         
         // ── open options ──
-        function mr(e) {
+        function openOptions(e) {
             let seed = openOptionsSeed(e);
-            Ze = seed.from, p = seed.mode, z = seed.submenu, R = seed.cursor;
-            Qe = ``, $e = 0, vn = !1, kn(), sfx.ui(), bgm.start(`attract`)
+            optionsFrom = seed.from, mode = seed.mode, optionsSub = seed.submenu, optionsCursor = seed.cursor;
+            optionsToast = ``, optionsToastLife = 0, swipeActive = !1, clearInput(), sfx.ui(), bgm.start(`attract`)
         }
 
-        function hr() {
-            if (Kt(), sfx.ui(), z === `shot` || z === `weapons`) {
-                let nav = optionsBackTarget(z);
+        function closeOptions() {
+            if (persistSettings(), sfx.ui(), optionsSub === `shot` || optionsSub === `weapons`) {
+                let nav = optionsBackTarget(optionsSub);
                 if (nav.type === `to_weapons_from_shot`) {
-                    z = `weapons`, R = 1;
+                    optionsSub = `weapons`, optionsCursor = 1;
                     return
                 }
                 if (nav.type === `to_main_from_weapons`) {
-                    z = `main`;
-                    let e = an().findIndex(e => e.kind === `submenu` && e.key === `weapons`);
-                    R = e >= 0 ? e : 0;
+                    optionsSub = `main`;
+                    let e = optionRows().findIndex(e => e.kind === `submenu` && e.key === `weapons`);
+                    optionsCursor = e >= 0 ? e : 0;
                     return
                 }
             }
-            if (Ze === `shop`) p = `shop`, bgm.start(`attract`);
-            else if (Ze === `play` || Ze === `playing` || Ze === `game`) {
-                p = `playing`, Se = Math.max(Se, 45), Ne = !1;
-                De ? bgm.boss(mn(v).vibe, v) : bgm.start(`play`, v);
-            } else p = `attract`, bgm.start(`attract`);
+            if (optionsFrom === `shop`) mode = `shop`, bgm.start(`attract`);
+            else if (optionsFrom === `play` || optionsFrom === `playing` || optionsFrom === `game`) {
+                mode = `playing`, invuln = Math.max(invuln, 45), shopPaused = !1;
+                bossActive ? bgm.boss(bossForStage(stage).vibe, stage) : bgm.start(`play`, stage);
+            } else mode = `attract`, bgm.start(`attract`);
             sfx.ui()
         }
 
-        function gr(e) {
+        function nudgeOptionFromMenu(e) {
             return formatVolumeBar(e);
         }
 
-        function xr(e) {
+        function formatOptionValueForRow(e) {
             return formatOptionValue(e, {
-                options: K,
-                armedLevel: q,
-                maxLevel: qt,
-                loadoutSummary: en(),
-                shotSummary: rn(),
+                options: settings,
+                armedLevel: armedLevelOf,
+                maxLevel: weaponLevelCap,
+                loadoutSummary: loadoutSummaryText(),
+                shotSummary: shotSubSummaryText(),
             });
         }
 
-        function Nr(e) {
-            let t = an();
-            (R < 0 || R >= t.length) && (R = 0);
-            let n = t[R];
+        function nudgeOption(e) {
+            let t = optionRows();
+            (optionsCursor < 0 || optionsCursor >= t.length) && (optionsCursor = 0);
+            let n = t[optionsCursor];
             let res = applyOptionDelta({
                 row: n,
                 delta: e,
-                settings: K,
-                maxArmed: (key) => qt(key),
-                currentArmed: (key) => q(key),
-                weaponsEnabledCount: $t()
+                settings: settings,
+                maxArmed: (key) => weaponLevelCap(key),
+                currentArmed: (key) => armedLevelOf(key),
+                weaponsEnabledCount: armedWeaponCount()
             });
             if (res.type === `noop`) return;
-            if (res.type === `back`) { hr(); return }
-            if (res.type === `navigate_shot`) { z = `shot`, R = 1, sfx.ui(); return }
-            if (res.type === `navigate_weapons`) { z = `weapons`, R = 1, sfx.ui(); return }
+            if (res.type === `back`) { closeOptions(); return }
+            if (res.type === `navigate_shot`) { optionsSub = `shot`, optionsCursor = 1, sfx.ui(); return }
+            if (res.type === `navigate_weapons`) { optionsSub = `weapons`, optionsCursor = 1, sfx.ui(); return }
             if (res.type === `applied`) {
-                K = res.settings;
-                if (res.clearVstick) kn();
+                settings = res.settings;
+                if (res.clearVstick) clearInput();
                 if (n.kind === `weapon`) {
-                    let fb = dodgeOnlyFeedback($t(), res.feedback);
-                    Qe = fb || res.feedback || ``, $e = res.feedbackLife || 55
+                    let feedback = dodgeOnlyFeedback(armedWeaponCount(), res.feedback);
+                    optionsToast = feedback || res.feedback || ``, optionsToastLife = res.feedbackLife || 55
                 }
-                Kt();
-                if (res.replayAttractIfUnmuted && !K.muted) bgm.start(`attract`);
+                persistSettings();
+                if (res.replayAttractIfUnmuted && !settings.muted) bgm.start(`attract`);
                 sfx.ui()
             }
         }
 
-        function Pr(e, t, n, r = 14) {
-            for (let p of buildBurstParticles(e, t, n, r)) fn.push(p)
+        function spawnBurst(e, t, n, r = 14) {
+            for (let mode of buildBurstParticles(e, t, n, r)) fxParticles.push(mode)
         }
 
-        function Fr(e) {
-            return dn.find(t => t.id === e)
+        function findEnemyById(e) {
+            return enemies.find(t => t.id === e)
         }
 
-        function Ir(e) {
-            return pickNearestEnemies(dn, J.x, J.y, e)
+        function nearestEnemies(e) {
+            return pickNearestEnemies(enemies, player.x, player.y, e)
         }
 
-        function Lr(e, t, n, r) {
+        function damageEnemy(e, t, n, r) {
             let out = applyEnemyDamage(e, t, n, r);
             sfx.hit();
             if (out.type === `survive`) {
-                Pr(out.spark.x, out.spark.y, out.spark.color, out.spark.count);
+                spawnBurst(out.spark.x, out.spark.y, out.spark.color, out.spark.count);
                 return
             }
-            Pr(out.burst.x, out.burst.y, out.burst.color, out.burst.count);
+            spawnBurst(out.burst.x, out.burst.y, out.burst.color, out.burst.count);
             sfx.explode(out.boss);
-            m += out.scoreAdd;
-            h += out.ptsAdd;
-            pn.push(out.float);
-            if (!out.boss) Te++;
+            score += out.scoreAdd;
+            pts += out.ptsAdd;
+            floatTexts.push(out.float);
+            if (!out.boss) kills++;
             if (out.boss) {
-                gi(), p = `stageclear`, oe = 120, sfx.stageClear(), bgm.stop();
-                if (K.shake && out.shake) we = out.shake;
+                missionBossClear(), mode = `stageclear`, readyTimer = 120, sfx.stageClear(), bgm.stop();
+                if (settings.shake && out.shake) shake = out.shake;
             }
-            let idx = dn.indexOf(e);
-            idx >= 0 && dn.splice(idx, 1)
+            let idx = enemies.indexOf(e);
+            idx >= 0 && enemies.splice(idx, 1)
         }
 
-        function Rr() {
+        function playerTakeHit() {
             let out = resolvePlayerHit({
-                invulnFrames: Se,
-                shieldFrames: Ce,
-                lives: _
+                invulnFrames: invuln,
+                shieldFrames: shield,
+                lives: lives
             });
             if (out.type === `blocked_invuln`) return;
             if (out.type === `shield_break`) {
-                Ce = 0, Se = out.invulnFrames;
-                Pr(J.x, J.y, out.burst.color, out.burst.count), sfx.playerHit();
+                shield = 0, invuln = out.invulnFrames;
+                spawnBurst(player.x, player.y, out.burst.color, out.burst.count), sfx.playerHit();
                 return
             }
-            _ = out.lives, Se = out.invulnFrames;
-            if (K.shake) we = out.shake;
-            sfx.playerHit(), Pr(J.x, J.y, out.burst.color, out.burst.count);
+            lives = out.lives, invuln = out.invulnFrames;
+            if (settings.shake) shake = out.shake;
+            sfx.playerHit(), spawnBurst(player.x, player.y, out.burst.color, out.burst.count);
             if (out.gameover) {
-                p = `gameover`, oe = out.gameoverFrames, sfx.gameOver(), bgm.stop();
-                let hs = highScoreUpdate(m, g);
-                if (hs.dirty) {
-                    g = hs.high;
-                    localStorage.setItem(kr, String(g))
+                mode = `gameover`, readyTimer = out.gameoverFrames, sfx.gameOver(), bgm.stop();
+                let hiScoreResult = highScoreUpdate(score, highScore);
+                if (hiScoreResult.dirty) {
+                    highScore = hiScoreResult.high;
+                    localStorage.setItem(HI_SCORE_KEY, String(highScore))
                 }
             }
         }
 
-        function zr() {
-            dn.push(spawnGrunt({
-                id: f++,
-                stage: v,
-                hpScale: Xn()
+        function spawnGruntEnemy() {
+            enemies.push(spawnGrunt({
+                id: nextEntityId++,
+                stage: stage,
+                hpScale: enemyHpScale()
             }))
         }
 
-        function Br() {
-            let e = mn(v);
-            E = e.name, De = !0, p = `bossintro`, oe = 120, sfx.bossWarn(), hi(), bgm.boss(e.vibe, v);
-            dn.push(spawnBoss({
-                id: f++,
-                stage: v,
-                hpScale: Xn(),
+        function spawnBossEnemy() {
+            let e = bossForStage(stage);
+            bossName = e.name, bossActive = !0, mode = `bossintro`, readyTimer = 120, sfx.bossWarn(), missionFirstBoss(), bgm.boss(e.vibe, stage);
+            enemies.push(spawnBoss({
+                id: nextEntityId++,
+                stage: stage,
+                hpScale: enemyHpScale(),
                 boss: e,
-                fieldCenterX: X / 2
+                fieldCenterX: PLAY_W / 2
             }))
         }
 
-        function Vr(e) {
-            let atk = e.boss ? hn(e.bossId).atk : 0;
-            for (let b of createEnemyVolley(e, J.x, J.y, atk)) Y.push(b)
+        function enemyShoot(e) {
+            let atk = e.boss ? bossById(e.bossId).atk : 0;
+            for (let entity of createEnemyVolley(e, player.x, player.y, atk)) bullets.push(entity)
         }
 
-        function Hr() {
-            let bullets = createPlayerShots(J.x, J.y, {
-                shot: q(`shot`),
-                overdrive: q(`overdrive`),
-                power: q(`power`),
-                option: q(`option`)
+        function firePlayerShots() {
+            let shots = createPlayerShots(player.x, player.y, {
+                shot: armedLevelOf(`shot`),
+                overdrive: armedLevelOf(`overdrive`),
+                power: armedLevelOf(`power`),
+                option: armedLevelOf(`option`)
             });
-            if (bullets.length) {
+            if (shots.length) {
                 sfx.shoot();
-                for (let b of bullets) Y.push(b)
+                for (let shot of shots) bullets.push(shot)
             }
         }
 
-        function Ur() {
-            let e = q(`beam`);
-            if (e <= 0 || !V.linked) return;
+        function fireBeam() {
+            let e = armedLevelOf(`beam`);
+            if (e <= 0 || !account.linked) return;
             sfx.lockon();
-            for (let b of createBeams({
-                px: J.x,
-                py: J.y,
+            for (let entity of createBeams({
+                px: player.x,
+                py: player.y,
                 beam: e,
-                power: q(`power`),
-                option: q(`option`)
-            })) Y.push(b)
+                power: armedLevelOf(`power`),
+                option: armedLevelOf(`option`)
+            })) bullets.push(entity)
         }
 
-        function Wr() {
-            let e = q(`flame`);
-            if (e <= 0 || !V.linked) return;
-            for (let b of createFlames({
-                px: J.x,
-                py: J.y,
+        function fireFlame() {
+            let e = armedLevelOf(`flame`);
+            if (e <= 0 || !account.linked) return;
+            for (let entity of createFlames({
+                px: player.x,
+                py: player.y,
                 flame: e,
-                power: q(`power`)
-            })) Y.push(b)
+                power: armedLevelOf(`power`)
+            })) bullets.push(entity)
         }
 
-        function Gr() {
-            let e = q(`missile`);
+        function fireMissiles() {
+            let e = armedLevelOf(`missile`);
             if (e <= 0) return;
-            let t = q(`cluster`),
+            let t = armedLevelOf(`cluster`),
                 n = e + (t > 0 ? t + 1 : 0),
-                r = Ir(n);
+                r = nearestEnemies(n);
             sfx.missile();
-            for (let b of createMissiles({
-                px: J.x,
-                py: J.y,
+            for (let entity of createMissiles({
+                px: player.x,
+                py: player.y,
                 missile: e,
                 cluster: t,
                 targets: r
-            })) Y.push(b)
+            })) bullets.push(entity)
         }
 
-        function Kr() {
-            let e = q(`particle`);
+        function fireParticles() {
+            let e = armedLevelOf(`particle`);
             if (e <= 0) return;
-            let t = q(`overdrive`);
+            let t = armedLevelOf(`overdrive`);
             sfx.particle();
-            for (let b of createParticles({
-                px: J.x,
-                py: J.y,
+            for (let entity of createParticles({
+                px: player.x,
+                py: player.y,
                 particle: e,
                 overdrive: t
-            })) Y.push(b);
-            Pr(J.x, J.y - 16, `#66ccff`, 6)
+            })) bullets.push(entity);
+            spawnBurst(player.x, player.y - 16, `#66ccff`, 6)
         }
 
-        function qr() {
-            let e = q(`lockon`);
+        function fireLockon() {
+            let e = armedLevelOf(`lockon`);
             if (e <= 0) return;
-            let t = q(`hyper`),
+            let t = armedLevelOf(`hyper`),
                 hits = createLockonHits({
-                    targets: Ir(e + (t > 0 ? t + 1 : 0)),
+                    targets: nearestEnemies(e + (t > 0 ? t + 1 : 0)),
                     lockon: e,
                     hyper: t
                 });
             hits.length && sfx.lockon();
-            for (let h of hits) {
-                gn.push(h.beam);
-                fn.push(h.spark);
-                Lr(h.target, h.dmg, h.target.x, h.target.y)
+            for (let pts of hits) {
+                lockBeams.push(pts.beam);
+                fxParticles.push(pts.spark);
+                damageEnemy(pts.target, pts.dmg, pts.target.x, pts.target.y)
             }
         }
 
-        function Q(e, t, n, r, i) {
-            l.fillStyle = i, l.fillRect(Math.round(e), Math.round(t), Math.round(n), Math.round(r))
+        function fillRect(e, t, n, r, i) {
+            ctx.fillStyle = i, ctx.fillRect(Math.round(e), Math.round(t), Math.round(n), Math.round(r))
         }
 
-        function $(e, t, n, r, i = 8, a = `left`) {
-            l.fillStyle = r, l.font = `bold ${i}px "Courier New", monospace`, l.textAlign = a, l.textBaseline = `top`, l.fillText(e, t, n)
+        function drawText(e, t, n, r, i = 8, a = `left`) {
+            ctx.fillStyle = r, ctx.font = `bold ${i}px "Courier New", monospace`, ctx.textAlign = a, ctx.textBaseline = `top`, ctx.fillText(e, t, n)
         }
 
-        function Jr(e, t, n, r) {
+        function drawPlayerShip(e, t, n, r) {
             if (r) return;
-            l.save(), l.translate(Math.round(e), Math.round(t));
-            l.fillStyle = PLAYER_SHIP_FILL, l.beginPath();
+            ctx.save(), ctx.translate(Math.round(e), Math.round(t));
+            ctx.fillStyle = PLAYER_SHIP_FILL, ctx.beginPath();
             let path = PLAYER_SHIP_PATH;
-            l.moveTo(path[0][0], path[0][1]);
-            for (let i = 1; i < path.length; i++) l.lineTo(path[i][0], path[i][1]);
-            l.closePath(), l.fill();
-            for (let r of playerShipLocalRects()) Q(r.x, r.y, r.w, r.h, r.color);
-            l.restore()
+            ctx.moveTo(path[0][0], path[0][1]);
+            for (let i = 1; i < path.length; i++) ctx.lineTo(path[i][0], path[i][1]);
+            ctx.closePath(), ctx.fill();
+            for (let r of playerShipLocalRects()) fillRect(r.x, r.y, r.w, r.h, r.color);
+            ctx.restore()
         }
 
-        function Yr() {
-            for (let r of optionPodRects(J.x, J.y, q(`option`))) Q(r.x, r.y, r.w, r.h, r.color)
+        function drawOptionPods() {
+            for (let r of optionPodRects(player.x, player.y, armedLevelOf(`option`))) fillRect(r.x, r.y, r.w, r.h, r.color)
         }
 
-        function Xr(e) {
+        function drawEnemy(e) {
             if (e.boss) {
-                Zr(e);
+                drawBoss(e);
                 return
             }
-            l.save(), l.translate(Math.round(e.x), Math.round(e.y)), e.flash > 0 && (l.globalAlpha = .5);
-            e.type === 2 && l.rotate(e.phase);
-            for (let r of gruntLocalRects(e.type)) Q(r.x, r.y, r.w, r.h, r.color);
-            l.restore()
+            ctx.save(), ctx.translate(Math.round(e.x), Math.round(e.y)), e.flash > 0 && (ctx.globalAlpha = .5);
+            e.type === 2 && ctx.rotate(e.phase);
+            for (let r of gruntLocalRects(e.type)) fillRect(r.x, r.y, r.w, r.h, r.color);
+            ctx.restore()
         }
 
-        function Zr(e) {
-            let t = hn(e.bossId);
-            l.save(), l.translate(Math.round(e.x), Math.round(e.y));
-            e.flash > 0 && (l.globalAlpha = bossFlashAlpha(e.flash, y));
-            for (let r of bossLocalRects(t, e.w, e.h)) Q(r.x, r.y, r.w, r.h, r.color);
-            l.restore();
+        function drawBoss(e) {
+            let t = bossById(e.bossId);
+            ctx.save(), ctx.translate(Math.round(e.x), Math.round(e.y));
+            e.flash > 0 && (ctx.globalAlpha = bossFlashAlpha(e.flash, frame));
+            for (let r of bossLocalRects(t, e.w, e.h)) fillRect(r.x, r.y, r.w, r.h, r.color);
+            ctx.restore();
             let bar = bossHpBar({ hp: e.hp, maxHp: e.maxHp });
-            Q(bar.bg.x, bar.bg.y, bar.bg.w, bar.bg.h, bar.bg.color);
-            Q(bar.fg.x, bar.fg.y, bar.fg.w, bar.fg.h, bar.fg.color);
-            $(t.name, X / 2, 18, `#ff66aa`, 8, `center`)
+            fillRect(bar.bg.x, bar.bg.y, bar.bg.w, bar.bg.h, bar.bg.color);
+            fillRect(bar.fg.x, bar.fg.y, bar.fg.w, bar.fg.h, bar.fg.color);
+            drawText(t.name, PLAY_W / 2, 18, `#ff66aa`, 8, `center`)
         }
 
-        function Qr() {
+        function drawSideRails() {
             let paint = buildSideRailPaint({
-                mode: p,
-                titleSub: tSub,
-                shopPaused: !!Ne,
-                muted: !!Fe,
-                fieldH: Z,
-                leftW: Sr,
-                rightX: wr,
-                muteDisabled: p === `options` || p === `shop`
+                mode: mode,
+                titleSub: titleSub,
+                shopPaused: !!shopPaused,
+                muted: !!mutedFlag,
+                fieldH: PLAY_H,
+                leftW: RAIL_W,
+                rightX: FIELD_RIGHT,
+                muteDisabled: mode === `options` || mode === `shop`
             });
-            Q(0, 0, Sr, Z, paint.railFill), Q(wr, 0, Sr, Z, paint.railFill);
-            $(paint.brand.lines[0], paint.brand.leftX, 12, paint.brand.color, 6);
-            $(paint.brand.lines[1], paint.brand.leftX, 22, paint.brand.color, 6);
-            $(paint.brand.lines[0], paint.brand.rightX, 12, paint.brand.color, 6);
-            $(paint.brand.lines[1], paint.brand.rightX, 22, paint.brand.color, 6);
-            for (let b of paint.buttons) {
-                Q(b.x, b.y, b.w, b.h, b.fill);
-                l.strokeStyle = b.stroke;
-                l.lineWidth = 1;
-                l.strokeRect(b.x + .5, b.y + .5, b.w - 1, b.h - 1);
-                $(b.label, b.x + b.w / 2, b.y + 10, b.labelColor, 6, `center`);
-                if (b.sub) $(b.sub, b.x + b.w / 2, b.y + 24, b.subColor, 5, `center`);
+            fillRect(0, 0, RAIL_W, PLAY_H, paint.railFill), fillRect(FIELD_RIGHT, 0, RAIL_W, PLAY_H, paint.railFill);
+            drawText(paint.brand.lines[0], paint.brand.leftX, 12, paint.brand.color, 6);
+            drawText(paint.brand.lines[1], paint.brand.leftX, 22, paint.brand.color, 6);
+            drawText(paint.brand.lines[0], paint.brand.rightX, 12, paint.brand.color, 6);
+            drawText(paint.brand.lines[1], paint.brand.rightX, 22, paint.brand.color, 6);
+            for (let entity of paint.buttons) {
+                fillRect(entity.x, entity.y, entity.w, entity.h, entity.fill);
+                ctx.strokeStyle = entity.stroke;
+                ctx.lineWidth = 1;
+                ctx.strokeRect(entity.x + .5, entity.y + .5, entity.w - 1, entity.h - 1);
+                drawText(entity.label, entity.x + entity.w / 2, entity.y + 10, entity.labelColor, 6, `center`);
+                if (entity.sub) drawText(entity.sub, entity.x + entity.w / 2, entity.y + 24, entity.subColor, 5, `center`);
             }
-            if (paint.hints.left) $(paint.hints.left, 24, 160, `#335533`, 5, `center`);
-            if (paint.hints.right) $(paint.hints.right, wr + 24, 160, `#335533`, 5, `center`);
-            $(paint.mute.text, paint.mute.x, paint.mute.y, paint.mute.color, 7);
+            if (paint.hints.left) drawText(paint.hints.left, 24, 160, `#335533`, 5, `center`);
+            if (paint.hints.right) drawText(paint.hints.right, FIELD_RIGHT + 24, 160, `#335533`, 5, `center`);
+            drawText(paint.mute.text, paint.mute.x, paint.mute.y, paint.mute.color, 7);
         }
 
-        function $r() {
-            let top = buildHudTop({ score: m, high: g, pts: h, coins: ht, stage: v });
-            $(top.score, 52, 4, `#00ff88`, 8);
-            $(top.hi, 268, 4, `#ffff66`, 8, `right`);
-            $(top.pts, 52, 14, `#ffff66`, 8);
-            $(top.coins, 118, 14, `#ffee88`, 8);
-            $(top.stage, 268, 14, `#88ffaa`, 8, `right`);
+        function drawPlayHud() {
+            let top = buildHudTop({ score: score, high: highScore, pts: pts, coins: continueCoins, stage: stage });
+            drawText(top.score, 52, 4, `#00ff88`, 8);
+            drawText(top.hi, 268, 4, `#ffff66`, 8, `right`);
+            drawText(top.pts, 52, 14, `#ffff66`, 8);
+            drawText(top.coins, 118, 14, `#ffee88`, 8);
+            drawText(top.stage, 268, 14, `#88ffaa`, 8, `right`);
             let flags = buildHudFlags({
-                weaponsEnabledCount: $t(),
-                shotArmed: Qt(`shot`),
-                vstick: !!K.vstick,
-                difficulty: Ie,
-                enemyHpMult: Yn()
+                weaponsEnabledCount: armedWeaponCount(),
+                shotArmed: isWeaponArmed(`shot`),
+                vstick: !!settings.vstick,
+                difficulty: difficulty,
+                enemyHpMult: scoreHpMult()
             });
             let ehp = enemyHpHud(flags.enemyHpMult);
-            ehp && $(ehp, 52, 24, `#ff8866`, 7);
-            $(flags.diffLabel, 268, 24, flags.diffLabel === `ESY` ? `#88ff88` : `#ffaa66`, 6, `right`);
-            for (let x of lifePipXs(_)) Q(x, 388, 6, 6, `#44ff88`);
+            ehp && drawText(ehp, 52, 24, `#ff8866`, 7);
+            drawText(flags.diffLabel, 268, 24, flags.diffLabel === `ESY` ? `#88ff88` : `#ffaa66`, 6, `right`);
+            for (let pipX of lifePipXs(lives)) fillRect(pipX, 388, 6, 6, `#44ff88`);
             let chips = buildHudBottomChips({
                 dodgeOnly: flags.dodgeOnly,
                 shotOff: flags.shotOff,
-                weaponLabels: buildWeaponChips(O, q).map(c => ({ label: c.label, color: c.color })),
-                frame: y
+                weaponLabels: buildWeaponChips(upgrades, armedLevelOf).map(c => ({ label: c.label, color: c.color })),
+                frame: frame
             });
             let n = 52;
             for (let item of chips.items) {
-                $(item.text, n, 376, item.color, 7);
+                drawText(item.text, n, 376, item.color, 7);
                 n += item.text === `DODGE ONLY` ? 56 : item.text === `SHOT OFF` ? 48 : 18;
             }
-            $(flags.controlLabel, 268, 376, `#448866`, 6, `right`), ei()
+            drawText(flags.controlLabel, 268, 376, `#448866`, 6, `right`), drawMissionHud()
         }
 
-        function ei() {
-            if (!H) return;
-            Q(52, 24, 216, 28, `#001a22`), l.strokeStyle = kt() ? `#ffee66` : y % 40 < 28 ? `#44ddaa` : `#228866`, l.strokeRect(52.5, 24.5, 215, 27), $(`MISSION`, 56, 27, `#66ffcc`, 7);
-            for (let chip of buildMissionChips(Sn, Dt)) {
-                $(chip.label, chip.x, 27, chip.color, 7);
-                $(chip.mark, chip.x + 14, 27, chip.markColor, 7);
+        function drawMissionHud() {
+            if (!sharerId) return;
+            fillRect(52, 24, 216, 28, `#001a22`), ctx.strokeStyle = allMissionsClear() ? `#ffee66` : frame % 40 < 28 ? `#44ddaa` : `#228866`, ctx.strokeRect(52.5, 24.5, 215, 27), drawText(`MISSION`, 56, 27, `#66ffcc`, 7);
+            for (let chip of buildMissionChips(MISSION_DEFS, missionsDone)) {
+                drawText(chip.label, chip.x, 27, chip.color, 7);
+                drawText(chip.mark, chip.x + 14, 27, chip.markColor, 7);
             }
-            let next = missionNextLine(Sn, Dt, kt());
-            next && $(next, 56, 39, kt() ? `#ffee88` : `#ffcc66`, 7);
-            Et > 0 && $(Tt, 264, 39, `#aaffff`, 6, `right`)
+            let next = missionNextLine(MISSION_DEFS, missionsDone, allMissionsClear());
+            next && drawText(next, 56, 39, allMissionsClear() ? `#ffee88` : `#ffcc66`, 7);
+            missionToastLife > 0 && drawText(missionToast, 264, 39, `#aaffff`, 6, `right`)
         }
 
-        function ti(e) {
-            if (!H) return;
-            Ot(), Q(58, 90, 204, 72, `#001820`), l.strokeStyle = kt() ? `#ffee66` : `#44ffcc`, l.lineWidth = 2, l.strokeRect(58.5, 90.5, 203, 71), l.lineWidth = 1, $(`◆ SHARE MISSIONS`, e, 94, `#66ffee`, 9, `center`), $(`4段階 × 各1枚 = 最大4 COIN`, e, 106, `#ffcc66`, 7, `center`);
-            for (let row of buildTitleMissionRows(Sn, Dt)) {
-                $(row.line, 66, row.y, row.color, 7);
+        function drawTitleMissions(e) {
+            if (!sharerId) return;
+            reloadMissions(), fillRect(58, 90, 204, 72, `#001820`), ctx.strokeStyle = allMissionsClear() ? `#ffee66` : `#44ffcc`, ctx.lineWidth = 2, ctx.strokeRect(58.5, 90.5, 203, 71), ctx.lineWidth = 1, drawText(`◆ SHARE MISSIONS`, e, 94, `#66ffee`, 9, `center`), drawText(`4段階 × 各1枚 = 最大4 COIN`, e, 106, `#ffcc66`, 7, `center`);
+            for (let row of buildTitleMissionRows(MISSION_DEFS, missionsDone)) {
+                drawText(row.line, 66, row.y, row.color, 7);
             }
-            let foot = titleMissionFooter(kt(), Mt());
-            foot && $(foot, e, 152, Mt() ? `#88aa88` : `#ffff88`, 7, `center`)
+            let foot = titleMissionFooter(allMissionsClear(), alreadySentFanmail());
+            foot && drawText(foot, e, 152, alreadySentFanmail() ? `#88aa88` : `#ffff88`, 7, `center`)
         }
 
-        function ni() {
-            if (!vstickVisible(!!K.vstick, p)) return;
+        function drawVirtualStick() {
+            if (!vstickVisible(!!settings.vstick, mode)) return;
             let lay = virtualStickLayout({
-                active: !!xn,
-                centerX: Cn,
-                centerY: Tn,
-                axisX: En,
-                axisY: Dn
+                active: !!vstickActive,
+                centerX: vstickX,
+                centerY: vstickY,
+                axisX: vstickAxisX,
+                axisY: vstickAxisY
             });
-            for (let op of vstickDrawOps(lay, !!xn)) {
-                if (op.type === `save`) l.save();
-                else if (op.type === `restore`) l.restore();
-                else if (op.type === `alpha`) l.globalAlpha = op.a;
-                else if (op.type === `strokeStyle`) l.strokeStyle = op.c;
-                else if (op.type === `fillStyle`) l.fillStyle = op.c;
-                else if (op.type === `lineWidth`) l.lineWidth = op.w;
-                else if (op.type === `arc`) {
-                    l.beginPath(), l.arc(op.x, op.y, op.r, 0, Math.PI * 2);
-                    op.fill && l.fill();
-                    op.stroke && l.stroke();
-                } else if (op.type === `cross`) {
-                    l.beginPath();
-                    l.moveTo(op.x - op.r + 4, op.y), l.lineTo(op.x + op.r - 4, op.y);
-                    l.moveTo(op.x, op.y - op.r + 4), l.lineTo(op.x, op.y + op.r - 4);
-                    l.stroke();
+            for (let drawOp of vstickDrawOps(lay, !!vstickActive)) {
+                if (drawOp.type === `save`) ctx.save();
+                else if (drawOp.type === `restore`) ctx.restore();
+                else if (drawOp.type === `alpha`) ctx.globalAlpha = drawOp.a;
+                else if (drawOp.type === `strokeStyle`) ctx.strokeStyle = drawOp.c;
+                else if (drawOp.type === `fillStyle`) ctx.fillStyle = drawOp.c;
+                else if (drawOp.type === `lineWidth`) ctx.lineWidth = drawOp.w;
+                else if (drawOp.type === `arc`) {
+                    ctx.beginPath(), ctx.arc(drawOp.x, drawOp.y, drawOp.r, 0, Math.PI * 2);
+                    drawOp.fill && ctx.fill();
+                    drawOp.stroke && ctx.stroke();
+                } else if (drawOp.type === `cross`) {
+                    ctx.beginPath();
+                    ctx.moveTo(drawOp.x - drawOp.r + 4, drawOp.y), ctx.lineTo(drawOp.x + drawOp.r - 4, drawOp.y);
+                    ctx.moveTo(drawOp.x, drawOp.y - drawOp.r + 4), ctx.lineTo(drawOp.x, drawOp.y + drawOp.r - 4);
+                    ctx.stroke();
                 }
             }
         }
 
-        function ri() {
-            let e = Kn(),
-                t = qn(e, 10);
-            Q(Cr, 0, Tr, Z, `#001400`), Q(54, 20, 212, 372, `#002200`), l.strokeStyle = `#00ff66`, l.strokeRect(54.5, 20.5, 211, 371), $(`POWER SHOP`, 62, 24, `#ffff00`, 11);
+        function drawShop() {
+            let e = shopCatalog(),
+                t = shopListWindow(e, 10);
+            fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#001400`), fillRect(54, 20, 212, 372, `#002200`), ctx.strokeStyle = `#00ff66`, ctx.strokeRect(54.5, 20.5, 211, 371), drawText(`POWER SHOP`, 62, 24, `#ffff00`, 11);
             let foot = shopFooterIndices(e.length),
-                n = D === foot.share,
-                r = D === foot.opt;
+                n = shopCursor === foot.share,
+                r = shopCursor === foot.opt;
             for (let chip of shopHeaderChips({ shareSelected: n, optSelected: r })) {
-                Q(chip.x, chip.y, chip.w, chip.h, chip.fill);
-                l.strokeStyle = chip.stroke;
-                l.lineWidth = 2;
-                l.strokeRect(chip.x + .5, chip.y + .5, chip.w - 1, chip.h - 1);
-                $(chip.label, chip.labelX, chip.labelY, chip.labelColor, 8, `center`);
+                fillRect(chip.x, chip.y, chip.w, chip.h, chip.fill);
+                ctx.strokeStyle = chip.stroke;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(chip.x + .5, chip.y + .5, chip.w - 1, chip.h - 1);
+                drawText(chip.label, chip.labelX, chip.labelY, chip.labelColor, 8, `center`);
             }
-            l.lineWidth = 1;
-            let st = shopStatusLine({ pts: h, tier: zn(), difficulty: Ie });
-            $(st.text, X / 2, 46, st.color, 8, `center`);
-            let tier = shopTierHint({ tier2: Fn(), tier3: Rn(), celebrate: Pe > 0, frame: y });
-            $(tier.text, X / 2, 56, tier.color, 6, `center`);
+            ctx.lineWidth = 1;
+            let statusLine = shopStatusLine({ pts: pts, tier: currentShopTier(), difficulty: difficulty });
+            drawText(statusLine.text, PLAY_W / 2, 46, statusLine.color, 8, `center`);
+            let tier = shopTierHint({ tier2: tier2Unlocked(), tier3: tier3Unlocked(), celebrate: celebrate > 0, frame: frame });
+            drawText(tier.text, PLAY_W / 2, 56, tier.color, 6, `center`);
             for (let row of buildShopRows({
                 catalog: e,
-                cursor: D,
+                cursor: shopCursor,
                 windowStart: t,
-                upgrades: O,
-                lives: _,
-                shieldFrames: Ce,
-                costOf: Qn,
-                maxOf: Gn,
-                canBuy: rr
+                upgrades: upgrades,
+                lives: lives,
+                shieldFrames: shield,
+                costOf: itemCostOf,
+                maxOf: itemMaxOf,
+                canBuy: canBuyItem
             })) {
-                row.selected && (Q(58, row.y - 1, 204, 19, `#004400`), l.strokeStyle = `#00ff00`, l.strokeRect(58.5, row.y - .5, 203, 18));
-                $(row.item.name, 62, row.y + 3, row.nameColor, 8);
-                $(row.levelText, 148, row.y + 3, `#66ccaa`, 7);
-                $(row.costText, 260, row.y + 3, row.costColor, 8, `right`);
+                row.selected && (fillRect(58, row.y - 1, 204, 19, `#004400`), ctx.strokeStyle = `#00ff00`, ctx.strokeRect(58.5, row.y - .5, 203, 18));
+                drawText(row.item.name, 62, row.y + 3, row.nameColor, 8);
+                drawText(row.levelText, 148, row.y + 3, `#66ccaa`, 7);
+                drawText(row.costText, 260, row.y + 3, row.costColor, 8, `right`);
             }
-            t > 0 && $(`▲`, X / 2, 60, `#00ff88`, 8, `center`), t + 10 < e.length && $(`▼`, X / 2, 336, `#00ff88`, 8, `center`);
-            for (let b of shopFooterButtonsExact({ catalogLen: e.length, cursor: D, pauseShop: !!Ne, shareSelected: n, optSelected: r })) {
-                Q(b.x, b.y, b.w, b.h, b.fill);
-                l.strokeStyle = b.stroke;
-                l.lineWidth = 2;
-                l.strokeRect(b.x + .5, b.y + .5, b.w - 1, b.h - 1);
-                $(b.label, b.labelX, b.labelY, b.labelColor, b.sub ? 8 : 9, `center`);
-                b.sub && $(b.sub, b.labelX, b.subY, `#886644`, 6, `center`);
+            t > 0 && drawText(`▲`, PLAY_W / 2, 60, `#00ff88`, 8, `center`), t + 10 < e.length && drawText(`▼`, PLAY_W / 2, 336, `#00ff88`, 8, `center`);
+            for (let entity of shopFooterButtonsExact({ catalogLen: e.length, cursor: shopCursor, pauseShop: !!shopPaused, shareSelected: n, optSelected: r })) {
+                fillRect(entity.x, entity.y, entity.w, entity.h, entity.fill);
+                ctx.strokeStyle = entity.stroke;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(entity.x + .5, entity.y + .5, entity.w - 1, entity.h - 1);
+                drawText(entity.label, entity.labelX, entity.labelY, entity.labelColor, entity.sub ? 8 : 9, `center`);
+                entity.sub && drawText(entity.sub, entity.labelX, entity.subY, `#886644`, 6, `center`);
             }
-            l.lineWidth = 1;
-            Me > 0 ? $(je, X / 2, 388, `#ffaa00`, 6, `center`) : $(Ne ? `進行中SHAREで助けを呼べます` : `上下スワイプ · 空欄タップで決定`, X / 2, 388, `#335544`, 6, `center`)
+            ctx.lineWidth = 1;
+            shopToastLife > 0 ? drawText(shopToast, PLAY_W / 2, 388, `#ffaa00`, 6, `center`) : drawText(shopPaused ? `進行中SHAREで助けを呼べます` : `上下スワイプ · 空欄タップで決定`, PLAY_W / 2, 388, `#335544`, 6, `center`)
         }
 
-        function ii() {
-            let e = an();
-            R >= e.length && (R = Math.max(0, e.length - 1));
-            let scr = optionsScreenTitle(z);
-            Q(Cr, 0, Tr, Z, `#001018`), Q(54, 18, 212, 370, `#001a22`), l.strokeStyle = scr.border, l.strokeRect(54.5, 18.5, 211, 369);
-            $(scr.title, X / 2, 22, scr.titleColor, 11, `center`);
-            $(scr.subtitle, X / 2, 36, `#448888`, 7, `center`);
-            let t = listWindowStart(e.length, R, 14);
+        function drawOptions() {
+            let e = optionRows();
+            optionsCursor >= e.length && (optionsCursor = Math.max(0, e.length - 1));
+            let scr = optionsScreenTitle(optionsSub);
+            fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#001018`), fillRect(54, 18, 212, 370, `#001a22`), ctx.strokeStyle = scr.border, ctx.strokeRect(54.5, 18.5, 211, 369);
+            drawText(scr.title, PLAY_W / 2, 22, scr.titleColor, 11, `center`);
+            drawText(scr.subtitle, PLAY_W / 2, 36, `#448888`, 7, `center`);
+            let t = listWindowStart(e.length, optionsCursor, 14);
             for (let n = 0; n < Math.min(14, e.length); n++) {
                 let r = n + t,
                     i = e[r],
                     a = 48 + n * 18,
-                    o = r === R;
+                    o = r === optionsCursor;
                 if (i.kind === `header`) {
-                    $(i.label, X / 2, a + 4, `#558888`, 7, `center`);
+                    drawText(i.label, PLAY_W / 2, a + 4, `#558888`, 7, `center`);
                     continue
                 }
-                o && (Q(60, a - 1, 200, 16, `#003344`), l.strokeStyle = `#00eeff`, l.strokeRect(60.5, a - .5, 199, 15));
+                o && (fillRect(60, a - 1, 200, 16, `#003344`), ctx.strokeStyle = `#00eeff`, ctx.strokeRect(60.5, a - .5, 199, 15));
                 let cols = optionsRowColors({
                     kind: i.kind,
                     selected: o,
-                    weaponOn: i.kind === `weapon` ? q(i.key) > 0 : undefined
+                    weaponOn: i.kind === `weapon` ? armedLevelOf(i.key) > 0 : undefined
                 });
-                $(i.label, 64, a + 3, cols.label, 8);
-                let c = xr(i);
-                c && $(c, 260, a + 3, cols.value, 7, `right`)
+                drawText(i.label, 64, a + 3, cols.label, 8);
+                let c = formatOptionValueForRow(i);
+                c && drawText(c, 260, a + 3, cols.value, 7, `right`)
             }
-            t > 0 && $(`▲`, X / 2, 38, `#00ccff`, 7, `center`), t + 14 < e.length && $(`▼`, X / 2, 372, `#00ccff`, 7, `center`);
-            let hint = optionsHint({ submenu: z, feedback: Qe, feedbackActive: $e > 0 });
-            $(hint, X / 2, 386, $e > 0 ? `#ffaa00` : `#446666`, 6, `center`)
+            t > 0 && drawText(`▲`, PLAY_W / 2, 38, `#00ccff`, 7, `center`), t + 14 < e.length && drawText(`▼`, PLAY_W / 2, 372, `#00ccff`, 7, `center`);
+            let hint = optionsHint({ submenu: optionsSub, feedback: optionsToast, feedbackActive: optionsToastLife > 0 });
+            drawText(hint, PLAY_W / 2, 386, optionsToastLife > 0 ? `#ffaa00` : `#446666`, 6, `center`)
         }
 
         
         // ── version changelog mode ──
-        function ai() {
-            p = `changelog`, Le = 0, sfx.ui()
+        function openChangelog() {
+            mode = `changelog`, changelogScroll = 0, sfx.ui()
         }
 
-        function oi() {
-            p = `attract`, sfx.ui()
+        function leaveChangelog() {
+            mode = `attract`, sfx.ui()
         }
 
-        function si() {
-            return changelogMaxScroll(buildChangelogRows(ln).length)
+        function getChangelogMaxScroll() {
+            return changelogMaxScroll(buildChangelogRows(VERSION_HISTORY).length)
         }
 
-        function ci() {
-            Q(Cr, 0, Tr, Z, `#000a12`), Q(54, 12, 212, 380, `#001018`), l.strokeStyle = `#44ffcc`, l.strokeRect(54.5, 12.5, 211, 379), $(`VERSION HISTORY`, X / 2, 20, `#88ffee`, 11, `center`), $(`NOW  ${un()}`, X / 2, 34, `#ffee88`, 8, `center`), $(`Grok Build iOS`, X / 2, 46, `#556666`, 6, `center`);
-            let e = buildChangelogRows(ln),
+        function drawChangelog() {
+            fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#000a12`), fillRect(54, 12, 212, 380, `#001018`), ctx.strokeStyle = `#44ffcc`, ctx.strokeRect(54.5, 12.5, 211, 379), drawText(`VERSION HISTORY`, PLAY_W / 2, 20, `#88ffee`, 11, `center`), drawText(`NOW  ${versionShortLabel()}`, PLAY_W / 2, 34, `#ffee88`, 8, `center`), drawText(`Grok Build iOS`, PLAY_W / 2, 46, `#556666`, 6, `center`);
+            let e = buildChangelogRows(VERSION_HISTORY),
                 t = changelogMaxScroll(e.length);
-            Le > t && (Le = t);
-            for (let vis of changelogVisibleRows(e, Le)) {
+            changelogScroll > t && (changelogScroll = t);
+            for (let vis of changelogVisibleRows(e, changelogScroll)) {
                 if (vis.row.kind === `gap`) continue;
                 let a = vis.row.kind === `head` ? 7 : 6;
-                $(vis.row.text.slice(0, 34), 62, vis.y, vis.row.color, a)
+                drawText(vis.row.text.slice(0, 34), 62, vis.y, vis.row.color, a)
             }
-            Le > 0 && $(`▲`, X / 2, 52, `#44aa88`, 7, `center`), Le < t && $(`▼`, X / 2, 364, `#44aa88`, 7, `center`), Q(60, 370, 200, 18, `#1a3030`), l.strokeStyle = `#6688aa`, l.strokeRect(60.5, 370.5, 199, 17), $(`◀ BACK`, X / 2, 375, `#aaccff`, 8, `center`)
+            changelogScroll > 0 && drawText(`▲`, PLAY_W / 2, 52, `#44aa88`, 7, `center`), changelogScroll < t && drawText(`▼`, PLAY_W / 2, 364, `#44aa88`, 7, `center`), fillRect(60, 370, 200, 18, `#1a3030`), ctx.strokeStyle = `#6688aa`, ctx.strokeRect(60.5, 370.5, 199, 17), drawText(`◀ BACK`, PLAY_W / 2, 375, `#aaccff`, 8, `center`)
         }
 
-        function li(e, t) {
-            Re = !0, ze = t, Be = 0, Ve = !1
+        function onChangelogTap(e, t) {
+            changelogDragOn = !0, changelogDragY = t, changelogDragAcc = 0, changelogDragMoved = !1
         }
 
-        function ui(e, t) {
-            if (!Re || p !== `changelog`) return;
-            let n = t - ze;
-            for (Be += n, ze = t; Be <= -14;) Le = Math.max(0, Le - 1), Be += 14, Ve = !0, sfx.ui();
-            for (; Be >= 14;) Le = Math.min(si(), Le + 1), Be -= 14, Ve = !0, sfx.ui()
+        function onChangelogDrag(e, t) {
+            if (!changelogDragOn || mode !== `changelog`) return;
+            let n = t - changelogDragY;
+            for (changelogDragAcc += n, changelogDragY = t; changelogDragAcc <= -14;) changelogScroll = Math.max(0, changelogScroll - 1), changelogDragAcc += 14, changelogDragMoved = !0, sfx.ui();
+            for (; changelogDragAcc >= 14;) changelogScroll = Math.min(getChangelogMaxScroll(), changelogScroll + 1), changelogDragAcc -= 14, changelogDragMoved = !0, sfx.ui()
         }
 
-        function di(e, t) {
-            if (Re) {
-                if (Re = !1, Ve) {
-                    Ve = !1;
+        function onChangelogPointerUp(e, t) {
+            if (changelogDragOn) {
+                if (changelogDragOn = !1, changelogDragMoved) {
+                    changelogDragMoved = !1;
                     return
                 }
-                changelogBackHit(t, e, Cr, wr) && oi()
+                changelogBackHit(t, e, RAIL_W, FIELD_RIGHT) && leaveChangelog()
             }
         }
 
-        function fi() {
-            l.fillStyle = `#001100`, l.fillRect(Cr, 0, Tr, Z);
+        function drawAttract() {
+            ctx.fillStyle = `#001100`, ctx.fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H);
             for (let i = 0; i < 400; i++) {
-                let d = titleNoiseDot(Cr, Tr, Z);
-                l.fillStyle = titleNoiseRgb(d.g), l.fillRect(d.x, d.y, 1, 1)
+                let rafId = titleNoiseDot(RAIL_W, FIELD_INNER_W, PLAY_H);
+                ctx.fillStyle = titleNoiseRgb(rafId.g), ctx.fillRect(rafId.x, rafId.y, 1, 1)
             }
-            let e = X / 2;
-            let hdr = titleHeader(un());
-            $(hdr.title, e, 28, `#00ff88`, 15, `center`);
-            $(hdr.tagline, e, 44, `#66aa66`, 7, `center`);
-            $(hdr.credit, e, 56, `#88cc88`, 8, `center`);
-            $(hdr.versionLine, e, 66, `#556666`, 6, `center`);
+            let e = PLAY_W / 2;
+            let hdr = titleHeader(versionShortLabel());
+            drawText(hdr.title, e, 28, `#00ff88`, 15, `center`);
+            drawText(hdr.tagline, e, 44, `#66aa66`, 7, `center`);
+            drawText(hdr.credit, e, 56, `#88cc88`, 8, `center`);
+            drawText(hdr.versionLine, e, 66, `#556666`, 6, `center`);
             {
-                let ls = titleLinkStyle(!!V.linked);
-                Q(210, 6, 56, 18, ls.fill);
-                l.strokeStyle = ls.stroke;
-                l.strokeRect(210.5, 6.5, 55, 17);
-                $(V.linked ? (V.name || `LINK`).slice(0, 6) : `LINK`, 238, 11, ls.textColor, 7, `center`);
+                let linkStyle = titleLinkStyle(!!account.linked);
+                fillRect(210, 6, 56, 18, linkStyle.fill);
+                ctx.strokeStyle = linkStyle.stroke;
+                ctx.strokeRect(210.5, 6.5, 55, 17);
+                drawText(account.linked ? (account.name || `LINK`).slice(0, 6) : `LINK`, 238, 11, linkStyle.textColor, 7, `center`);
             }
-            Q(68, 76, 184, 18, `#1a1500`);
-            l.strokeStyle = `#ffcc44`;
-            l.strokeRect(68.5, 76.5, 183, 17);
-            let coin = continueCoinLine(ht);
-            $(coin.text, e, 80, coin.color, 9, `center`);
-            H ? ti(e) : $(`シェア先が1面ボス到達 → コインGET`, e, 96, `#558866`, 7, `center`);
-            St > 0 && $(xt, e, H ? 148 : 110, `#ffaa00`, 7, `center`);
-            $(titleSelectLabel(tSub), e, Z * .385, `#ffff66`, 7, `center`);
-            let t = titleMenuYs(tSub, Z),
-                n = or(ar()),
-                inbox = titleInboxLabels({ canSendFanmail: jt(), alreadySent: Mt(), inboxCount: G.length }),
-                r = buildTitleMenu(tSub, {
-                    linked: !!V.linked,
+            fillRect(68, 76, 184, 18, `#1a1500`);
+            ctx.strokeStyle = `#ffcc44`;
+            ctx.strokeRect(68.5, 76.5, 183, 17);
+            let coin = continueCoinLine(continueCoins);
+            drawText(coin.text, e, 80, coin.color, 9, `center`);
+            sharerId ? drawTitleMissions(e) : drawText(`シェア先が1面ボス到達 → コインGET`, e, 96, `#558866`, 7, `center`);
+            shareToastLife > 0 && drawText(shareToast, e, sharerId ? 148 : 110, `#ffaa00`, 7, `center`);
+            drawText(titleSelectLabel(titleSub), e, PLAY_H * .385, `#ffff66`, 7, `center`);
+            let t = titleMenuYs(titleSub, PLAY_H),
+                n = easyCarryLevelOf(loadEasyCarryState()),
+                inboxLabels = titleInboxLabels({ canSendFanmail: canSendFanmail(), alreadySent: alreadySentFanmail(), inboxCount: inbox.length }),
+                r = buildTitleMenu(titleSub, {
+                    linked: !!account.linked,
                     easyCarryLv: n,
-                    msgTitle: inbox.title,
-                    msgSub: inbox.sub,
-                    versionLabel: cn
+                    msgTitle: inboxLabels.title,
+                    msgSub: inboxLabels.sub,
+                    versionLabel: APP_VERSION
                 });
             for (let n = 0; n < r.length; n++) {
                 let i = t[n],
-                    a = k === n,
+                    a = titleCursor === n,
                     o = r[n].h,
-                    cols = titleMenuRowColors(n, a, y % 24 < 16);
-                cols.fill ? (Q(62, i - 2, 196, o, cols.fill), l.strokeStyle = cols.stroke, l.strokeRect(62.5, i - 1.5, 195, o - 1)) : (l.strokeStyle = cols.stroke, l.strokeRect(62.5, i - 1.5, 195, o - 1));
-                $(r[n].title, e, i + 2, cols.title, 10, `center`), r[n].sub && $(r[n].sub, e, i + 13, cols.sub, 6, `center`)
+                    cols = titleMenuRowColors(n, a, frame % 24 < 16);
+                cols.fill ? (fillRect(62, i - 2, 196, o, cols.fill), ctx.strokeStyle = cols.stroke, ctx.strokeRect(62.5, i - 1.5, 195, o - 1)) : (ctx.strokeStyle = cols.stroke, ctx.strokeRect(62.5, i - 1.5, 195, o - 1));
+                drawText(r[n].title, e, i + 2, cols.title, 10, `center`), r[n].sub && drawText(r[n].sub, e, i + 13, cols.sub, 6, `center`)
             }
             let foot = titleFooter();
-            $(foot.left, 56, 386, `#335533`, 6), $(foot.right, 266, 386, `#2a4a2a`, 6, `right`)
+            drawText(foot.left, 56, 386, `#335533`, 6), drawText(foot.right, 266, 386, `#2a4a2a`, 6, `right`)
         }
 
         
         // ── start run ──
-        function pi() {
-            cr(), yt = performance.now(), bt = !1, Ot(), wt = 0, Tt = ``, Et = 0, sfx.start(), dr();
+        function startRun() {
+            resetRun(), runStartedAt = performance.now(), firstBossFlagged = !1, reloadMissions(), missionBannerLife = 0, missionToast = ``, missionToastLife = 0, sfx.start(), startStage();
             try { noteRunStart(); window.__sfPlayAcc = 0; } catch (err) {}
         }
 
         
         // ── mission progress tick ──
-        function mi(e) {
-            if (!canAttemptMission({ sharerId: H, shareId: U, alreadyDone: !!Dt[e] })) return;
-            let t = missionPlaySeconds(yt),
-                n = Sn.find(t => t.id === e);
-            Hn({
-                sharerId: H,
-                shareId: U,
-                visitorId: B,
+        function reportMission(e) {
+            if (!canAttemptMission({ sharerId: sharerId, shareId: shareId, alreadyDone: !!missionsDone[e] })) return;
+            let t = missionPlaySeconds(runStartedAt),
+                n = MISSION_DEFS.find(t => t.id === e);
+            reportMissionClear({
+                sharerId: sharerId,
+                shareId: shareId,
+                visitorId: playerId,
                 missionId: e,
                 playSeconds: t
             }).then(e => {
-                Ot();
+                reloadMissions();
                 if (e.ok && !e.already) {
-                    let fb = missionClearFloats({
+                    let feedback = missionClearFloats({
                         label: n.label,
-                        allClearCanMsg: !!(kt() && jt()),
-                        cx: X / 2,
-                        cy: Z
+                        allClearCanMsg: !!(allMissionsClear() && canSendFanmail()),
+                        cx: PLAY_W / 2,
+                        cy: PLAY_H
                     });
-                    wt = fb.bannerFrames, Tt = fb.toast, Et = fb.toastLife, sfx.stageClear();
-                    for (let f of fb.floats) pn.push(f);
-                    Bt()
+                    missionBannerLife = feedback.bannerFrames, missionToast = feedback.toast, missionToastLife = feedback.toastLife, sfx.stageClear();
+                    for (let nextEntityId of feedback.floats) floatTexts.push(nextEntityId);
+                    refreshCoins()
                 } else if (!e.ok && e.reason === `too_fast`) {
-                    let fb = missionTooFastFloats({ label: n.label, cx: X / 2, cy: Z });
-                    Tt = fb.toast, Et = fb.toastLife;
-                    for (let f of fb.floats) pn.push(f)
+                    let feedback = missionTooFastFloats({ label: n.label, cx: PLAY_W / 2, cy: PLAY_H });
+                    missionToast = feedback.toast, missionToastLife = feedback.toastLife;
+                    for (let nextEntityId of feedback.floats) floatTexts.push(nextEntityId)
                 }
             })
         }
 
         
         // ── award / continue coin refresh ──
-        function hi() {
-            if (bt) return;
-            let mid = firstBossMissionId(v, bt);
-            if (mid) bt = !0, mi(mid)
+        function missionFirstBoss() {
+            if (firstBossFlagged) return;
+            let mid = firstBossMissionId(stage, firstBossFlagged);
+            if (mid) firstBossFlagged = !0, reportMission(mid)
         }
 
-        function gi() {
-            let mid = bossClearMissionId(v);
-            mid && mi(mid)
+        function missionBossClear() {
+            let mid = bossClearMissionId(stage);
+            mid && reportMission(mid)
         }
 
         
         // ── account link dialog ──
-        function _i() {
-            openAccountDialog(n, {
-                linked: !!V.linked,
-                name: V.name,
-                email: V.email,
-                playerId: B,
-                coins: ht
+        function openAccount() {
+            openAccountDialog(hostEl, {
+                linked: !!account.linked,
+                name: account.name,
+                email: account.email,
+                playerId: playerId,
+                coins: continueCoins
             }, {
-                providers: r,
+                providers: authProviders,
                 onClose: () => sfx.ui(),
                 onSignIn: async (providerId) => {
-                    await i(providerId, { callbackURL: window.location.href });
-                    return await ft(!0);
+                    await authSignIn(providerId, { callbackURL: window.location.href });
+                    return await refreshAccount(!0);
                 },
                 onSignOut: async () => {
                     try {
-                        await br();
-                        await a(window.location.href);
+                        await unlinkAccountLocal();
+                        await authSignOut(window.location.href);
                     } catch {
-                        await br();
-                        B = ur();
-                        V = {
+                        await unlinkAccountLocal();
+                        playerId = loadPlayerId();
+                        account = {
                             linked: !1,
-                            playerId: B,
+                            playerId: playerId,
                             name: null,
                             email: null,
                             image: null
                         };
-                        ht = wn(B);
+                        continueCoins = loadContinueCoins(playerId);
                         sfx.ui();
                     }
                 },
@@ -1619,7 +1445,7 @@ function Nr() {
                 },
                 onAfterLink: () => {
                     sfx.buy();
-                    setTimeout(() => _i(), 200);
+                    setTimeout(() => openAccount(), 200);
                 },
                 playUi: () => sfx.buy(),
                 playError: () => sfx.buyFail()
@@ -1628,39 +1454,39 @@ function Nr() {
             bgm.unlock();
         }
 
-        function vi() {
-            let e = n.querySelector(`#sf-mail-dlg`);
-            e && e.remove(), Lt = !1
+        function closeMailDialog() {
+            let e = hostEl.querySelector(`#sf-mail-dlg`);
+            e && e.remove(), mailBusy = !1
         }
 
         
         // ── fan mail to sharer ──
-        function yi() {
+        function openFanmail() {
             let gate = fanmailGate({
-                sharerId: H,
-                alreadySent: Mt(),
-                allMissionsClear: kt(),
-                busy: !!Lt
+                sharerId: sharerId,
+                alreadySent: alreadySentFanmail(),
+                allMissionsClear: allMissionsClear(),
+                busy: !!mailBusy
             });
             if (!gate.ok) {
                 if (gate.reason === `busy`) return;
                 if (gate.reason === `no_share`) { sfx.buyFail(); return }
-                sfx.buyFail(), xt = fanmailGateMessage(gate.reason), St = 90;
+                sfx.buyFail(), shareToast = fanmailGateMessage(gate.reason), shareToastLife = 90;
                 return
             }
-            sfx.ui(), Lt = !0;
+            sfx.ui(), mailBusy = !0;
             openFanmailDialog({
-                host: n,
-                sanitize: (raw) => At(raw),
-                reasonText: (reason) => Nt(reason),
-                send: (text) => tr({
-                    sharerId: H,
-                    shareId: U,
-                    visitorId: B,
+                host: hostEl,
+                sanitize: (raw) => sanitizeUserText(raw),
+                reasonText: (reason) => sanitizeReasonText(reason),
+                send: (text) => sendFanmailMessage({
+                    sharerId: sharerId,
+                    shareId: shareId,
+                    visitorId: playerId,
                     text
                 }),
-                onClose: () => { vi(); sfx.ui() },
-                onSent: () => { yr() },
+                onClose: () => { closeMailDialog(); sfx.ui() },
+                onSent: () => { syncAccountCloud() },
                 playOk: () => sfx.buy(),
                 playError: () => sfx.buyFail()
             })
@@ -1668,1194 +1494,1195 @@ function Nr() {
 
         
         // ── inbox ──
-        function bi() {
-            It(), yr(), p = `inbox`, Pt = 0, Ft = !1, sfx.ui()
+        function openInbox() {
+            reloadInbox(), syncAccountCloud(), mode = `inbox`, inboxCursor = 0, inboxDetail = !1, sfx.ui()
         }
-        async function xi() {
-            if (Ct || ht <= 0) return;
-            Ct = !0;
-            let e = await Un(B);
-            if (ht = e.coins, Ct = !1, !e.ok) {
+        async function doContinue() {
+            if (continueBusy || continueCoins <= 0) return;
+            continueBusy = !0;
+            let e = await spendContinueCoin(playerId);
+            if (continueCoins = e.coins, continueBusy = !1, !e.ok) {
                 sfx.buyFail();
                 return
             }
-            let seed = buildContinueSeed({ currentShield: Ce });
-            _ = seed.lives, Se = seed.invulnFrames, Ce = seed.shieldFrames;
-            p = seed.mode, oe = seed.readyFrames, sfx.buy();
-            pn.push({
-                x: J.x,
-                y: J.y + seed.float.dy,
+            let seed = buildContinueSeed({ currentShield: shield });
+            lives = seed.lives, invuln = seed.invulnFrames, shield = seed.shieldFrames;
+            mode = seed.mode, readyTimer = seed.readyFrames, sfx.buy();
+            floatTexts.push({
+                x: player.x,
+                y: player.y + seed.float.dy,
                 text: seed.float.text,
                 color: seed.float.color,
                 life: seed.float.life
             });
-            De ? bgm.boss(mn(v).vibe, v) : bgm.start(`play`, v)
+            bossActive ? bgm.boss(bossForStage(stage).vibe, stage) : bgm.start(`play`, stage)
         }
 
-        function Si(e = `この機能`) {
-            let gate = requireLinked(!!V.linked, e);
+        function requireAccountLink(e = `この機能`) {
+            let gate = requireLinked(!!account.linked, e);
             if (gate.ok) return !0;
-            Je = gate.message, Ye = 100, xt = Je, St = 100, sfx.buyFail();
+            soundToast = gate.message, soundToastLife = 100, shareToast = soundToast, shareToastLife = 100, sfx.buyFail();
             return !1
         }
 
         
         // ── sound test ──
-        function Ci() {
-            if (!V.linked) {
-                xt = `SOUND TEST はアカウント連携特典です`, St = 90, sfx.buyFail();
+        function openSoundTest() {
+            if (!account.linked) {
+                shareToast = `SOUND TEST はアカウント連携特典です`, shareToastLife = 90, sfx.buyFail();
                 return
             }
-            bgm.unlock(), A = `menu`, j = 0, M = ``, p = `soundtest`, bgm.start(`attract`), N = `title`, Ke = 0, M = `TITLE THEME`, Yt(`title`, B).then(e => {
-                L = e
+            bgm.unlock(), soundListMode = `menu`, soundCursor = 0, trackLabel = ``, mode = `soundtest`, bgm.start(`attract`), soundPlayMode = `title`, soundIndex = 0, trackLabel = `TITLE THEME`, fetchTrackVotes(`title`, playerId).then(e => {
+                ratings = e
             }), sfx.ui()
         }
 
-        function wi() {
-            p = `attract`, bgm.start(`attract`), M = ``, sfx.ui()
+        function leaveSoundTest() {
+            mode = `attract`, bgm.start(`attract`), trackLabel = ``, sfx.ui()
         }
 
-        function Ti() {
-            return Rt(N, Ke)
+        function currentTrackKey() {
+            return makeTrackKey(soundPlayMode, soundIndex)
         }
 
-        function Ei() {
-            let e = Ti(),
-                r = vt();
+        function currentTrackCard() {
+            let e = currentTrackKey(),
+                r = soundCatalogMeta();
             return buildTrackCard({
                 trackKey: e,
-                mode: N,
-                index: Ke,
-                titleOverride: M,
+                mode: soundPlayMode,
+                index: soundIndex,
+                titleOverride: trackLabel,
                 labels: r.labels
             })
         }
 
-        function Di(e, t) {
-            let n = Ei(),
+        function drawTrackCard(e, t) {
+            let n = currentTrackCard(),
                 lay = trackCardLayout({
                     top: e,
                     compact: !!t?.compact,
-                    mode: N,
-                    index: Ke,
+                    mode: soundPlayMode,
+                    index: soundIndex,
                     cat: n.cat
                 });
-            Q(lay.box.x, lay.box.y, lay.box.w, lay.box.h, `#0a1a14`);
-            l.strokeStyle = n.catColor;
-            l.strokeRect(lay.box.x + .5, lay.box.y + .5, lay.box.w - 1, lay.box.h - 1);
-            Q(lay.catBadge.x, lay.catBadge.y, lay.catBadge.w, lay.catBadge.h, `#102820`);
-            $(lay.catBadge.text, lay.catLabelX, lay.catLabelY, n.catColor, 6, `center`);
-            $(`この曲に対する評価・コメント`, lay.metaX, lay.metaY, `#668877`, 6);
-            $(n.short, 64, lay.titleY, `#ffeeaa`, lay.titleSize);
-            lay.showId && $(`ID ${n.key}`, 258, lay.idY, `#445544`, 5, `right`);
+            fillRect(lay.box.x, lay.box.y, lay.box.w, lay.box.h, `#0a1a14`);
+            ctx.strokeStyle = n.catColor;
+            ctx.strokeRect(lay.box.x + .5, lay.box.y + .5, lay.box.w - 1, lay.box.h - 1);
+            fillRect(lay.catBadge.x, lay.catBadge.y, lay.catBadge.w, lay.catBadge.h, `#102820`);
+            drawText(lay.catBadge.text, lay.catLabelX, lay.catLabelY, n.catColor, 6, `center`);
+            drawText(`この曲に対する評価・コメント`, lay.metaX, lay.metaY, `#668877`, 6);
+            drawText(n.short, 64, lay.titleY, `#ffeeaa`, lay.titleSize);
+            lay.showId && drawText(`ID ${n.key}`, 258, lay.idY, `#445544`, 5, `right`);
             return lay.height
         }
 
-        function Oi(e, t = 0) {
-            N = e, Ke = t, M = _t(e, t), Yt(Rt(e, t), B).then(e => {
-                L = e
+        function playSoundTrack(e, t = 0) {
+            soundPlayMode = e, soundIndex = t, trackLabel = playBgmForMode(e, t), fetchTrackVotes(makeTrackKey(e, t), playerId).then(e => {
+                ratings = e
             })
         }
-        async function ki(e) {
-            if (!Si(`曲の評価`)) return;
-            L = await Xt(Ti(), B, e), sfx.ui()
+        async function voteTrack(e) {
+            if (!requireAccountLink(`曲の評価`)) return;
+            ratings = await castTrackVote(currentTrackKey(), playerId, e), sfx.ui()
         }
-        async function Ai(e) {
-            P = e, F = await Ut(e), qe = 0
+        async function loadComments(e) {
+            trackKey = e, comments = await fetchTrackComments(e), commentCursor = 0
         }
 
-        function ji() {
-            let can = canOpenComments(M);
+        function openComments() {
+            let can = canOpenComments(trackLabel);
             if (!can.ok) {
-                Je = can.message, Ye = 80, sfx.buyFail();
+                soundToast = can.message, soundToastLife = 80, sfx.buyFail();
                 return
             }
-            Xe = commentsReturnMode(A, N);
-            let e = Ti();
-            Promise.all([Ai(e), Yt(e, B)]).then(([, e]) => {
-                L = e, A = `comments`, qe = 0, sfx.ui()
+            commentsReturn = commentsReturnMode(soundListMode, soundPlayMode);
+            let e = currentTrackKey();
+            Promise.all([loadComments(e), fetchTrackVotes(e, playerId)]).then(([, e]) => {
+                ratings = e, soundListMode = `comments`, commentCursor = 0, sfx.ui()
             })
         }
 
-        function Mi() {
-            A = Xe, sfx.ui()
+        function leaveComments() {
+            soundListMode = commentsReturn, sfx.ui()
         }
 
-        function Ni(e) {
+        function viewComment(e) {
             openSoundCommentViewer(e, {
-                trackKey: P || Ti(),
-                trackCard: Ei(),
-                mode: N,
-                modeIndex: Ke,
-                playerId: B,
-                linked: !!V.linked,
+                trackKey: trackKey || currentTrackKey(),
+                trackCard: currentTrackCard(),
+                mode: soundPlayMode,
+                modeIndex: soundIndex,
+                playerId: playerId,
+                linked: !!account.linked,
                 redraw: () => sfx.ui(),
                 playError: () => sfx.buyFail()
             })
         }
 
-        async function Pi() {
-            if (!Si(`コメント投稿`) || I) return;
+        async function writeComment() {
+            if (!requireAccountLink(`コメント投稿`) || composing) return;
             openSoundCommentComposer({
-                trackKey: P || Ti(),
-                trackCard: Ei(),
-                mode: N,
-                modeIndex: Ke,
-                playerId: B,
-                setComposing: (v) => { I = v },
-                postComment: (trackKey, playerId, body, urls, kind) => Wt(trackKey, playerId, body, urls, kind),
-                onPosted: async (trackKey) => { F = await Ut(trackKey) },
+                trackKey: trackKey || currentTrackKey(),
+                trackCard: currentTrackCard(),
+                mode: soundPlayMode,
+                modeIndex: soundIndex,
+                playerId: playerId,
+                setComposing: (stage) => { composing = stage },
+                postComment: (trackKey, playerId, body, urls, kind) => postTrackComment(trackKey, playerId, body, urls, kind),
+                onPosted: async (trackKey) => { comments = await fetchTrackComments(trackKey) },
                 playOk: () => sfx.buy(),
                 playError: () => sfx.buyFail()
             })
         }
 
-        function Fi() {
+        function soundTestMenuRows() {
             return buildSoundTestRootMenu()
         }
 
-        function Ii(e) {
-            return buildSoundTestTrackList(e, vt())
+        function soundTestListRows(e) {
+            return buildSoundTestTrackList(e, soundCatalogMeta())
         }
 
-        function Li() {
-            if (bgm.unlock(), A === `menu`) {
-                let e = Fi()[j];
+        function activateSoundTestRow() {
+            if (bgm.unlock(), soundListMode === `menu`) {
+                let e = soundTestMenuRows()[soundCursor];
                 if (!e) return;
                 let act = soundTestMenuAction(e.action);
-                if (act.type === `play_title`) Oi(`title`, 0), sfx.ui();
-                else if (act.type === `open_stage`) A = `stage`, j = 0, sfx.ui();
-                else if (act.type === `open_boss`) A = `boss`, j = 0, sfx.ui();
-                else if (act.type === `open_legacy`) A = `legacy`, j = 0, sfx.ui();
-                else if (act.type === `stop`) bgm.stop(), M = `— STOPPED —`, sfx.ui();
-                else if (act.type === `back`) wi();
+                if (act.type === `play_title`) playSoundTrack(`title`, 0), sfx.ui();
+                else if (act.type === `open_stage`) soundListMode = `stage`, soundCursor = 0, sfx.ui();
+                else if (act.type === `open_boss`) soundListMode = `boss`, soundCursor = 0, sfx.ui();
+                else if (act.type === `open_legacy`) soundListMode = `legacy`, soundCursor = 0, sfx.ui();
+                else if (act.type === `stop`) bgm.stop(), trackLabel = `— STOPPED —`, sfx.ui();
+                else if (act.type === `back`) leaveSoundTest();
                 return
             }
-            if (A === `comments`) return;
-            let e = Ii(A)[j];
-            let act = soundTestListAction(A, e);
-            if (act.type === `back_menu`) A = `menu`, j = 0, sfx.ui();
-            else if (act.type === `play`) Oi(act.list, act.index), sfx.ui()
+            if (soundListMode === `comments`) return;
+            let e = soundTestListRows(soundListMode)[soundCursor];
+            let act = soundTestListAction(soundListMode, e);
+            if (act.type === `back_menu`) soundListMode = `menu`, soundCursor = 0, sfx.ui();
+            else if (act.type === `play`) playSoundTrack(act.list, act.index), sfx.ui()
         }
 
-        function Ri() {
-            if (Q(Cr, 0, Tr, Z, `#000a12`), Q(54, 14, 212, 376, `#001018`), l.strokeStyle = `#44ffcc`, l.strokeRect(54.5, 14.5, 211, 375), A === `comments`) {
-                $(`COMMENTS`, X / 2, 18, `#88ffee`, 10, `center`);
-                let e = Di(28, {
+        function drawSoundTest() {
+            if (fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#000a12`), fillRect(54, 14, 212, 376, `#001018`), ctx.strokeStyle = `#44ffcc`, ctx.strokeRect(54.5, 14.5, 211, 375), soundListMode === `comments`) {
+                drawText(`COMMENTS`, PLAY_W / 2, 18, `#88ffee`, 10, `center`);
+                let e = drawTrackCard(28, {
                     compact: !0
                 });
-                $(`コメント ${F.length} 件  ·  この曲専用`, X / 2, 28 + e + 4, `#668866`, 6, `center`);
+                drawText(`コメント ${comments.length} 件  ·  この曲専用`, PLAY_W / 2, 28 + e + 4, `#668866`, 6, `center`);
                 let t = 28 + e + 14;
-                if (!F.length) $(`まだコメントがありません`, X / 2, 120, `#556666`, 8, `center`), $(`WRITE で最初の感想を`, X / 2, 136, `#445555`, 7, `center`);
+                if (!comments.length) drawText(`まだコメントがありません`, PLAY_W / 2, 120, `#556666`, 8, `center`), drawText(`WRITE で最初の感想を`, PLAY_W / 2, 136, `#445555`, 7, `center`);
                 else {
-                    let { rows } = buildCommentRows({ comments: F, cursor: qe, baseY: t });
+                    let { rows } = buildCommentRows({ comments: comments, cursor: commentCursor, baseY: t });
                     for (let row of rows) {
-                        row.selected && (Q(60, row.y - 1, 200, 20, `#003322`), l.strokeStyle = `#66ffaa`, l.strokeRect(60.5, row.y - .5, 199, 19));
-                        $(row.text, 64, row.y + 4, row.selected ? `#ffffff` : `#99bbaa`, 7)
+                        row.selected && (fillRect(60, row.y - 1, 200, 20, `#003322`), ctx.strokeStyle = `#66ffaa`, ctx.strokeRect(60.5, row.y - .5, 199, 19));
+                        drawText(row.text, 64, row.y + 4, row.selected ? `#ffffff` : `#99bbaa`, 7)
                     }
                 }
-                $(V.linked ? `👍 ${L.likes}   👎 ${L.dislikes}` : `評価・投稿はアカウント連携必須`, X / 2, 348, V.linked ? `#88aa88` : `#aa8844`, 7, `center`);
-                for (let b of commentsFooterButtons({ mine: L.mine })) {
-                    Q(b.x, b.y, b.w, b.h, b.fill);
-                    l.strokeStyle = b.stroke;
-                    l.strokeRect(b.x + .5, b.y + .5, b.w - 1, b.h - 1);
-                    $(b.label, b.labelX, b.labelY, b.labelColor, 8, `center`);
+                drawText(account.linked ? `👍 ${L.likes}   👎 ${L.dislikes}` : `評価・投稿はアカウント連携必須`, PLAY_W / 2, 348, account.linked ? `#88aa88` : `#aa8844`, 7, `center`);
+                for (let entity of commentsFooterButtons({ mine: ratings.mine })) {
+                    fillRect(entity.x, entity.y, entity.w, entity.h, entity.fill);
+                    ctx.strokeStyle = entity.stroke;
+                    ctx.strokeRect(entity.x + .5, entity.y + .5, entity.w - 1, entity.h - 1);
+                    drawText(entity.label, entity.labelX, entity.labelY, entity.labelColor, 8, `center`);
                 }
-                Ye > 0 && $(Je, X / 2, 388, `#ffaa66`, 6, `center`);
+                soundToastLife > 0 && drawText(soundToast, PLAY_W / 2, 388, `#ffaa66`, 6, `center`);
                 return
             }
-            $(`SOUND TEST`, X / 2, 18, `#88ffee`, 11, `center`), $(`LINK PERK · 全曲試聴`, X / 2, 30, `#448866`, 6, `center`);
-            let playing = !!(M && !M.startsWith(`—`)),
+            drawText(`SOUND TEST`, PLAY_W / 2, 18, `#88ffee`, 11, `center`), drawText(`LINK PERK · 全曲試聴`, PLAY_W / 2, 30, `#448866`, 6, `center`);
+            let playing = !!(trackLabel && !trackLabel.startsWith(`—`)),
                 cardH = 0;
-            if (playing) cardH = Di(36, { compact: !1 });
+            if (playing) cardH = drawTrackCard(36, { compact: !1 });
             let top = soundTestListTop(playing, cardH);
-            if (playing && top.ratingY != null) $(`この曲の評価  👍${L.likes}  👎${L.dislikes}`, X / 2, top.ratingY, `#88aa88`, 6, `center`);
-            else if (top.hintY != null) $(`曲を選ぶと、その曲の評価・コメントが対象になります`, X / 2, top.hintY, `#556666`, 6, `center`);
+            if (playing && top.ratingY != null) drawText(`この曲の評価  👍${L.likes}  👎${L.dislikes}`, PLAY_W / 2, top.ratingY, `#88aa88`, 6, `center`);
+            else if (top.hintY != null) drawText(`曲を選ぶと、その曲の評価・コメントが対象になります`, PLAY_W / 2, top.hintY, `#556666`, 6, `center`);
             let t = soundTestPageSize(playing),
                 n = top.listTop;
-            if (A === `menu`) {
-                let e = Fi();
-                j >= e.length && (j = e.length - 1);
+            if (soundListMode === `menu`) {
+                let e = soundTestMenuRows();
+                soundCursor >= e.length && (soundCursor = e.length - 1);
                 for (let t = 0; t < e.length; t++) {
                     let r = n + t * 17,
-                        i = t === j;
-                    i && (Q(60, r - 1, 200, 15, `#003322`), l.strokeStyle = `#66ffaa`, l.strokeRect(60.5, r - .5, 199, 14)), $(e[t].label, 66, r + 2, i ? `#ffffff` : `#88ccaa`, 8), e[t].sub && $(e[t].sub, 258, r + 3, `#446655`, 6, `right`)
+                        i = t === soundCursor;
+                    i && (fillRect(60, r - 1, 200, 15, `#003322`), ctx.strokeStyle = `#66ffaa`, ctx.strokeRect(60.5, r - .5, 199, 14)), drawText(e[t].label, 66, r + 2, i ? `#ffffff` : `#88ccaa`, 8), e[t].sub && drawText(e[t].sub, 258, r + 3, `#446655`, 6, `right`)
                 }
             } else {
-                let e = Ii(A);
-                j >= e.length && (j = e.length - 1);
-                let r = soundTestListWindow(e.length, j, t);
+                let e = soundTestListRows(soundListMode);
+                soundCursor >= e.length && (soundCursor = e.length - 1);
+                let r = soundTestListWindow(e.length, soundCursor, t);
                 {
-                    let hdr = soundTestListHeader(A);
-                    $(hdr.title, X / 2, 52, hdr.color, 6, `center`);
+                    let hdr = soundTestListHeader(soundListMode);
+                    drawText(hdr.title, PLAY_W / 2, 52, hdr.color, 6, `center`);
                 }
                 for (let i = 0; i < Math.min(t, e.length); i++) {
                     let t = i + r,
                         a = n + 2 + i * 17,
-                        o = t === j;
-                    o && (Q(60, a - 1, 200, 15, `#002233`), l.strokeStyle = `#66ccff`, l.strokeRect(60.5, a - .5, 199, 14));
+                        o = t === soundCursor;
+                    o && (fillRect(60, a - 1, 200, 15, `#002233`), ctx.strokeStyle = `#66ccff`, ctx.strokeRect(60.5, a - .5, 199, 14));
                     let s = e[t].action === `back`;
-                    $(e[t].label, 66, a + 2, o ? `#ffffff` : s ? `#888` : `#88aacc`, 8), !s && N === A && Ke === e[t].n && $(`▶`, 256, a + 2, `#ffee66`, 7, `right`)
+                    drawText(e[t].label, 66, a + 2, o ? `#ffffff` : s ? `#888` : `#88aacc`, 8), !s && soundPlayMode === soundListMode && soundIndex === e[t].n && drawText(`▶`, 256, a + 2, `#ffee66`, 7, `right`)
                 }
-                r > 0 && $(`▲`, X / 2, n - 4, `#44aa88`, 7, `center`), r + t < e.length && $(`▼`, X / 2, 360, `#44aa88`, 7, `center`)
+                r > 0 && drawText(`▲`, PLAY_W / 2, n - 4, `#44aa88`, 7, `center`), r + t < e.length && drawText(`▼`, PLAY_W / 2, 360, `#44aa88`, 7, `center`)
             }
-            if (M && !M.startsWith(`—`)) {
-                for (let b of playingFooterButtons({ likes: L.likes, dislikes: L.dislikes, mine: L.mine })) {
-                    Q(b.x, b.y, b.w, b.h, b.fill);
-                    l.strokeStyle = b.stroke;
-                    l.strokeRect(b.x + .5, b.y + .5, b.w - 1, b.h - 1);
-                    $(b.label, b.labelX, b.labelY, b.labelColor, 7, `center`);
+            if (trackLabel && !trackLabel.startsWith(`—`)) {
+                for (let entity of playingFooterButtons({ likes: ratings.likes, dislikes: ratings.dislikes, mine: ratings.mine })) {
+                    fillRect(entity.x, entity.y, entity.w, entity.h, entity.fill);
+                    ctx.strokeStyle = entity.stroke;
+                    ctx.strokeRect(entity.x + .5, entity.y + .5, entity.w - 1, entity.h - 1);
+                    drawText(entity.label, entity.labelX, entity.labelY, entity.labelColor, 7, `center`);
                 }
-                if (!V.linked) $(`評価・コメントは連携必須`, X / 2, 350, `#aa8844`, 6, `center`);
+                if (!account.linked) drawText(`評価・コメントは連携必須`, PLAY_W / 2, 350, `#aa8844`, 6, `center`);
                 else {
-                    let e = Ei();
-                    $(`対象: ${e.cat}${N===`title`?``:Ke} ${e.short.slice(0,16)}`, X / 2, 350, `#668866`, 5, `center`)
+                    let e = currentTrackCard();
+                    drawText(`対象: ${e.cat}${soundPlayMode===`title`?``:soundIndex} ${e.short.slice(0,16)}`, PLAY_W / 2, 350, `#668866`, 5, `center`)
                 }
-            } else $(`上下スワイプ · タップ決定`, X / 2, 366, `#335544`, 6, `center`);
-            Ye > 0 && $(Je, X / 2, 388, `#ffaa66`, 6, `center`)
+            } else drawText(`上下スワイプ · タップ決定`, PLAY_W / 2, 366, `#335544`, 6, `center`);
+            soundToastLife > 0 && drawText(soundToast, PLAY_W / 2, 388, `#ffaa66`, 6, `center`)
         }
 
-        function zi() {
-            return A === `comments` ? 70 : M && !M.startsWith(`—`) ? 84 : 58
+        function soundListTopY() {
+            return soundListMode === `comments` ? 70 : trackLabel && !trackLabel.startsWith(`—`) ? 84 : 58
         }
 
-        function Bi(e) {
+        function soundTestRowIndexAtY(e) {
             return soundTestRowAtY({
                 y: e,
-                mode: A,
-                menuLen: Fi().length,
-                listLen: Ii(A).length,
-                cursor: j,
-                listTop: zi(),
-                playing: !!(M && !M.startsWith(`—`))
+                mode: soundListMode,
+                menuLen: soundTestMenuRows().length,
+                listLen: soundTestListRows(soundListMode).length,
+                cursor: soundCursor,
+                listTop: soundListTopY(),
+                playing: !!(trackLabel && !trackLabel.startsWith(`—`))
             })
         }
 
-        function Vi(e, t) {
+        function onSoundTestPointerDown(e, t) {
             let down = soundTestPointerDown({
                 x: e,
                 y: t,
-                left: Cr,
-                right: wr,
-                mode: A,
-                rowAtY: Bi
+                left: RAIL_W,
+                right: FIELD_RIGHT,
+                mode: soundListMode,
+                rowAtY: soundTestRowIndexAtY
             });
-            if (down.type === `side_back_comments`) { Mi(); return }
-            if (down.type === `side_back_list`) { wi(); return }
-            He = !0, Ue = t, We = 0, Ge = !1;
-            if (down.selectRow != null) j = down.selectRow
+            if (down.type === `side_back_comments`) { leaveComments(); return }
+            if (down.type === `side_back_list`) { leaveSoundTest(); return }
+            soundDragOn = !0, soundDragY = t, soundDragAcc = 0, soundDragged = !1;
+            if (down.selectRow != null) soundCursor = down.selectRow
         }
 
-        function Hi(e, t) {
-            if (!He || p !== `soundtest`) return;
-            let n = t - Ue;
-            let scr = dragScrollSteps(We, n, 15);
-            We = scr.accum, Ue = t;
+        function onSoundTestPointerDrag(e, t) {
+            if (!soundDragOn || mode !== `soundtest`) return;
+            let n = t - soundDragY;
+            let scr = dragScrollSteps(soundDragAcc, n, 15);
+            soundDragAcc = scr.accum, soundDragY = t;
             if (!scr.steps) return;
-            Ge = !0;
-            if (A === `comments`) {
-                let e = Math.max(0, F.length - 1);
-                qe = Math.max(0, Math.min(e, qe + scr.steps)), sfx.ui();
+            soundDragged = !0;
+            if (soundListMode === `comments`) {
+                let e = Math.max(0, comments.length - 1);
+                commentCursor = Math.max(0, Math.min(e, commentCursor + scr.steps)), sfx.ui();
                 return
             }
-            let r = A === `menu` ? Fi().length - 1 : Ii(A).length - 1;
-            j = Math.max(0, Math.min(r, j + scr.steps)), sfx.ui()
+            let r = soundListMode === `menu` ? soundTestMenuRows().length - 1 : soundTestListRows(soundListMode).length - 1;
+            soundCursor = Math.max(0, Math.min(r, soundCursor + scr.steps)), sfx.ui()
         }
 
-        function Ui(e, t) {
-            if (!He) return;
-            if (He = !1, Ge) {
-                Ge = !1;
+        function onSoundTestPointerUp(e, t) {
+            if (!soundDragOn) return;
+            if (soundDragOn = !1, soundDragged) {
+                soundDragged = !1;
                 return
             }
-            let up = soundTestPointerUp({
+            let pointerUp = soundTestPointerUp({
                 dragged: !1,
                 x: e,
                 y: t,
-                left: Cr,
-                right: wr,
-                mode: A,
-                playing: !!(M && !M.startsWith(`—`)),
-                hasComments: !!F.length,
+                left: RAIL_W,
+                right: FIELD_RIGHT,
+                mode: soundListMode,
+                playing: !!(trackLabel && !trackLabel.startsWith(`—`)),
+                hasComments: !!comments.length,
                 commentsFooter: soundTestCommentsFooterHit,
                 playingFooter: soundTestPlayingFooterHit,
-                rowAtY: Bi
+                rowAtY: soundTestRowIndexAtY
             });
-            if (up.type === `ignore`) return;
-            if (up.type === `footer_like`) { ki(1); return }
-            if (up.type === `footer_dislike`) { ki(-1); return }
-            if (up.type === `footer_write` || up.type === `write_first`) { Pi(); return }
-            if (up.type === `footer_back`) { Mi(); return }
-            if (up.type === `footer_comments`) { ji(); return }
-            if (up.type === `open_comment`) { F[qe] && Ni(F[qe]); return }
-            if (up.type === `activate_row`) {
-                if (up.row >= 0) j = up.row;
-                Li()
+            if (pointerUp.type === `ignore`) return;
+            if (pointerUp.type === `footer_like`) { voteTrack(1); return }
+            if (pointerUp.type === `footer_dislike`) { voteTrack(-1); return }
+            if (pointerUp.type === `footer_write` || pointerUp.type === `write_first`) { writeComment(); return }
+            if (pointerUp.type === `footer_back`) { leaveComments(); return }
+            if (pointerUp.type === `footer_comments`) { openComments(); return }
+            if (pointerUp.type === `open_comment`) { comments[commentCursor] && viewComment(comments[commentCursor]); return }
+            if (pointerUp.type === `activate_row`) {
+                if (pointerUp.row >= 0) soundCursor = pointerUp.row;
+                activateSoundTestRow()
             }
         }
 
         
-        // ── share (X) ──
-        function Wi() {
+        // ── share (PLAY_W) ──
+        function shareProgress() {
             let pack = buildSharePayload({
-                playerId: B,
-                stage: v,
-                score: m,
-                difficulty: Ie,
-                mode: p,
-                bossActive: !!De,
-                bossName: E,
-                lives: _,
-                continueCoins: ht
+                playerId: playerId,
+                stage: stage,
+                score: score,
+                difficulty: difficulty,
+                mode: mode,
+                bossActive: !!bossActive,
+                bossName: bossName,
+                lives: lives,
+                continueCoins: continueCoins
             });
-            Bn(B, pack.payload);
-            xt = pack.toast, St = 120, sfx.ui()
+            openShareSheet(playerId, pack.payload);
+            shareToast = pack.toast, shareToastLife = 120, sfx.ui()
         }
 
-        function Gi(e, t) {
+        function handleAttractTap(e, t) {
             let res = resolveAttractPointer({
                 x: e,
                 y: t,
-                Z,
-                left: Cr,
-                right: wr,
-                sub: tSub,
-                cursor: k,
-                difficulty: Ie
+                PLAY_H,
+                left: RAIL_W,
+                right: FIELD_RIGHT,
+                sub: titleSub,
+                cursor: titleCursor,
+                difficulty: difficulty
             });
-            if (res.cursor != null) k = res.cursor;
+            if (res.cursor != null) titleCursor = res.cursor;
             let a = toAttractDispatch(res.action);
-            if (a.type === `account`) { _i(); return }
-            if (a.type === `side_back_extra`) { tSub = `root`, k = 4, sfx.ui(); return }
-            if (a.type === `side_back_diff`) { tSub = `root`, k = 0, sfx.ui(); return }
-            if (a.type === `side_options`) { mr(`attract`); return }
-            if (a.type === `side_extra`) { tSub = `extra`, k = 0, sfx.ui(); return }
-            if (a.type === `sound_test`) { Ci(); return }
+            if (a.type === `account`) { openAccount(); return }
+            if (a.type === `side_back_extra`) { titleSub = `root`, titleCursor = 4, sfx.ui(); return }
+            if (a.type === `side_back_diff`) { titleSub = `root`, titleCursor = 0, sfx.ui(); return }
+            if (a.type === `side_options`) { openOptions(`attract`); return }
+            if (a.type === `side_extra`) { titleSub = `extra`, titleCursor = 0, sfx.ui(); return }
+            if (a.type === `sound_test`) { openSoundTest(); return }
             if (a.type === `profile`) { try { window.__sfOpenProfile?.() } catch {} return }
             if (a.type === `stats`) { try { window.__sfOpenStats?.() } catch {} return }
-            if (a.type === `back_root`) { tSub = `root`, k = a.cursor, sfx.ui(); return }
-            if (a.type === `start_easy`) { Ie = `easy`, pi(); return }
-            if (a.type === `start_normal`) { Ie = `normal`, pi(); return }
-            if (a.type === `open_diff`) { tSub = `diff`, k = a.preferNormal ? 1 : 0, sfx.ui(); return }
-            if (a.type === `share`) { Wi(); return }
-            if (a.type === `inbox`) { H && jt() ? yi() : bi(); return }
-            if (a.type === `options`) { mr(`attract`); return }
-            if (a.type === `open_extra`) { tSub = `extra`, k = 0, sfx.ui(); return }
-            if (a.type === `changelog`) { ai(); return }
+            if (a.type === `back_root`) { titleSub = `root`, titleCursor = a.cursor, sfx.ui(); return }
+            if (a.type === `start_easy`) { difficulty = `easy`, startRun(); return }
+            if (a.type === `start_normal`) { difficulty = `normal`, startRun(); return }
+            if (a.type === `open_diff`) { titleSub = `diff`, titleCursor = a.preferNormal ? 1 : 0, sfx.ui(); return }
+            if (a.type === `share`) { shareProgress(); return }
+            if (a.type === `inbox`) { sharerId && canSendFanmail() ? openFanmail() : openInbox(); return }
+            if (a.type === `options`) { openOptions(`attract`); return }
+            if (a.type === `open_extra`) { titleSub = `extra`, titleCursor = 0, sfx.ui(); return }
+            if (a.type === `changelog`) { openChangelog(); return }
             sfx.ui()
         }
 
         
         // ── main update tick ──
-        function Ki(e) {
+        function tickGame(e) {
             try {
-              if (p === `playing` || p === `ready` || p === `bossintro`) {
+              if (mode === `playing` || mode === `ready` || mode === `bossintro`) {
                 window.__sfPlayAcc = (window.__sfPlayAcc || 0) + (typeof e === "number" ? e : 0.016);
                 if (window.__sfPlayAcc >= 1) { addPlayTime(window.__sfPlayAcc); window.__sfPlayAcc = 0; }
               }
             } catch (err) {}
-            y++;
+            frame++;
             {
-                let d = decayTimers({
-                    shake: we, shopToast: Me, optToast: $e, stToast: Ye,
-                    shareToast: St, missionBanner: wt, missionToast: Et,
-                    shield: Ce, celebrate: Pe
+                let decayed = decayTimers({
+                    shake: shake, shopToast: shopToastLife, optToast: optionsToastLife, stToast: soundToastLife,
+                    shareToast: shareToastLife, missionBanner: missionBannerLife, missionToast: missionToastLife,
+                    shield: shield, celebrate: celebrate
                 });
-                we = d.shake, Me = d.shopToast, $e = d.optToast, Ye = d.stToast;
-                St = d.shareToast, wt = d.missionBanner, Et = d.missionToast;
-                Ce = d.shield, Pe = d.celebrate;
+                shake = decayed.shake, shopToastLife = decayed.shopToast, optionsToastLife = decayed.optToast, soundToastLife = decayed.stToast;
+                shareToastLife = decayed.shareToast, missionBannerLife = decayed.missionBanner, missionToastLife = decayed.missionToast;
+                shield = decayed.shield, celebrate = decayed.celebrate;
             }
-            tickStars(_n, p, Z, Cr, Tr);
-            tickFloats(pn);
-            tickLifetimes(gn);
-            tickParticles(fn);
+            tickStars(stars, mode, PLAY_H, RAIL_W, FIELD_INNER_W);
+            tickFloats(floatTexts);
+            tickLifetimes(lockBeams);
+            tickParticles(fxParticles);
 
-            let mtick = tickMode({ mode: p, readyFrames: oe, frame: y });
+            let mtick = tickMode({ mode: mode, readyFrames: readyTimer, frame: frame });
             if (mtick.type === `menu_idle`) return;
             if (mtick.type === `stageclear_to_shop`) {
-                oe = mtick.readyLeft;
-                if (mtick.openShop) fr(!1);
+                readyTimer = mtick.readyLeft;
+                if (mtick.openShop) openShop(!1);
                 return
             }
             if (mtick.type === `gameover_poll`) {
-                mtick.pollCoins && Bt();
+                mtick.pollCoins && refreshCoins();
                 return
             }
-            if (mtick.type === `name_blink`) { Ae++; return }
+            if (mtick.type === `name_blink`) { nameBlink++; return }
             if (mtick.type === `inbox_idle`) return;
             if (mtick.type === `countdown_to_playing`) {
-                oe = mtick.readyLeft;
-                if (oe <= 0) p = `playing`;
+                readyTimer = mtick.readyLeft;
+                if (readyTimer <= 0) mode = `playing`;
             } else if (mtick.type === `play`) {
-                if (K.vstick && xn) {
-                let sp = playerSpeed(O.speed, K.sense);
-                Math.min(1, Math.hypot(En, Dn)) > VSTICK_DEADZONE && (J.x += En * sp * e, J.y += Dn * sp * e);
-            } else if (!K.vstick && vn) {
-                let t = swipeFollowFactor(O.speed, K.sense, e);
-                J.x += (yn - J.x) * t, J.y += (bn - J.y) * t
+                if (settings.vstick && vstickActive) {
+                let speed = playerSpeed(upgrades.speed, settings.sense);
+                Math.min(1, Math.hypot(vstickAxisX, vstickAxisY)) > VSTICK_DEADZONE && (player.x += vstickAxisX * speed * e, player.y += vstickAxisY * speed * e);
+            } else if (!settings.vstick && swipeActive) {
+                let t = swipeFollowFactor(upgrades.speed, settings.sense, e);
+                player.x += (swipeX - player.x) * t, player.y += (swipeY - player.y) * t
             }
             }
             {
-                let pos = clampPlayerPos(J.x, J.y);
-                J.x = pos.x, J.y = pos.y
+                let pos = clampPlayerPos(player.x, player.y);
+                player.x = pos.x, player.y = pos.y
             }
-            if (Se > 0 && Se--, p === `playing`) {
+            if (invuln > 0 && invuln--, mode === `playing`) {
                 {
                     let tick = planWeaponFire({
-                        shot: x, missile: S, particle: T, lockon: ye, beam: be, flame: xe
+                        shot: shotTimer, missile: missileTimer, particle: particleTimer, lockon: lockonTimer, beam: beamTimer, flame: flameTimer
                     }, {
-                        rate: q(`rate`),
-                        missile: q(`missile`),
-                        cluster: q(`cluster`),
-                        particle: q(`particle`),
-                        overdrive: q(`overdrive`),
-                        lockon: q(`lockon`),
-                        hyper: q(`hyper`),
-                        beam: q(`beam`),
-                        flame: q(`flame`),
-                        shotArmed: Qt(`shot`),
-                        optionArmed: Qt(`option`),
-                        linked: !!V.linked
+                        rate: armedLevelOf(`rate`),
+                        missile: armedLevelOf(`missile`),
+                        cluster: armedLevelOf(`cluster`),
+                        particle: armedLevelOf(`particle`),
+                        overdrive: armedLevelOf(`overdrive`),
+                        lockon: armedLevelOf(`lockon`),
+                        hyper: armedLevelOf(`hyper`),
+                        beam: armedLevelOf(`beam`),
+                        flame: armedLevelOf(`flame`),
+                        shotArmed: isWeaponArmed(`shot`),
+                        optionArmed: isWeaponArmed(`option`),
+                        linked: !!account.linked
                     }, e);
-                    x = tick.cds.shot, S = tick.cds.missile, T = tick.cds.particle;
-                    ye = tick.cds.lockon, be = tick.cds.beam, xe = tick.cds.flame;
-                    for (let f of tick.fire) {
-                        if (f === `shot`) Hr();
-                        else if (f === `missile`) Gr();
-                        else if (f === `particle`) Kr();
-                        else if (f === `lockon`) qr();
-                        else if (f === `beam`) Ur();
-                        else if (f === `flame`) Wr();
+                    shotTimer = tick.cds.shot, missileTimer = tick.cds.missile, particleTimer = tick.cds.particle;
+                    lockonTimer = tick.cds.lockon, beamTimer = tick.cds.beam, flameTimer = tick.cds.flame;
+                    for (let nextEntityId of tick.fire) {
+                        if (nextEntityId === `shot`) firePlayerShots();
+                        else if (nextEntityId === `missile`) fireMissiles();
+                        else if (nextEntityId === `particle`) fireParticles();
+                        else if (nextEntityId === `lockon`) fireLockon();
+                        else if (nextEntityId === `beam`) fireBeam();
+                        else if (nextEntityId === `flame`) fireFlame();
                     }
                 }
                 {
-                    let sp = planSpawn({
-                        bossActive: !!De,
-                        spawnCd: b,
-                        kills: Te,
-                        killTarget: Ee,
-                        stage: v
+                    let spawnPlan = planSpawn({
+                        bossActive: !!bossActive,
+                        spawnCd: spawnTimer,
+                        kills: kills,
+                        killTarget: killsForBoss,
+                        stage: stage
                     });
-                    b = sp.spawnCd;
-                    if (sp.spawn) zr(), b = sp.afterSpawnCd;
-                    if (sp.startBoss) Br();
+                    spawnTimer = spawnPlan.spawnCd;
+                    if (spawnPlan.spawn) spawnGruntEnemy(), spawnTimer = spawnPlan.afterSpawnCd;
+                    if (spawnPlan.startBoss) spawnBossEnemy();
                 }
-                for (let t = dn.length - 1; t >= 0; t--) {
-                    let n = dn[t];
-                    stepEnemyMotion(n, e, (en) => {
-                        let meta = hn(en.bossId);
-                        stepBossPosition(en, meta.move, Cr, wr);
+                for (let t = enemies.length - 1; t >= 0; t--) {
+                    let n = enemies[t];
+                    stepEnemyMotion(n, e, (loadoutSummaryText) => {
+                        let meta = bossById(loadoutSummaryText.bossId);
+                        stepBossPosition(loadoutSummaryText, meta.move, RAIL_W, FIELD_RIGHT);
                     });
                     n.fireCd--;
                     if (enemyShouldFire(n)) {
-                        Vr(n);
+                        enemyShoot(n);
                         n.fireCd = enemyReloadFrames(n);
                     }
                     if (enemyShouldDespawn(n)) {
-                        dn.splice(t, 1);
+                        enemies.splice(t, 1);
                         continue
                     }
-                    if (Se <= 0 && enemyPlayerHit(n.x, n.y, n.w, n.h, J.x, J.y, J.w, J.h)) {
-                        Rr();
-                        if (!n.boss) Lr(n, 999, n.x, n.y);
+                    if (invuln <= 0 && enemyPlayerHit(n.x, n.y, n.w, n.h, player.x, player.y, player.w, player.h)) {
+                        playerTakeHit();
+                        if (!n.boss) damageEnemy(n, 999, n.x, n.y);
                     }
                 }
-                for (let bi = Y.length - 1; bi >= 0; bi--) {
-                    let t = Y[bi];
+                for (let bulletIdx = bullets.length - 1; bulletIdx >= 0; bulletIdx--) {
+                    let t = bullets[bulletIdx];
                     t.life--;
                     if (t.kind === `missile` && t.from === `p`) {
-                        let tgt = t.targetId ? Fr(t.targetId) : void 0;
+                        let tgt = t.targetId ? findEnemyById(t.targetId) : void 0;
                         if (!tgt) {
-                            let n = Ir(1)[0];
+                            let n = nearestEnemies(1)[0];
                             n && (t.targetId = n.id, tgt = n)
                         }
                         steerMissile(t, tgt);
                     }
                     t.x += t.vx, t.y += t.vy;
                     if (bulletOutOfBounds(t)) {
-                        Y.splice(bi, 1);
+                        bullets.splice(bulletIdx, 1);
                         continue
                     }
                     if (t.from === `p`) {
-                        for (let n of dn)
+                        for (let n of enemies)
                             if (aabbOverlap(t.x, t.y, t.w * 2, t.h * 2, n.x, n.y, n.w, n.h)) {
-                                Lr(n, t.dmg, t.x, t.y), t.kind !== `particle` && Y.splice(bi, 1), K.shake && (we = Math.min(10, we + 1));
+                                damageEnemy(n, t.dmg, t.x, t.y), t.kind !== `particle` && bullets.splice(bulletIdx, 1), settings.shake && (shake = Math.min(10, shake + 1));
                                 break
                             }
-                    } else Se <= 0 && playerBulletHit(J.x, J.y, t.x, t.y) && (Rr(), Y.splice(bi, 1))
+                    } else invuln <= 0 && playerBulletHit(player.x, player.y, t.x, t.y) && (playerTakeHit(), bullets.splice(bulletIdx, 1))
                 }
             }
         }
 
-        function qi() {
-            l.fillStyle = `#000`, l.fillRect(0, 0, X, Z);
-            let shake = screenShakeOffset(we),
-                e = shake.x,
-                t = shake.y;
-            let route = drawRoute(p);
-            if (l.save(), l.translate(e, t), Q(Cr, 0, Tr, Z, `#000`), route === `attract`) fi();
-            else if (route === `changelog`) ci();
-            else if (route === `soundtest`) Ri();
-            else if (route === `shop`) ri();
-            else if (route === `options`) ii();
+        function drawFrame() {
+            ctx.fillStyle = `#000`, ctx.fillRect(0, 0, PLAY_W, PLAY_H);
+            let shakeOff = screenShakeOffset(shake),
+                e = shakeOff.x,
+                t = shakeOff.y;
+            let route = drawRoute(mode);
+            if (ctx.save(), ctx.translate(e, t), fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#000`), route === `attract`) drawAttract();
+            else if (route === `changelog`) drawChangelog();
+            else if (route === `soundtest`) drawSoundTest();
+            else if (route === `shop`) drawShop();
+            else if (route === `options`) drawOptions();
             else {
-                for (let e of _n) Q(e.x, e.y, e.s, e.s, starColor(e.s));
-                if (fieldDrawsEntities(p)) {
-                    for (let e of gn) l.strokeStyle = e.color, l.globalAlpha = lockonAlpha(e.life), l.lineWidth = 1 + O.lockon * .4, l.beginPath(), l.moveTo(J.x, J.y - 6), l.lineTo(e.tx, e.ty), l.stroke(), l.strokeRect(e.tx - 6, e.ty - 6, 12, 12), l.globalAlpha = 1;
-                    let powerLv = q(`power`);
-                    for (let e of Y)
-                        for (let r of bulletRects(e, powerLv)) Q(r.x, r.y, r.w, r.h, r.color);
-                    for (let e of dn) Xr(e);
-                    Ce > 0 && (l.strokeStyle = shieldStrokeColor(y), l.beginPath(), l.arc(J.x, J.y, 14, 0, Math.PI * 2), l.stroke()), Jr(J.x, J.y, 1, invulnBlink(Se)), Yr();
-                    for (let e of fn) l.globalAlpha = particleAlpha(e.life, e.max), Q(e.x, e.y, e.size, e.size, e.color);
-                    l.globalAlpha = 1;
-                    for (let e of pn) l.globalAlpha = floatTextAlpha(e.life), $(e.text, e.x, e.y, e.color, 8, `center`);
-                    l.globalAlpha = 1, ni()
+                for (let e of stars) fillRect(e.x, e.y, e.s, e.s, starColor(e.s));
+                if (fieldDrawsEntities(mode)) {
+                    for (let e of lockBeams) ctx.strokeStyle = e.color, ctx.globalAlpha = lockonAlpha(e.life), ctx.lineWidth = 1 + upgrades.lockon * .4, ctx.beginPath(), ctx.moveTo(player.x, player.y - 6), ctx.lineTo(e.tx, e.ty), ctx.stroke(), ctx.strokeRect(e.tx - 6, e.ty - 6, 12, 12), ctx.globalAlpha = 1;
+                    let powerLv = armedLevelOf(`power`);
+                    for (let e of bullets)
+                        for (let r of bulletRects(e, powerLv)) fillRect(r.x, r.y, r.w, r.h, r.color);
+                    for (let e of enemies) drawEnemy(e);
+                    shield > 0 && (ctx.strokeStyle = shieldStrokeColor(frame), ctx.beginPath(), ctx.arc(player.x, player.y, 14, 0, Math.PI * 2), ctx.stroke()), drawPlayerShip(player.x, player.y, 1, invulnBlink(invuln)), drawOptionPods();
+                    for (let e of fxParticles) ctx.globalAlpha = particleAlpha(e.life, e.max), fillRect(e.x, e.y, e.size, e.size, e.color);
+                    ctx.globalAlpha = 1;
+                    for (let e of floatTexts) ctx.globalAlpha = floatTextAlpha(e.life), drawText(e.text, e.x, e.y, e.color, 8, `center`);
+                    ctx.globalAlpha = 1, drawVirtualStick()
                 }
                 {
-                    let ov = stageBannerOverlay(stageBanner(p, v, E, y), X, Z);
-                    if (ov) {
-                        for (let r of ov.rects) {
-                            if (r.fill) Q(r.x, r.y, r.w, r.h, r.fill);
+                    let bannerOverlay = stageBannerOverlay(stageBanner(mode, stage, bossName, frame), PLAY_W, PLAY_H);
+                    if (bannerOverlay) {
+                        for (let r of bannerOverlay.rects) {
+                            if (r.fill) fillRect(r.x, r.y, r.w, r.h, r.fill);
                             if (r.stroke) {
-                                l.strokeStyle = r.stroke;
-                                l.strokeRect(r.x + .5, r.y + .5, r.w - 1, r.h - 1);
+                                ctx.strokeStyle = r.stroke;
+                                ctx.strokeRect(r.x + .5, r.y + .5, r.w - 1, r.h - 1);
                             }
                         }
-                        for (let t of ov.texts) $(t.text, t.x, t.y, t.color, t.size, t.align || `center`);
+                        for (let t of bannerOverlay.texts) drawText(t.text, t.x, t.y, t.color, t.size, t.align || `center`);
                     }
                 }
-                if (p === `gameover`) {
-                    let go = buildGameOverView({ score: m, coins: ht, frame: y });
-                    $(`GAME OVER`, X / 2, Z / 2 - 48, `#ff2244`, 18, `center`);
-                    $(go.scoreText, X / 2, Z / 2 - 24, `#00ff88`, 12, `center`);
-                    $(go.coinText, X / 2, Z / 2 - 6, go.coinColor, 10, `center`);
-                    $(`制限時間なし · シェアしてコイン待ちOK`, X / 2, 210, `#668866`, 7, `center`);
-                    Q(72, 228, 176, 30, go.continue.fill), l.strokeStyle = go.continue.stroke, l.strokeRect(72.5, 228.5, 175, 29);
-                    $(go.continue.label, X / 2, 237, go.continue.labelColor, 9, `center`);
-                    Q(72, 264, 176, 28, `#221100`), l.strokeStyle = go.shareStroke, l.strokeRect(72.5, 264.5, 175, 27);
-                    $(`𝕏 SHARE してコインGET`, X / 2, 272, `#ffcc66`, 9, `center`);
-                    Q(88, 298, 144, 22, `#001100`), l.strokeStyle = `#335533`, l.strokeRect(88.5, 298.5, 143, 21);
-                    $(`→ TITLE`, X / 2, 303, `#668866`, 8, `center`)
+                if (mode === `gameover`) {
+                    let gameOverView = buildGameOverView({ score: score, coins: continueCoins, frame: frame });
+                    drawText(`GAME OVER`, PLAY_W / 2, PLAY_H / 2 - 48, `#ff2244`, 18, `center`);
+                    drawText(gameOverView.scoreText, PLAY_W / 2, PLAY_H / 2 - 24, `#00ff88`, 12, `center`);
+                    drawText(gameOverView.coinText, PLAY_W / 2, PLAY_H / 2 - 6, gameOverView.coinColor, 10, `center`);
+                    drawText(`制限時間なし · シェアしてコイン待ちOK`, PLAY_W / 2, 210, `#668866`, 7, `center`);
+                    fillRect(72, 228, 176, 30, gameOverView.continue.fill), ctx.strokeStyle = gameOverView.continue.stroke, ctx.strokeRect(72.5, 228.5, 175, 29);
+                    drawText(gameOverView.continue.label, PLAY_W / 2, 237, gameOverView.continue.labelColor, 9, `center`);
+                    fillRect(72, 264, 176, 28, `#221100`), ctx.strokeStyle = gameOverView.shareStroke, ctx.strokeRect(72.5, 264.5, 175, 27);
+                    drawText(`𝕏 SHARE してコインGET`, PLAY_W / 2, 272, `#ffcc66`, 9, `center`);
+                    fillRect(88, 298, 144, 22, `#001100`), ctx.strokeStyle = `#335533`, ctx.strokeRect(88.5, 298.5, 143, 21);
+                    drawText(`→ TITLE`, PLAY_W / 2, 303, `#668866`, 8, `center`)
                 }
-                if (p === `name`) {
-                    let nv = buildNameEntryView({ highScore: g, score: m, letters: ke, cursor: Oe, blinkFrame: Ae });
-                    $(`ENTER YOUR NAME!`, X / 2, Z * .28, `#ff3333`, 12, `center`);
-                    $(`BEST PLAYERS`, X / 2, Z * .36, `#00ffaa`, 10, `center`);
-                    $(`1ST  ${nv.best}  SWF`, X / 2, Z * .44, `#fff`, 9, `center`);
-                    $(`2ND  030000  FOR`, X / 2, Z * .5, `#fff`, 9, `center`);
-                    $(`3RD  ${nv.current}  ${ke.join(``)}`, X / 2, Z * .56, `#ff66ff`, 9, `center`);
-                    for (let e = 0; e < nv.letters.length; e++) {
-                        $(nv.letters[e].ch, X / 2 - 20 + e * 20, Z * .64, nv.letters[e].color, 16, `center`)
+                if (mode === `name`) {
+                    let nameView = buildNameEntryView({ highScore: highScore, score: score, letters: nameLetters, cursor: nameCursor, blinkFrame: nameBlink });
+                    drawText(`ENTER YOUR NAME!`, PLAY_W / 2, PLAY_H * .28, `#ff3333`, 12, `center`);
+                    drawText(`BEST PLAYERS`, PLAY_W / 2, PLAY_H * .36, `#00ffaa`, 10, `center`);
+                    drawText(`1ST  ${nameView.best}  SWF`, PLAY_W / 2, PLAY_H * .44, `#fff`, 9, `center`);
+                    drawText(`2ND  030000  FOR`, PLAY_W / 2, PLAY_H * .5, `#fff`, 9, `center`);
+                    drawText(`3RD  ${nameView.current}  ${nameLetters.join(``)}`, PLAY_W / 2, PLAY_H * .56, `#ff66ff`, 9, `center`);
+                    for (let e = 0; e < nameView.letters.length; e++) {
+                        drawText(nameView.letters[e].ch, PLAY_W / 2 - 20 + e * 20, PLAY_H * .64, nameView.letters[e].color, 16, `center`)
                     }
                 }
-                if (p === `inbox`) {
-                    Q(56, 24, 208, 360, `#001018`), l.strokeStyle = `#66ccff`, l.strokeRect(56.5, 24.5, 207, 359);
-                    $(`INBOX`, X / 2, 32, `#88eeff`, 12, `center`);
-                    $(`消すまで残る · ミッションMSGのみお礼可`, X / 2, 46, `#446688`, 7, `center`);
-                    if (!G.length) {
-                        $(`メッセージはありません`, X / 2, Z * .45, `#668888`, 8, `center`);
-                        $(`TAP=戻る`, X / 2, 372, `#556666`, 7, `center`);
-                    } else if (Ft) {
-                        let e = G[Pt];
-                        if (!e) Ft = !1;
+                if (mode === `inbox`) {
+                    fillRect(56, 24, 208, 360, `#001018`), ctx.strokeStyle = `#66ccff`, ctx.strokeRect(56.5, 24.5, 207, 359);
+                    drawText(`INBOX`, PLAY_W / 2, 32, `#88eeff`, 12, `center`);
+                    drawText(`消すまで残る · ミッションMSGのみお礼可`, PLAY_W / 2, 46, `#446688`, 7, `center`);
+                    if (!inbox.length) {
+                        drawText(`メッセージはありません`, PLAY_W / 2, PLAY_H * .45, `#668888`, 8, `center`);
+                        drawText(`TAP=戻る`, PLAY_W / 2, 372, `#556666`, 7, `center`);
+                    } else if (inboxDetail) {
+                        let e = inbox[inboxCursor];
+                        if (!e) inboxDetail = !1;
                         else {
-                            let d = buildInboxDetail(e, Wn(e));
-                            $(d.header, X / 2, 60, `#aaddff`, 9, `center`);
-                            $(d.fromLine, X / 2, 78, `#88aacc`, 8, `center`);
-                            d.bodyLines.forEach((line, idx) => {
-                                $(line, X / 2, 110 + idx * 16, `#ffffff`, 10, `center`);
+                            let rafId = buildInboxDetail(e, canReplyThanks(e));
+                            drawText(rafId.header, PLAY_W / 2, 60, `#aaddff`, 9, `center`);
+                            drawText(rafId.fromLine, PLAY_W / 2, 78, `#88aacc`, 8, `center`);
+                            rafId.bodyLines.forEach((line, idx) => {
+                                drawText(line, PLAY_W / 2, 110 + idx * 16, `#ffffff`, 10, `center`);
                             });
-                            if (d.thanksState === `can`) {
-                                Q(72, Z * .55, 176, 28, `#332200`), l.strokeStyle = `#ffcc66`, l.strokeRect(72.5, Z * .55 + .5, 175, 27);
-                                $(d.thanksLabel, X / 2, Z * .55 + 8, `#ffeeaa`, 9, `center`);
+                            if (rafId.thanksState === `can`) {
+                                fillRect(72, PLAY_H * .55, 176, 28, `#332200`), ctx.strokeStyle = `#ffcc66`, ctx.strokeRect(72.5, PLAY_H * .55 + .5, 175, 27);
+                                drawText(rafId.thanksLabel, PLAY_W / 2, PLAY_H * .55 + 8, `#ffeeaa`, 9, `center`);
                             } else {
-                                $(d.thanksLabel, X / 2, Z * .55 + 8, `#889988`, 8, `center`);
+                                drawText(rafId.thanksLabel, PLAY_W / 2, PLAY_H * .55 + 8, `#889988`, 8, `center`);
                             }
-                            Q(72, Z * .68, 176, 26, `#220011`), l.strokeStyle = `#ff6688`, l.strokeRect(72.5, Z * .68 + .5, 175, 25);
-                            $(`🗑 削除する`, X / 2, Z * .68 + 7, `#ff99aa`, 9, `center`);
-                            Q(88, Z * .8, 144, 22, `#001820`), l.strokeStyle = `#446666`, l.strokeRect(88.5, Z * .8 + .5, 143, 21);
-                            $(`◀ 一覧へ`, X / 2, Z * .8 + 5, `#88aaaa`, 8, `center`);
+                            fillRect(72, PLAY_H * .68, 176, 26, `#220011`), ctx.strokeStyle = `#ff6688`, ctx.strokeRect(72.5, PLAY_H * .68 + .5, 175, 25);
+                            drawText(`🗑 削除する`, PLAY_W / 2, PLAY_H * .68 + 7, `#ff99aa`, 9, `center`);
+                            fillRect(88, PLAY_H * .8, 144, 22, `#001820`), ctx.strokeStyle = `#446666`, ctx.strokeRect(88.5, PLAY_H * .8 + .5, 143, 21);
+                            drawText(`◀ 一覧へ`, PLAY_W / 2, PLAY_H * .8 + 5, `#88aaaa`, 8, `center`);
                         }
                     } else {
                         let { rows } = buildInboxListRows({
-                            messages: G,
-                            cursor: Pt,
-                            canThanks: Wn
+                            messages: inbox,
+                            cursor: inboxCursor,
+                            canThanks: canReplyThanks
                         });
                         for (let row of rows) {
-                            row.selected && Q(62, row.y - 2, 196, 44, `#002233`);
-                            $(row.fromLine, 66, row.y, row.kindColor, 7);
-                            $(row.bodyPreview, 66, row.y + 12, `#ffffff`, 9);
-                            $(row.status, 258, row.y + 12, row.statusColor, 7, `right`);
-                            $(row.sourceTag, 66, row.y + 26, `#445566`, 6);
+                            row.selected && fillRect(62, row.y - 2, 196, 44, `#002233`);
+                            drawText(row.fromLine, 66, row.y, row.kindColor, 7);
+                            drawText(row.bodyPreview, 66, row.y + 12, `#ffffff`, 9);
+                            drawText(row.status, 258, row.y + 12, row.statusColor, 7, `right`);
+                            drawText(row.sourceTag, 66, row.y + 26, `#445566`, 6);
                         }
-                        $(`選択TAP→詳細  下端=戻る`, X / 2, 372, `#556666`, 7, `center`);
+                        drawText(`選択TAP→詳細  下端=戻る`, PLAY_W / 2, 372, `#556666`, 7, `center`);
                     }
                 }
-                fieldShowsHud(p) && $r()
+                fieldShowsHud(mode) && drawPlayHud()
             }
-            if (l.restore(), Qr(), K.scanlines) {
-                l.fillStyle = scanlineFill();
-                for (let e = 0; e < Z; e += 2) l.fillRect(Cr, e, Tr, 1)
+            if (ctx.restore(), drawSideRails(), settings.scanlines) {
+                ctx.fillStyle = scanlineFill();
+                for (let e = 0; e < PLAY_H; e += 2) ctx.fillRect(RAIL_W, e, FIELD_INNER_W, 1)
             }
         }
-        let Ji = performance.now();
+        let lastFrameMs = performance.now();
 
-        function Yi(e) {
-            if (!u) return;
-            let t = (e - Ji) / 1e3;
-            Ji = e, t > .05 && (t = .05), Ki(t), qi(), d = requestAnimationFrame(Yi)
+        function frameLoop(e) {
+            if (!running) return;
+            let t = (e - lastFrameMs) / 1e3;
+            lastFrameMs = e, t > .05 && (t = .05), tickGame(t), drawFrame(), rafId = requestAnimationFrame(frameLoop)
         }
-        d = requestAnimationFrame(Yi);
+        rafId = requestAnimationFrame(frameLoop);
 
-        function Xi(e, t) {
-            let n = s.getBoundingClientRect();
+        function pointerToGameCoords(e, t) {
+            let n = canvas.getBoundingClientRect();
             return {
-                x: (e - n.left) / n.width * X,
-                y: (t - n.top) / n.height * Z
+                x: (e - n.left) / n.width * PLAY_W,
+                y: (t - n.top) / n.height * PLAY_H
             }
         }
 
-        function Zi(e) {
-            let t = Mr.indexOf(ke[Oe]);
-            ke[Oe] = Mr[(t + e + 36) % 36]
+        function stepNameLetter(e) {
+            let t = NAME_CHARSET.indexOf(nameLetters[nameCursor]);
+            nameLetters[nameCursor] = NAME_CHARSET[(t + e + 36) % 36]
         }
 
-        function Qi(e, t) {
+        function onShopPointerUp(e, t) {
             let act = shopPointerUp({
                 x: e,
                 y: t,
-                left: Cr,
-                right: wr,
-                catalogLen: Kn().length,
-                cursor: D
+                left: RAIL_W,
+                right: FIELD_RIGHT,
+                catalogLen: shopCatalog().length,
+                cursor: shopCursor
             });
-            let n = Kn();
-            if (act.type === `side_opt`) { mr(`shop`); return }
-            if (act.type === `side_back`) { pr(); return }
-            if (act.type === `header_share` || act.type === `footer_share`) { D = n.length + 2, Wi(); return }
-            if (act.type === `header_opt` || act.type === `footer_opt`) { D = n.length + 1, mr(`shop`); return }
-            if (act.type === `footer_go`) { D = n.length, pr(); return }
-            if (act.type === `buy`) { D = act.index, sr(n[act.index]); return }
-            if (act.type === `select`) { D = act.index, sfx.ui(); return }
-            if (act.type === `empty_confirm`) $i()
+            let n = shopCatalog();
+            if (act.type === `side_opt`) { openOptions(`shop`); return }
+            if (act.type === `side_back`) { closeShop(); return }
+            if (act.type === `header_share` || act.type === `footer_share`) { shopCursor = n.length + 2, shareProgress(); return }
+            if (act.type === `header_opt` || act.type === `footer_opt`) { shopCursor = n.length + 1, openOptions(`shop`); return }
+            if (act.type === `footer_go`) { shopCursor = n.length, closeShop(); return }
+            if (act.type === `buy`) { shopCursor = act.index, buyShopItem(n[act.index]); return }
+            if (act.type === `select`) { shopCursor = act.index, sfx.ui(); return }
+            if (act.type === `empty_confirm`) confirmShopSelection()
         }
 
-        function $i() {
-            let e = Kn(),
-                act = shopEmptyConfirm(D, e.length);
-            if (act.type === `buy`) sr(e[act.index]);
-            else if (act.type === `go`) pr();
-            else if (act.type === `opt`) mr(`shop`);
-            else if (act.type === `share`) Wi()
+        function confirmShopSelection() {
+            let e = shopCatalog(),
+                act = shopEmptyConfirm(shopCursor, e.length);
+            if (act.type === `buy`) buyShopItem(e[act.index]);
+            else if (act.type === `gameOverView`) closeShop();
+            else if (act.type === `opt`) openOptions(`shop`);
+            else if (act.type === `share`) shareProgress()
         }
 
-        function ea() {
-            return shopCursorMax(Kn().length)
+        function shopCursorLimit() {
+            return shopCursorMax(shopCatalog().length)
         }
 
-        function ta(e) {
-            D = shopCursorStep(D, e, Kn().length), sfx.ui()
+        function moveShopCursor(e) {
+            shopCursor = shopCursorStep(shopCursor, e, shopCatalog().length), sfx.ui()
         }
 
-        function na(e, t) {
+        function onShopPointerDown(e, t) {
             let hit = shopPointerDown({
                 x: e,
                 y: t,
-                left: Cr,
-                right: wr,
-                catalogLen: Kn().length,
-                cursor: D
+                left: RAIL_W,
+                right: FIELD_RIGHT,
+                catalogLen: shopCatalog().length,
+                cursor: shopCursor
             });
             if (hit.sideRail) {
-                Ne && pr();
+                shopPaused && closeShop();
                 return
             }
-            ot = !0, st = e, ct = t, lt = 0, ut = !1;
-            if (hit.cursor != null) D = hit.cursor
+            shopDragOn = !0, shopDragX = e, shopDragY = t, shopDragAcc = 0, shopDragged = !1;
+            if (hit.cursor != null) shopCursor = hit.cursor
         }
 
-        function ra(e, t) {
-            if (!ot || p !== `shop`) return;
-            let n = t - ct,
-                r = e - st;
-            let scr = shopDragScroll({ dx: r, dy: n, accum: lt, stepPx: 16 });
+        function onShopPointerDrag(e, t) {
+            if (!shopDragOn || mode !== `shop`) return;
+            let n = t - shopDragY,
+                r = e - shopDragX;
+            let scr = shopDragScroll({ dx: r, dy: n, accum: shopDragAcc, stepPx: 16 });
             if (scr.vertical) {
-                lt = scr.accum, ct = t, st = e;
-                if (scr.steps) ta(scr.steps), ut = !0;
+                shopDragAcc = scr.accum, shopDragY = t, shopDragX = e;
+                if (scr.steps) moveShopCursor(scr.steps), shopDragged = !0;
                 return
             }
-            st = e, ct = t
+            shopDragX = e, shopDragY = t
         }
 
-        function ia(e, t) {
-            if (ot) {
-                if (ot = !1, ut) {
-                    ut = !1;
+        function finishShopPointer(e, t) {
+            if (shopDragOn) {
+                if (shopDragOn = !1, shopDragged) {
+                    shopDragged = !1;
                     return
                 }
-                Qi(e, t)
+                onShopPointerUp(e, t)
             }
         }
 
-        function aa(e) {
-            return optionsRowAtY(e, an().length, R)
+        function optionsRowIndexAtY(e) {
+            return optionsRowAtY(e, optionRows().length, optionsCursor)
         }
 
-        function oa(e, t) {
-            return optionsCursorStep(an(), e, t)
+        function stepOptionsCursor(e, t) {
+            return optionsCursorStep(optionRows(), e, t)
         }
 
-        function sa(e, t) {
+        function onOptionsPointerDown(e, t) {
             let down = optionsPointerDown({
                 x: e,
                 y: t,
-                left: Cr,
-                right: wr,
-                rowAtY: aa,
-                rowKind: (i) => an()[i]?.kind
+                left: RAIL_W,
+                right: FIELD_RIGHT,
+                rowAtY: optionsRowIndexAtY,
+                rowKind: (i) => optionRows()[i]?.kind
             });
-            if (down.sideBack) { hr(); return }
-            et = !0, tt = e, nt = t, rt = 0, it = 0, at = !1;
-            if (down.selectRow) R = down.rowIndex
+            if (down.sideBack) { closeOptions(); return }
+            optionsDragOn = !0, optionsDragX = e, optionsDragY = t, optionsDragAccX = 0, optionsDragAccY = 0, optionsDragged = !1;
+            if (down.selectRow) optionsCursor = down.rowIndex
         }
 
-        function ca(e, t) {
-            if (!et || p !== `options`) return;
-            let n = e - tt,
-                r = t - nt;
+        function onOptionsPointerDrag(e, t) {
+            if (!optionsDragOn || mode !== `options`) return;
+            let n = e - optionsDragX,
+                r = t - optionsDragY;
             if (Math.abs(r) > Math.abs(n) * .85) {
-                for (it += r, tt = e, nt = t; it <= -15;) R = oa(R, -1), it += 15, at = !0, sfx.ui();
-                for (; it >= 15;) R = oa(R, 1), it -= 15, at = !0, sfx.ui();
+                for (optionsDragAccY += r, optionsDragX = e, optionsDragY = t; optionsDragAccY <= -15;) optionsCursor = stepOptionsCursor(optionsCursor, -1), optionsDragAccY += 15, optionsDragged = !0, sfx.ui();
+                for (; optionsDragAccY >= 15;) optionsCursor = stepOptionsCursor(optionsCursor, 1), optionsDragAccY -= 15, optionsDragged = !0, sfx.ui();
                 return
             }
-            let i = an()[R];
+            let i = optionRows()[optionsCursor];
             if (!i || i.kind !== `vol` && i.kind !== `sense` && i.kind !== `weapon`) {
-                tt = e, nt = t;
+                optionsDragX = e, optionsDragY = t;
                 return
             }
             if (Math.abs(n) < Math.abs(r) * .7) {
-                tt = e, nt = t;
+                optionsDragX = e, optionsDragY = t;
                 return
             }
-            rt += n, tt = e, nt = t;
+            optionsDragAccX += n, optionsDragX = e, optionsDragY = t;
             let a = optionsSwipeStep(i.kind);
-            for (; rt >= a;) Nr(1), rt -= a, at = !0;
-            for (; rt <= -a;) Nr(-1), rt += a, at = !0
+            for (; optionsDragAccX >= a;) nudgeOption(1), optionsDragAccX -= a, optionsDragged = !0;
+            for (; optionsDragAccX <= -a;) nudgeOption(-1), optionsDragAccX += a, optionsDragged = !0
         }
 
-        function la(e) {
-            let t = an();
+        function activateOptionRow(e) {
+            let t = optionRows();
             if (!t.length) return;
             let n = Math.max(0, Math.min(t.length - 1, e));
-            t[n].kind === `header` && (n = oa(n, 1));
+            t[n].kind === `header` && (n = stepOptionsCursor(n, 1));
             let r = t[n];
             let act = optionsActivate(r);
             if (act.type === `noop`) return;
-            R = n;
-            if (act.type === `back`) { hr(); return }
+            optionsCursor = n;
+            if (act.type === `back`) { closeOptions(); return }
             if (act.type === `submenu`) {
-                act.key === `shot` ? (z = `shot`, R = 1) : (z = `weapons`, R = 1), sfx.ui();
+                act.key === `shot` ? (optionsSub = `shot`, optionsCursor = 1) : (optionsSub = `weapons`, optionsCursor = 1), sfx.ui();
                 return
             }
             if (act.type === `toggle` || act.type === `adjust`) {
-                Nr(1);
+                nudgeOption(1);
                 return
             }
             if (act.type === `confirm_slider`) {
-                Qe = `${act.label}  OK`, $e = 40, sfx.ui();
+                optionsToast = `${act.label}  OK`, optionsToastLife = 40, sfx.ui();
                 return
             }
         }
 
-        function ua(e, t) {
-            if (!et) return;
-            et = !1;
-            let up = optionsPointerUp({
-                dragged: !!at,
+        function onOptionsPointerUp(e, t) {
+            if (!optionsDragOn) return;
+            optionsDragOn = !1;
+            let pointerUp = optionsPointerUp({
+                dragged: !!optionsDragged,
                 x: e,
                 y: t,
-                left: Cr,
-                right: wr,
-                cursor: R,
-                rowAtY: aa,
-                rowKind: (i) => an()[i]?.kind
+                left: RAIL_W,
+                right: FIELD_RIGHT,
+                cursor: optionsCursor,
+                rowAtY: optionsRowIndexAtY,
+                rowKind: (i) => optionRows()[i]?.kind
             });
-            at = !1;
-            if (up.type === `ignore`) return;
-            if (up.type === `activate`) { la(up.cursor); return }
-            if (up.type === `select`) { R = up.cursor, sfx.ui() }
+            optionsDragged = !1;
+            if (pointerUp.type === `ignore`) return;
+            if (pointerUp.type === `activate`) { activateOptionRow(pointerUp.cursor); return }
+            if (pointerUp.type === `select`) { optionsCursor = pointerUp.cursor, sfx.ui() }
         }
 
-        function da(e, t) {
-            let a = virtualStickAxis(e, t, Cn, Tn, 30);
-            En = a.x, Dn = a.y
+        function updateVirtualStickAxis(e, t) {
+            let a = virtualStickAxis(e, t, vstickX, vstickY, 30);
+            vstickAxisX = a.x, vstickAxisY = a.y
         }
 
-        function fa(e, t) {
-            let n = Xi(e, t);
-            bgm.unlock(), Gt();
+        function onPointerDown(e, t) {
+            let n = pointerToGameCoords(e, t);
+            bgm.unlock(), applyAudioSettings();
             let route = routePointerDown({
-                mode: p,
+                mode: mode,
                 x: n.x,
                 y: n.y,
-                left: Cr,
-                right: wr,
+                left: RAIL_W,
+                right: FIELD_RIGHT,
                 muteHit: muteButtonHit(n.x, n.y)
             });
             if (route.type === `mute`) {
-                Fe = bgm.toggleMute(), K.muted = Fe, Kt(), Fe || (p === `bossintro` || p === `playing` && De ? bgm.boss(mn(v).vibe, v) : (p === `playing` || p === `ready`) && bgm.start(`play`, v)), sfx.ui();
+                mutedFlag = bgm.toggleMute(), settings.muted = mutedFlag, persistSettings(), mutedFlag || (mode === `bossintro` || mode === `playing` && bossActive ? bgm.boss(bossForStage(stage).vibe, stage) : (mode === `playing` || mode === `ready`) && bgm.start(`play`, stage)), sfx.ui();
                 return
             }
-            if (route.type === `mode` && route.mode === `attract`) { Gi(n.x, n.y); return }
-            if (route.type === `mode` && route.mode === `changelog`) { li(n.x, n.y); return }
-            if (route.type === `mode` && route.mode === `soundtest`) { Vi(n.x, n.y); return }
-            if (route.type === `mode` && route.mode === `options`) { sa(n.x, n.y); return }
-            if (route.type === `mode` && route.mode === `shop`) { na(n.x, n.y); return }
+            if (route.type === `mode` && route.mode === `attract`) { handleAttractTap(n.x, n.y); return }
+            if (route.type === `mode` && route.mode === `changelog`) { onChangelogTap(n.x, n.y); return }
+            if (route.type === `mode` && route.mode === `soundtest`) { onSoundTestPointerDown(n.x, n.y); return }
+            if (route.type === `mode` && route.mode === `options`) { onOptionsPointerDown(n.x, n.y); return }
+            if (route.type === `mode` && route.mode === `shop`) { onShopPointerDown(n.x, n.y); return }
             if (route.type === `mode` && route.mode === `gameover`) {
-                let hit = gameOverHit(n.x, n.y, Cr, wr);
-                if (hit === `side_share` || hit === `share`) { Wi(), Bt(); return }
-                if (hit === `side_title` || hit === `title`) { p = `attract`, Bt(), bgm.start(`attract`), sfx.ui(); return }
+                let hit = gameOverHit(n.x, n.y, RAIL_W, FIELD_RIGHT);
+                if (hit === `side_share` || hit === `share`) { shareProgress(), refreshCoins(); return }
+                if (hit === `side_title` || hit === `title`) { mode = `attract`, refreshCoins(), bgm.start(`attract`), sfx.ui(); return }
                 if (hit === `continue`) {
-                    ht > 0 ? xi() : (sfx.buyFail(), xt = `コインが必要です · シェアしよう`, St = 80);
+                    continueCoins > 0 ? doContinue() : (sfx.buyFail(), shareToast = `コインが必要です · シェアしよう`, shareToastLife = 80);
                     return
                 }
                 return
             }
             if (route.type === `mode` && route.mode === `name`) {
-                let hit = nameEntryHit(n.x, X, Cr, wr);
-                if (hit === `side_back`) { p = `attract`, bgm.start(`attract`), sfx.ui(); return }
-                if (hit === `letter_prev`) Zi(-1);
-                else if (hit === `letter_next`) Zi(1);
-                else Oe++, Oe >= 3 && (p = `attract`, bgm.start(`attract`));
+                let hit = nameEntryHit(n.x, PLAY_W, RAIL_W, FIELD_RIGHT);
+                if (hit === `side_back`) { mode = `attract`, bgm.start(`attract`), sfx.ui(); return }
+                if (hit === `letter_prev`) stepNameLetter(-1);
+                else if (hit === `letter_next`) stepNameLetter(1);
+                else nameCursor++, nameCursor >= 3 && (mode = `attract`, bgm.start(`attract`));
                 return
             }
             if (route.type === `mode` && route.mode === `inbox`) {
                 let hit = inboxPointerHit({
                     x: n.x,
                     y: n.y,
-                    left: Cr,
-                    right: wr,
-                    fieldH: Z,
-                    messageCount: G.length,
-                    detailOpen: !!Ft,
-                    cursor: Pt
+                    left: RAIL_W,
+                    right: FIELD_RIGHT,
+                    fieldH: PLAY_H,
+                    messageCount: inbox.length,
+                    detailOpen: !!inboxDetail,
+                    cursor: inboxCursor
                 });
                 if (hit.type === `side_title` || hit.type === `empty_title` || hit.type === `list_back`) {
-                    p = `attract`, bgm.start(`attract`), sfx.ui();
+                    mode = `attract`, bgm.start(`attract`), sfx.ui();
                     return
                 }
-                if (hit.type === `open`) { Pt = hit.index, Ft = !0, sfx.ui(); return }
+                if (hit.type === `open`) { inboxCursor = hit.index, inboxDetail = !0, sfx.ui(); return }
                 if (hit.type === `thanks`) {
-                    let e = G[Pt];
-                    if (!e) { Ft = !1; return }
-                    Wn(e) ? zt(e) : sfx.buyFail();
+                    let e = inbox[inboxCursor];
+                    if (!e) { inboxDetail = !1; return }
+                    canReplyThanks(e) ? openThanks(e) : sfx.buyFail();
                     return
                 }
                 if (hit.type === `delete`) {
-                    let e = G[Pt];
-                    if (!e) { Ft = !1; return }
-                    $n({ playerId: B, messageId: e.id }).then(() => { It(), Ft = !1, sfx.ui() });
+                    let e = inbox[inboxCursor];
+                    if (!e) { inboxDetail = !1; return }
+                    deleteInboxMessage({ playerId: playerId, messageId: e.id }).then(() => { reloadInbox(), inboxDetail = !1, sfx.ui() });
                     return
                 }
-                if (hit.type === `to_list`) { Ft = !1, sfx.ui(); return }
-                if (hit.type === `clear_detail`) { Ft = !1; return }
+                if (hit.type === `to_list`) { inboxDetail = !1, sfx.ui(); return }
+                if (hit.type === `clear_detail`) { inboxDetail = !1; return }
                 return
             }
             if (route.type === `play_side`) {
-                if (route.left) route.upper ? fr(!0) : mr(`play`);
-                else route.upper ? mr(`play`) : fr(!0);
+                if (route.left) route.upper ? openShop(!0) : openOptions(`play`);
+                else route.upper ? openOptions(`play`) : openShop(!0);
                 return
             }
             if (route.type === `play_move`) {
-                let mv = playMoveFromPointer({ x: n.x, y: n.y, vstick: !!K.vstick });
-                if (mv.vstick) xn = !0, Cn = mv.stickX, Tn = mv.stickY, En = 0, Dn = 0;
-                else vn = !0, yn = mv.followX, bn = mv.followY
+                let moveResult = playMoveFromPointer({ x: n.x, y: n.y, vstick: !!settings.vstick });
+                if (moveResult.vstick) vstickActive = !0, vstickX = moveResult.stickX, vstickY = moveResult.stickY, vstickAxisX = 0, vstickAxisY = 0;
+                else swipeActive = !0, swipeX = moveResult.followX, swipeY = moveResult.followY
             }
         }
 
-        function pa(e, t) {
+        function onPointerMove(e, t) {
             let route = routePointerMove({
-                mode: p,
-                optionsDragging: !!et,
-                shopDragging: !!ot,
-                soundtestDragging: !!He,
-                changelogDragging: !!Re,
-                vstickEnabled: !!K.vstick,
-                vstickActive: !!xn,
-                swipeActive: !!vn
+                mode: mode,
+                optionsDragging: !!optionsDragOn,
+                shopDragging: !!shopDragOn,
+                soundtestDragging: !!soundDragOn,
+                changelogDragging: !!changelogDragOn,
+                vstickEnabled: !!settings.vstick,
+                vstickActive: !!vstickActive,
+                swipeActive: !!swipeActive
             });
-            let n = Xi(e, t);
-            if (route.type === `options_drag`) { ca(n.x, n.y); return }
-            if (route.type === `shop_drag`) { ra(n.x, n.y); return }
-            if (route.type === `soundtest_drag`) { Hi(n.x, n.y); return }
-            if (route.type === `changelog_drag`) { ui(n.x, n.y); return }
-            if (route.type === `vstick`) { da(n.x, n.y); return }
+            let n = pointerToGameCoords(e, t);
+            if (route.type === `options_drag`) { onOptionsPointerDrag(n.x, n.y); return }
+            if (route.type === `shop_drag`) { onShopPointerDrag(n.x, n.y); return }
+            if (route.type === `soundtest_drag`) { onSoundTestPointerDrag(n.x, n.y); return }
+            if (route.type === `changelog_drag`) { onChangelogDrag(n.x, n.y); return }
+            if (route.type === `vstick`) { updateVirtualStickAxis(n.x, n.y); return }
             if (route.type === `swipe_follow`) {
                 let pos = clampSwipeFollow(n.x, n.y);
-                yn = pos.x, bn = pos.y
+                swipeX = pos.x, swipeY = pos.y
             }
         }
-        let ma = e => {
-                e.preventDefault(), fa(e.touches[0].clientX, e.touches[0].clientY)
+        let onTouchStart = e => {
+                e.preventDefault(), onPointerDown(e.touches[0].clientX, e.touches[0].clientY)
             },
-            ha = e => {
-                e.preventDefault(), pa(e.touches[0].clientX, e.touches[0].clientY)
+            onTouchMove = e => {
+                e.preventDefault(), onPointerMove(e.touches[0].clientX, e.touches[0].clientY)
             },
-            ga = e => {
-                if (e.preventDefault(), p === `options` && et) {
+            onTouchEnd = e => {
+                if (e.preventDefault(), mode === `options` && optionsDragOn) {
                     let t = e.changedTouches[0];
                     if (t) {
-                        let e = Xi(t.clientX, t.clientY);
-                        ua(e.x, e.y)
-                    } else ua(tt, nt);
+                        let e = pointerToGameCoords(t.clientX, t.clientY);
+                        onOptionsPointerUp(e.x, e.y)
+                    } else onOptionsPointerUp(optionsDragX, optionsDragY);
                     return
                 }
-                if (p === `shop` && ot) {
+                if (mode === `shop` && shopDragOn) {
                     let t = e.changedTouches[0];
                     if (t) {
-                        let e = Xi(t.clientX, t.clientY);
-                        ia(e.x, e.y)
-                    } else ia(st, ct);
+                        let e = pointerToGameCoords(t.clientX, t.clientY);
+                        finishShopPointer(e.x, e.y)
+                    } else finishShopPointer(shopDragX, shopDragY);
                     return
                 }
-                if (p === `soundtest` && He) {
+                if (mode === `soundtest` && soundDragOn) {
                     let t = e.changedTouches[0];
                     if (t) {
-                        let e = Xi(t.clientX, t.clientY);
-                        Ui(e.x, e.y)
-                    } else Ui(58, Ue);
+                        let e = pointerToGameCoords(t.clientX, t.clientY);
+                        onSoundTestPointerUp(e.x, e.y)
+                    } else onSoundTestPointerUp(58, soundDragY);
                     return
                 }
-                if (p === `changelog` && Re) {
+                if (mode === `changelog` && changelogDragOn) {
                     let t = e.changedTouches[0];
                     if (t) {
-                        let e = Xi(t.clientX, t.clientY);
-                        di(e.x, e.y)
-                    } else di(58, ze);
+                        let e = pointerToGameCoords(t.clientX, t.clientY);
+                        onChangelogPointerUp(e.x, e.y)
+                    } else onChangelogPointerUp(58, changelogDragY);
                     return
                 }
-                vn = !1, kn()
+                swipeActive = !1, clearInput()
             },
-            _a = e => fa(e.clientX, e.clientY),
-            va = e => pa(e.clientX, e.clientY),
-            ya = e => {
-                if (p === `options` && et) {
-                    let t = Xi(e.clientX, e.clientY);
-                    ua(t.x, t.y);
+            onMouseDown = e => onPointerDown(e.clientX, e.clientY),
+            onMouseMove = e => onPointerMove(e.clientX, e.clientY),
+            onMouseUp = e => {
+                if (mode === `options` && optionsDragOn) {
+                    let t = pointerToGameCoords(e.clientX, e.clientY);
+                    onOptionsPointerUp(t.x, t.y);
                     return
                 }
-                if (p === `shop` && ot) {
-                    let t = Xi(e.clientX, e.clientY);
-                    ia(t.x, t.y);
+                if (mode === `shop` && shopDragOn) {
+                    let t = pointerToGameCoords(e.clientX, e.clientY);
+                    finishShopPointer(t.x, t.y);
                     return
                 }
-                if (p === `soundtest` && He) {
-                    let t = Xi(e.clientX, e.clientY);
-                    Ui(t.x, t.y);
+                if (mode === `soundtest` && soundDragOn) {
+                    let t = pointerToGameCoords(e.clientX, e.clientY);
+                    onSoundTestPointerUp(t.x, t.y);
                     return
                 }
-                if (p === `changelog` && Re) {
-                    let t = Xi(e.clientX, e.clientY);
-                    di(t.x, t.y);
+                if (mode === `changelog` && changelogDragOn) {
+                    let t = pointerToGameCoords(e.clientX, e.clientY);
+                    onChangelogPointerUp(t.x, t.y);
                     return
                 }
-                vn = !1, kn()
+                swipeActive = !1, clearInput()
             },
-            ba = e => {
-                On.add(e.key), bgm.unlock();
+            onKeyDown = e => {
+                keysDown.add(e.key), bgm.unlock();
                 let act = resolveKeyAction({
                     key: e.key,
-                    mode: p,
-                    soundSub: A,
-                    shopPaused: !!Ne
+                    mode: mode,
+                    soundSub: soundListMode,
+                    shopPaused: !!shopPaused
                 });
                 if (act.type === `mute_toggle`) {
-                    Fe = bgm.toggleMute(), K.muted = Fe, Kt(), Fe || (p === `shop` || p === `attract` || p === `options` ? bgm.start(`attract`) : p === `playing` && De ? bgm.boss(mn(v).vibe, v) : (p === `playing` || p === `ready`) && bgm.start(`play`, v));
+                    mutedFlag = bgm.toggleMute(), settings.muted = mutedFlag, persistSettings(), mutedFlag || (mode === `shop` || mode === `attract` || mode === `options` ? bgm.start(`attract`) : mode === `playing` && bossActive ? bgm.boss(bossForStage(stage).vibe, stage) : (mode === `playing` || mode === `ready`) && bgm.start(`play`, stage));
                     return
                 }
-                if (p === `options`) {
-                    if (act.type === `options_up`) R = oa(R, -1), sfx.ui();
-                    else if (act.type === `options_down`) R = oa(R, 1), sfx.ui();
-                    else if (act.type === `options_left`) Nr(-1);
-                    else if (act.type === `options_right`) Nr(1);
+                if (mode === `options`) {
+                    if (act.type === `options_up`) optionsCursor = stepOptionsCursor(optionsCursor, -1), sfx.ui();
+                    else if (act.type === `options_down`) optionsCursor = stepOptionsCursor(optionsCursor, 1), sfx.ui();
+                    else if (act.type === `options_left`) nudgeOption(-1);
+                    else if (act.type === `options_right`) nudgeOption(1);
                     else if (act.type === `options_confirm`) {
-                        let t = an();
-                        t[R]?.kind === `back` ? hr() : Nr(1)
-                    } else if (act.type === `options_back`) hr();
+                        let t = optionRows();
+                        t[optionsCursor]?.kind === `back` ? closeOptions() : nudgeOption(1)
+                    } else if (act.type === `options_back`) closeOptions();
                     return
                 }
-                if (p === `soundtest`) {
-                    if (A === `comments`) {
-                        if (act.type === `st_comments_up`) qe = Math.max(0, qe - 1), sfx.ui();
-                        else if (act.type === `st_comments_down`) qe = Math.min(Math.max(0, F.length - 1), qe + 1), sfx.ui();
-                        else if (act.type === `st_comments_write`) Pi();
-                        else if (act.type === `st_comments_back`) Mi();
-                        else if (act.type === `st_like`) ki(1);
-                        else if (act.type === `st_dislike`) ki(-1);
+                if (mode === `soundtest`) {
+                    if (soundListMode === `comments`) {
+                        if (act.type === `st_comments_up`) commentCursor = Math.max(0, commentCursor - 1), sfx.ui();
+                        else if (act.type === `st_comments_down`) commentCursor = Math.min(Math.max(0, comments.length - 1), commentCursor + 1), sfx.ui();
+                        else if (act.type === `st_comments_write`) writeComment();
+                        else if (act.type === `st_comments_back`) leaveComments();
+                        else if (act.type === `st_like`) voteTrack(1);
+                        else if (act.type === `st_dislike`) voteTrack(-1);
                         return
                     }
-                    let t = A === `menu` ? Fi().length - 1 : Ii(A).length - 1;
-                    if (act.type === `st_up`) j = Math.max(0, j - 1), sfx.ui();
-                    else if (act.type === `st_down`) j = Math.min(t, j + 1), sfx.ui();
-                    else if (act.type === `st_confirm`) Li();
-                    else if (act.type === `st_comments_open`) ji();
-                    else if (act.type === `st_like`) ki(1);
-                    else if (act.type === `st_dislike`) ki(-1);
-                    else if (act.type === `st_escape`) A === `menu` ? wi() : (A = `menu`, j = 0);
+                    let t = soundListMode === `menu` ? soundTestMenuRows().length - 1 : soundTestListRows(soundListMode).length - 1;
+                    if (act.type === `st_up`) soundCursor = Math.max(0, soundCursor - 1), sfx.ui();
+                    else if (act.type === `st_down`) soundCursor = Math.min(t, soundCursor + 1), sfx.ui();
+                    else if (act.type === `st_confirm`) activateSoundTestRow();
+                    else if (act.type === `st_comments_open`) openComments();
+                    else if (act.type === `st_like`) voteTrack(1);
+                    else if (act.type === `st_dislike`) voteTrack(-1);
+                    else if (act.type === `st_escape`) soundListMode === `menu` ? leaveSoundTest() : (soundListMode = `menu`, soundCursor = 0);
                     return
                 }
-                if (p === `attract`) {
-                    if (act.type === `attract_up`) k = (k + titleMenuLen(tSub) - 1) % titleMenuLen(tSub), sfx.ui();
-                    else if (act.type === `attract_down`) k = (k + 1) % titleMenuLen(tSub), sfx.ui();
+                if (mode === `attract`) {
+                    if (act.type === `attract_up`) titleCursor = (titleCursor + titleMenuLen(titleSub) - 1) % titleMenuLen(titleSub), sfx.ui();
+                    else if (act.type === `attract_down`) titleCursor = (titleCursor + 1) % titleMenuLen(titleSub), sfx.ui();
                     else if (act.type === `attract_confirm`) {
-                        if (tSub === `extra`) {
-                            if (k === 0) Ci();
-                            else if (k === 1) (typeof window.__sfOpenProfile === `function` ? window.__sfOpenProfile() : 0);
-                            else if (k === 2) (typeof window.__sfOpenStats === `function` ? window.__sfOpenStats() : 0);
-                            else tSub = `root`, k = 4, sfx.ui();
-                        } else if (tSub === `diff`) {
-                            if (k === 0) Ie = `easy`, pi();
-                            else if (k === 1) Ie = `normal`, pi();
-                            else tSub = `root`, k = 0, sfx.ui();
-                        } else if (k === 0) tSub = `diff`, k = Ie === `normal` ? 1 : 0, sfx.ui();
-                        else if (k === 1) Wi();
-                        else if (k === 2) H && jt() ? yi() : bi();
-                        else if (k === 3) mr(`attract`);
-                        else if (k === 4) tSub = `extra`, k = 0, sfx.ui();
-                        else if (k === 5) ai();
+                        if (titleSub === `extra`) {
+                            if (titleCursor === 0) openSoundTest();
+                            else if (titleCursor === 1) (typeof window.__sfOpenProfile === `function` ? window.__sfOpenProfile() : 0);
+                            else if (titleCursor === 2) (typeof window.__sfOpenStats === `function` ? window.__sfOpenStats() : 0);
+                            else titleSub = `root`, titleCursor = 4, sfx.ui();
+                        } else if (titleSub === `diff`) {
+                            if (titleCursor === 0) difficulty = `easy`, startRun();
+                            else if (titleCursor === 1) difficulty = `normal`, startRun();
+                            else titleSub = `root`, titleCursor = 0, sfx.ui();
+                        } else if (titleCursor === 0) titleSub = `diff`, titleCursor = difficulty === `normal` ? 1 : 0, sfx.ui();
+                        else if (titleCursor === 1) shareProgress();
+                        else if (titleCursor === 2) sharerId && canSendFanmail() ? openFanmail() : openInbox();
+                        else if (titleCursor === 3) openOptions(`attract`);
+                        else if (titleCursor === 4) titleSub = `extra`, titleCursor = 0, sfx.ui();
+                        else if (titleCursor === 5) openChangelog();
                         else sfx.ui()
                     }
                     return
                 }
-                if (p === `changelog`) {
-                    if (act.type === `changelog_up`) Le = Math.max(0, Le - 1), sfx.ui();
-                    else if (act.type === `changelog_down`) Le = Math.min(si(), Le + 1), sfx.ui();
-                    else if (act.type === `changelog_back`) oi();
+                if (mode === `changelog`) {
+                    if (act.type === `changelog_up`) changelogScroll = Math.max(0, changelogScroll - 1), sfx.ui();
+                    else if (act.type === `changelog_down`) changelogScroll = Math.min(getChangelogMaxScroll(), changelogScroll + 1), sfx.ui();
+                    else if (act.type === `changelog_back`) leaveChangelog();
                     return
                 }
-                if (p === `inbox`) {
+                if (mode === `inbox`) {
                     if (act.type === `inbox_escape`) {
-                        Ft ? Ft = !1 : (p = `attract`, bgm.start(`attract`));
+                        inboxDetail ? inboxDetail = !1 : (mode = `attract`, bgm.start(`attract`));
                         return
                     }
-                    if (act.type === `inbox_up` && !Ft && G.length) Pt = (Pt - 1 + G.length) % G.length, sfx.ui();
-                    if (act.type === `inbox_down` && !Ft && G.length) Pt = (Pt + 1) % G.length, sfx.ui();
+                    if (act.type === `inbox_up` && !inboxDetail && inbox.length) inboxCursor = (inboxCursor - 1 + inbox.length) % inbox.length, sfx.ui();
+                    if (act.type === `inbox_down` && !inboxDetail && inbox.length) inboxCursor = (inboxCursor + 1) % inbox.length, sfx.ui();
                     if (act.type === `inbox_confirm`) {
-                        if (!Ft && G.length) Ft = !0;
-                        else if (Ft) {
-                            let e = G[Pt];
-                            Wn(e) && zt(e)
+                        if (!inboxDetail && inbox.length) inboxDetail = !0;
+                        else if (inboxDetail) {
+                            let e = inbox[inboxCursor];
+                            canReplyThanks(e) && openThanks(e)
                         }
                         return
                     }
-                    if (act.type === `inbox_delete` && Ft) {
-                        let e = G[Pt];
-                        e && $n({ playerId: B, messageId: e.id }).then(() => { It(), Ft = !1 });
+                    if (act.type === `inbox_delete` && inboxDetail) {
+                        let e = inbox[inboxCursor];
+                        e && deleteInboxMessage({ playerId: playerId, messageId: e.id }).then(() => { reloadInbox(), inboxDetail = !1 });
                         return
                     }
                     return
                 }
-                if (p === `gameover`) {
+                if (mode === `gameover`) {
                     if (act.type === `gameover_continue_or_share`) {
-                        ht > 0 ? xi() : Wi();
+                        continueCoins > 0 ? doContinue() : shareProgress();
                         return
                     }
-                    if (act.type === `gameover_share`) { Wi(); return }
-                    if (act.type === `gameover_title`) { p = `attract`, Bt(), bgm.start(`attract`); return }
+                    if (act.type === `gameover_share`) { shareProgress(); return }
+                    if (act.type === `gameover_title`) { mode = `attract`, refreshCoins(), bgm.start(`attract`); return }
                 }
                 if (act.type === `pause_shop`) {
-                    e.preventDefault(), fr(!0);
+                    e.preventDefault(), openShop(!0);
                     return
                 }
                 if (act.type === `open_options_play`) {
-                    e.preventDefault(), mr(`play`);
+                    e.preventDefault(), openOptions(`play`);
                     return
                 }
-                if (p === `shop`) {
-                    let t = Kn(),
+                if (mode === `shop`) {
+                    let t = shopCatalog(),
                         n = t.length + 2;
-                    if (act.type === `shop_up`) D = (D + n) % (n + 1);
-                    else if (act.type === `shop_down`) D = (D + 1) % (n + 1);
+                    if (act.type === `shop_up`) shopCursor = (shopCursor + n) % (n + 1);
+                    else if (act.type === `shop_down`) shopCursor = (shopCursor + 1) % (n + 1);
                     else if (act.type === `shop_confirm`) {
-                        D === t.length ? pr() : D === t.length + 1 ? mr(`shop`) : D === t.length + 2 ? Wi() : sr(t[D])
-                    } else if (act.type === `shop_escape`) Ne && pr()
+                        shopCursor === t.length ? closeShop() : shopCursor === t.length + 1 ? openOptions(`shop`) : shopCursor === t.length + 2 ? shareProgress() : buyShopItem(t[shopCursor])
+                    } else if (act.type === `shop_escape`) shopPaused && closeShop()
                 }
             },
-            xa = e => {
-                On.delete(e.key)
+            onKeyUp = e => {
+                keysDown.delete(e.key)
             };
-        return s.addEventListener(`touchstart`, ma, {
+        return canvas.addEventListener(`touchstart`, onTouchStart, {
             passive: !1
-        }), s.addEventListener(`touchmove`, ha, {
+        }), canvas.addEventListener(`touchmove`, onTouchMove, {
             passive: !1
-        }), s.addEventListener(`touchend`, ga, {
+        }), canvas.addEventListener(`touchend`, onTouchEnd, {
             passive: !1
-        }), s.addEventListener(`mousedown`, _a), window.addEventListener(`mousemove`, va), window.addEventListener(`mouseup`, ya), window.addEventListener(`keydown`, ba), window.addEventListener(`keyup`, xa), window.__sfOpenProfile = function() {
+        }), canvas.addEventListener(`mousedown`, onMouseDown), window.addEventListener(`mousemove`, onMouseMove), window.addEventListener(`mouseup`, onMouseUp), window.addEventListener(`keydown`, onKeyDown), window.addEventListener(`keyup`, onKeyUp), window.__sfOpenProfile = function() {
               try {
                 openProfileDialog({
-                  linked: !!(V && V.linked),
-                  playerId: B || "",
+                  linked: !!(account && account.linked),
+                  playerId: playerId || "",
                   sfxUi: function(){ try{sfx.ui()}catch(e){} },
                   sfxOk: function(){ try{sfx.buy()}catch(e){} },
                   sfxFail: function(){ try{sfx.buyFail()}catch(e){} },
-                  onNeedLink: function(){ try{_i()}catch(e){} }
+                  onNeedLink: function(){ try{openAccount()}catch(e){} }
                 });
               } catch (err) { console.error(err); }
             }, window.__sfOpenStats = function() {
               try {
                 openStatsDialog({
-                  playerId: B || "",
-                  linked: !!(V && V.linked),
+                  playerId: playerId || "",
+                  linked: !!(account && account.linked),
                   sfxUi: function(){ try{sfx.ui()}catch(e){} }
                 });
               } catch (err) { console.error(err); }
             }, window.__swipeForceTest = {
-            mode: () => p,
-            start: () => pi(),
-            openShop: () => fr(!0),
-            openOptions: () => mr(`shop`),
+            mode: () => mode,
+            start: () => startRun(),
+            openShop: () => openShop(!0),
+            openOptions: () => openOptions(`shop`),
             setVstick: e => {
-                K.vstick = e, Kt()
+                settings.vstick = e, persistSettings()
             },
-            playerId: () => B,
-            coins: () => ht,
+            playerId: () => playerId,
+            coins: () => continueCoins,
             setCoins: e => {
-                ht = Math.max(0, e | 0)
+                continueCoins = Math.max(0, e | 0)
             },
             setRef: (e, t) => {
                 let n = e ? e.replace(/[^a-z0-9]/gi, ``).slice(0, 32) : null,
                     r = t ? t.replace(/[^a-z0-9]/gi, ``).slice(0, 32) : null;
-                n && n !== B && r && r.length >= 4 ? (H = n, U = r) : (H = null, U = null), Ot()
+                n && n !== playerId && r && r.length >= 4 ? (sharerId = n, shareId = r) : (sharerId = null, shareId = null), reloadMissions()
             },
-            award: () => hi(),
-            missions: () => Dt,
-            openFanmail: () => yi(),
-            openInbox: () => bi(),
-            share: () => Wi()
+            award: () => missionFirstBoss(),
+            missions: () => missionsDone,
+            openFanmail: () => openFanmail(),
+            openInbox: () => openInbox(),
+            share: () => shareProgress()
         }, bgm.start(`attract`), () => {
-            u = !1, cancelAnimationFrame(d), Mn.disconnect(), s.removeEventListener(`touchstart`, ma), s.removeEventListener(`touchmove`, ha), s.removeEventListener(`touchend`, ga), s.removeEventListener(`mousedown`, _a), window.removeEventListener(`mousemove`, va), window.removeEventListener(`mouseup`, ya), window.removeEventListener(`keydown`, ba), window.removeEventListener(`keyup`, xa), bgm.stop()
+            running = !1, cancelAnimationFrame(rafId), resizeObserver.disconnect(), canvas.removeEventListener(`touchstart`, onTouchStart), canvas.removeEventListener(`touchmove`, onTouchMove), canvas.removeEventListener(`touchend`, onTouchEnd), canvas.removeEventListener(`mousedown`, onMouseDown), window.removeEventListener(`mousemove`, onMouseMove), window.removeEventListener(`mouseup`, onMouseUp), window.removeEventListener(`keydown`, onKeyDown), window.removeEventListener(`keyup`, onKeyUp), bgm.stop()
         }
-    }, []), (0, xr.jsx)(`div`, {
-        ref: e,
+    }, []), (0, jsxRuntime.jsx)(`div`, {
+        ref: hostRef,
         className: `flex h-dvh w-full items-center justify-center bg-black`,
         style: {
             touchAction: `none`
         },
-        children: (0, xr.jsx)(`canvas`, {
-            ref: t,
+        children: (0, jsxRuntime.jsx)(`canvas`, {
+            ref: canvasRef,
             className: `max-h-full max-w-full`
         })
     })
 }
 
-function Pr() {
-    return (0, xr.jsx)(Nr, {})
+function SwipeForceGameRoot() {
+    return (0, jsxRuntime.jsx)(SwipeForceEngine, {})
 }
 
 /** React entry used by the route */
 export function SwipeForceGameCanvas() {
-  return Pr();
+  return SwipeForceGameRoot();
 }
-export { Nr as SwipeForceEngineRoot, Pr };
+export { SwipeForceEngine as SwipeForceEngineRoot, SwipeForceGameRoot };
+

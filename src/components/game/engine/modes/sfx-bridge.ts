@@ -3,20 +3,20 @@
  */
 
 import {
-  se as sfxShoot,
-  ce as sfxMissile,
-  le as sfxParticle,
-  ue as sfxLockon,
-  de as sfxHit,
-  fe as sfxExplode,
-  pe as sfxPlayerHit,
-  me as sfxBossWarn,
-  he as sfxStageClear,
-  ge as sfxGameOver,
-  _e as sfxBuy,
-  C as sfxBuyFail,
-  w as sfxUi,
-  ve as sfxStart,
+  sfxShoot as sfxShoot,
+  sfxMissile as sfxMissile,
+  sfxParticle as sfxParticle,
+  sfxLockon as sfxLockon,
+  sfxHit as sfxHit,
+  sfxExplode as sfxExplode,
+  sfxPlayerHit as sfxPlayerHit,
+  sfxBossWarn as sfxBossWarn,
+  sfxStageClear as sfxStageClear,
+  sfxGameOver as sfxGameOver,
+  sfxBuy as sfxBuy,
+  sfxBuyFail as sfxBuyFail,
+  sfxUi as sfxUi,
+  sfxStart as sfxStart,
 } from "../audio/sfx";
 
 export const sfx = {

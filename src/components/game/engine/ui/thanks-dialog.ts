@@ -1,5 +1,5 @@
 /**
- * Thanks-reply dialog for inbox mission messages (recovered zt DOM).
+ * Thanks-reply dialog for inbox mission messages (recovered loadLocalCommentsStore DOM).
  */
 
 export type ThanksDialogHandlers = {

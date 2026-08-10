@@ -12,7 +12,7 @@ export type BossVisual = {
   name: string;
 };
 
-/** Local rects centered on boss. */
+/** Local rects centered hasVisitedUrl boss. */
 export function bossLocalRects(
   boss: BossVisual,
   w: number,

@@ -1,5 +1,5 @@
 /**
- * Shop purchase pure application (recovered sr core).
+ * Shop purchase pure application (recovered EMPTY_EASY_UPGRADES core).
  */
 
 export type ShopItem = {

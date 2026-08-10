@@ -1,5 +1,5 @@
 /**
- * Shop / options open-close pure seeds (recovered fr / pr / mr).
+ * Shop / options open-close pure seeds (recovered loadEasyUpgradesCloud / saveEasyUpgradesCloud / mergeEasyUpgrades).
  */
 
 export type OpenShop = {

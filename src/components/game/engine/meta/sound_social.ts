@@ -2,31 +2,31 @@
 /** Sound-test comments, votes, URL reports & visits (recovered). */
 
 // ── Sound test comments & votes ──
-export var Gt = `swipe_force_sound_votes_v1`;
+export var KEY_SOUND_VOTES = `swipe_force_sound_votes_v1`;
 
-export function Kt() {
+export function loadVotesStore() {
     try {
-        return JSON.parse(localStorage.getItem(Gt) || `{}`)
+        return JSON.parse(localStorage.getItem(KEY_SOUND_VOTES) || `{}`)
     } catch {
         return {}
     }
 }
 
-export function qt(e) {
+export function saveVotesStore(e) {
     try {
-        localStorage.setItem(Gt, JSON.stringify(e))
+        localStorage.setItem(KEY_SOUND_VOTES, JSON.stringify(e))
     } catch {}
 }
 
-export function Jt(e) {
-    return Kt()[e] || {
+export function getLocalVotes(e) {
+    return loadVotesStore()[e] || {
         likes: 0,
         dislikes: 0,
         mine: null
     }
 }
-export async function Yt(e, t) {
-    let n = Jt(e);
+export async function fetchTrackVotes(e, t) {
+    let n = getLocalVotes(e);
     try {
         let r = await fetch(`/api/sound/votes?track=${encodeURIComponent(e)}&playerId=${encodeURIComponent(t)}`, {
             credentials: `same-origin`
@@ -43,14 +43,14 @@ export async function Yt(e, t) {
             dislikes: Math.max(n.dislikes, a.dislikes),
             mine: n.mine
         };
-        let o = Kt();
-        return o[e] = a, qt(o), a
+        let o = loadVotesStore();
+        return o[e] = a, saveVotesStore(o), a
     } catch {
         return n
     }
 }
-export async function Xt(e, t, n) {
-    let r = Kt(),
+export async function castTrackVote(e, t, n) {
+    let r = loadVotesStore(),
         i = r[e] || {
             likes: 0,
             dislikes: 0,
@@ -66,7 +66,7 @@ export async function Xt(e, t, n) {
         dislikes: o,
         mine: s
     };
-    r[e] = c, qt(r);
+    r[e] = c, saveVotesStore(r);
     let l = s === null ? 0 : s;
     try {
         let n = await (await fetch(`/api/sound/votes`, {
@@ -87,12 +87,12 @@ export async function Xt(e, t, n) {
                 dislikes: Number(n.dislikes) || 0,
                 mine: n.mine === 1 || n.mine === -1 ? n.mine : null
             };
-            return r[e] = t, qt(r), t
+            return r[e] = t, saveVotesStore(r), t
         }
     } catch {}
     return c
 }
-export var Zt = [{
+export var URL_REPORT_TYPES = [{
         id: `kami`,
         label: `神`,
         emoji: `✨`,
@@ -123,31 +123,31 @@ export var Zt = [{
         emoji: `©️`,
         tone: `warn`
     }],
-    q = `swipe_force_url_reports_v1`;
+    KEY_URL_REPORTS = `swipe_force_url_reports_v1`;
 
-export function Qt() {
+export function loadUrlReportsStore() {
     try {
-        return JSON.parse(localStorage.getItem(q) || `{}`)
+        return JSON.parse(localStorage.getItem(KEY_URL_REPORTS) || `{}`)
     } catch {
         return {}
     }
 }
 
-export function $t(e) {
+export function saveUrlReportsStore(e) {
     try {
-        localStorage.setItem(q, JSON.stringify(e))
+        localStorage.setItem(KEY_URL_REPORTS, JSON.stringify(e))
     } catch {}
 }
 
-export function en(e, t) {
+export function urlReportKey(e, t) {
     return `${e}::${t}`
 }
-export async function tn(e, t, n) {
+export async function fetchUrlReports(e, t, n) {
     if (!t.length) return {};
-    let r = Qt(),
+    let r = loadUrlReportsStore(),
         i = {};
-    for (let n of t) i[n] = r[en(e, n)] || {
-        counts: Object.fromEntries(Zt.map(e => [e.id, 0])),
+    for (let n of t) i[n] = r[urlReportKey(e, n)] || {
+        counts: Object.fromEntries(URL_REPORT_TYPES.map(e => [e.id, 0])),
         mine: null
     };
     try {
@@ -156,14 +156,14 @@ export async function tn(e, t, n) {
         });
         if (!r.ok) return i;
         let a = (await r.json()).reports || {},
-            o = Qt();
-        for (let [t, n] of Object.entries(a)) o[en(e, t)] = n, i[t] = n;
-        return $t(o), i
+            o = loadUrlReportsStore();
+        for (let [t, n] of Object.entries(a)) o[urlReportKey(e, t)] = n, i[t] = n;
+        return saveUrlReportsStore(o), i
     } catch {
         return i
     }
 }
-export async function nn(e, t, n, r) {
+export async function postUrlReport(e, t, n, r) {
     try {
         let i = await fetch(`/api/sound/url-report`, {
                 method: `POST`,
@@ -187,29 +187,29 @@ export async function nn(e, t, n, r) {
             visited: !1
         };
         if (a && a.counts) {
-            let n = Qt(),
+            let n = loadUrlReportsStore(),
                 r = {
                     counts: a.counts,
                     mine: a.mine ?? null,
                     visited: !0
                 };
-            return n[en(e, t)] = r, $t(n), {
+            return n[urlReportKey(e, t)] = r, saveUrlReportsStore(n), {
                 ok: !0,
                 ...r
             }
         }
     } catch {}
-    if (!an()[en(e, t)]) return {
+    if (!loadUrlVisits()[urlReportKey(e, t)]) return {
         ok: !1,
         reason: `not_visited`,
         counts: {},
         mine: null,
         visited: !1
     };
-    let i = Qt(),
-        a = en(e, t),
+    let i = loadUrlReportsStore(),
+        a = urlReportKey(e, t),
         o = i[a] || {
-            counts: Object.fromEntries(Zt.map(e => [e.id, 0])),
+            counts: Object.fromEntries(URL_REPORT_TYPES.map(e => [e.id, 0])),
             mine: null,
             visited: !0
         },
@@ -224,31 +224,31 @@ export async function nn(e, t, n, r) {
         mine: c,
         visited: !0
     };
-    return i[a] = l, $t(i), {
+    return i[a] = l, saveUrlReportsStore(i), {
         ok: !0,
         ...l
     }
 }
-export var rn = `swipe_force_url_visits_v1`;
+export var KEY_URL_VISITS = `swipe_force_url_visits_v1`;
 
-export function an() {
+export function loadUrlVisits() {
     try {
-        return JSON.parse(localStorage.getItem(rn) || `{}`)
+        return JSON.parse(localStorage.getItem(KEY_URL_VISITS) || `{}`)
     } catch {
         return {}
     }
 }
 
-export function J(e) {
+export function saveUrlVisits(e) {
     try {
-        localStorage.setItem(rn, JSON.stringify(e))
+        localStorage.setItem(KEY_URL_VISITS, JSON.stringify(e))
     } catch {}
 }
 
-export function on(e, t) {
-    return !!an()[en(e, t)]
+export function hasVisitedUrl(e, t) {
+    return !!loadUrlVisits()[urlReportKey(e, t)]
 }
-export async function sn(e, t, n) {
+export async function recordUrlVisit(e, t, n) {
     try {
         let r = await fetch(`/api/sound/url-visit`, {
             method: `POST`,
@@ -266,16 +266,16 @@ export async function sn(e, t, n) {
     } catch {
         return !1
     }
-    let r = an();
-    r[en(e, t)] = !0, J(r);
-    let i = Qt(),
-        a = en(e, t);
+    let r = loadUrlVisits();
+    r[urlReportKey(e, t)] = !0, saveUrlVisits(r);
+    let i = loadUrlReportsStore(),
+        a = urlReportKey(e, t);
     return i[a] = {
         ...i[a] || {
-            counts: Object.fromEntries(Zt.map(e => [e.id, 0])),
+            counts: Object.fromEntries(URL_REPORT_TYPES.map(e => [e.id, 0])),
             mine: null
         },
         visited: !0
-    }, $t(i), !0
+    }, saveUrlReportsStore(i), !0
 }
 

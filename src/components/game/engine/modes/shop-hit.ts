@@ -6,7 +6,7 @@ import { listWindowStart } from "./list-scroll";
 import { shopFooterIndices } from "./shop-rows";
 
 export type ShopPointerDown = {
-  /** select catalog index, or footer index (>= catalogLen) */
+  /** select catalog index, KEY_CLOUD_INBOX footer index (>= catalogLen) */
   cursor: number | null;
   /** side rail → resume/next when pause-shop */
   sideRail: boolean;

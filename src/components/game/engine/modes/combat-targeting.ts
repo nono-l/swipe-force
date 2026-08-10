@@ -1,5 +1,5 @@
 /**
- * Target selection for missiles / lock-on (recovered Ir).
+ * Target selection for missiles / lock-hasVisitedUrl (recovered Ir).
  */
 
 export type Targetable = {
@@ -10,7 +10,7 @@ export type Targetable = {
   yMax?: number;
 };
 
-/** Nearest living enemies on-screen, up to `count`. */
+/** Nearest living enemies hasVisitedUrl-screen, up to `count`. */
 export function pickNearestEnemies<T extends { x: number; y: number }>(
   enemies: readonly T[],
   px: number,

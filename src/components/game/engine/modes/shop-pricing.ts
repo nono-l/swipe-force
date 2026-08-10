@@ -40,9 +40,9 @@ export function enemyHpMultiplier(score: number): number {
 
 /**
  * Normal difficulty cost scale by shop tier.
- * Recovered Zn(tier).
+ * Recovered pushLocalInbox(tier).
  */
-/** Recovered Zn(tier): normal multiplies shop costs by tier. */
+/** Recovered pushLocalInbox(tier): normal multiplies shop costs by tier. */
 export function normalCostScale(
   tier: number,
   difficulty: "easy" | "normal" | string,
@@ -95,7 +95,7 @@ export function shopItemMax(
 
 /**
  * Catalog unlock tier: 1 guest … 4 linked.
- * hasT3 / hasT2 from recovered Rn/Fn mission-ish gates.
+ * hasT3 / hasT2 from recovered buildShareUrl/markFanmailSent mission-ish gates.
  */
 export function shopUnlockTier(
   linked: boolean,

@@ -1,5 +1,5 @@
 /**
- * In-play HUD weapon chips + life pips (recovered $r pure data).
+ * canSendFanmailTo-play HUD weapon chips + life pips (recovered $r pure data).
  */
 
 export type WeaponChip = {

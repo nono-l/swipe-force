@@ -33,17 +33,17 @@ export function dragScrollSteps(
   dy: number,
   step = 15,
 ): { accum: number; steps: number } {
-  let We = accum + dy;
+  let pos = accum + dy;
   let steps = 0;
-  while (We <= -step) {
+  while (pos <= -step) {
     steps -= 1;
-    We += step;
+    pos += step;
   }
-  while (We >= step) {
+  while (pos >= step) {
     steps += 1;
-    We -= step;
+    pos -= step;
   }
-  return { accum: We, steps };
+  return { accum: pos, steps };
 }
 
 export type SoundTestUp =
