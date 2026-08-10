@@ -35,6 +35,7 @@ import {
   isPromoSoldOut,
 } from "@/lib/promo-server";
 import { openAdAdminDialog } from "@/lib/ad-admin-ui";
+import { advertiserPortalUrl, openAdvertiserPortal } from "@/lib/ad-portal-url";
 
 function esc(s: string) {
   const amp = ["&", "a", "m", "p", ";"].join("");
@@ -362,15 +363,15 @@ export function openPromoAdminDialog(opts: {
         📺 広告管理を開く
       </button>
       <div style="display:flex;gap:8px;margin-top:8px">
-        <a id="sf-open-ad-portal" href="/advertiser" target="_blank" rel="noopener"
-           style="flex:1;box-sizing:border-box;padding:12px;border-radius:8px;border:1px solid #8cf;background:#102030;color:#cef;font-weight:800;cursor:pointer;text-align:center;text-decoration:none">
+        <button type="button" id="sf-open-ad-portal"
+           style="flex:1;box-sizing:border-box;padding:12px;border-radius:8px;border:1px solid #8cf;background:#102030;color:#cef;font-weight:800;cursor:pointer;text-align:center">
           📣 ポータルを開く
-        </a>
+        </button>
         <button type="button" id="sf-ad-portal-copy" style="flex-shrink:0;padding:12px 14px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-weight:800;cursor:pointer;font-size:12px">
           URLコピー
         </button>
       </div>
-      <div id="sf-ad-portal-url" title="クリックでコピー" style="font-size:10px;color:#8cf;margin-top:8px;word-break:break-all;text-align:center;user-select:all;cursor:pointer;padding:8px;border:1px dashed #356;border-radius:8px;background:#041018"></div>
+      <a id="sf-ad-portal-url" href="/advertiser" target="_blank" rel="noopener" title="クリックで開く" style="display:block;font-size:10px;color:#8cf;margin-top:8px;word-break:break-all;text-align:center;user-select:all;cursor:pointer;padding:8px;border:1px dashed #356;border-radius:8px;background:#041018;text-decoration:none"></a>
       <div style="font-size:10px;color:#678;margin-top:10px;line-height:1.4">
         · 動画ID / 尺（秒）/ 合計表示上限（時間）<br/>
         · 累計再生秒数・受取回数を一覧表示<br/>
@@ -428,31 +429,20 @@ export function openPromoAdminDialog(opts: {
     }
 
     function bindAdsHandlers() {
-      const portalUrl =
-        typeof location !== "undefined" ? location.origin + "/advertiser" : "/advertiser";
+      const portalUrl = advertiserPortalUrl();
       const setFlash = (msg: string) => {
         flash = msg;
         render();
       };
-      const urlEl = card.querySelector("#sf-ad-portal-url") as HTMLElement | null;
+      const urlEl = card.querySelector("#sf-ad-portal-url") as HTMLAnchorElement | null;
       if (urlEl) {
+        urlEl.href = portalUrl;
         urlEl.textContent = portalUrl;
-        urlEl.addEventListener("click", async () => {
-          const ok = await copyText(portalUrl);
-          if (ok) {
-            opts.sfxOk?.();
-            setFlash(`ポータルURLをコピーしました`);
-          } else {
-            opts.sfxFail?.();
-            setFlash(`コピー失敗 · 長押しで選択`);
-          }
-        });
       }
-      const portalA = card.querySelector("#sf-open-ad-portal") as HTMLAnchorElement | null;
-      if (portalA) {
-        portalA.href = portalUrl;
-        portalA.addEventListener("click", () => opts.sfxUi?.());
-      }
+      card.querySelector("#sf-open-ad-portal")?.addEventListener("click", () => {
+        opts.sfxUi?.();
+        openAdvertiserPortal();
+      });
       card.querySelector("#sf-ad-portal-copy")?.addEventListener("click", async () => {
         const ok = await copyText(portalUrl);
         if (ok) {

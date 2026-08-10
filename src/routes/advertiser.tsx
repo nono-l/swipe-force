@@ -79,9 +79,12 @@ function AdvertiserPortalPage() {
           </p>
           <div className="mt-3 rounded-lg border border-dashed border-[#356] bg-[#061018] px-3 py-2 text-[11px]">
             <div className="text-[#678]">直リンク URL</div>
-            <code className="mt-0.5 block break-all font-semibold text-[#9ef] select-all">
+            <a
+              href={portalUrl}
+              className="mt-0.5 block break-all font-semibold text-[#8cf] underline select-all"
+            >
               {portalUrl}
-            </code>
+            </a>
           </div>
         </header>
 

@@ -2363,6 +2363,27 @@ function SwipeForceEngine() {
             }
         }
 
+        function tryOpenAdAdvertiser() {
+            try {
+                if (!playerId) {
+                    shareToast = `プレイヤーIDがありません`, shareToastLife = 80;
+                    try { sfx.buyFail() } catch {}
+                    return;
+                }
+                openAdAdvertiserDialog({
+                    playerId: playerId,
+                    sfxUi: () => { try { sfx.ui() } catch {} },
+                    sfxOk: () => { try { sfx.buy() } catch {} },
+                    sfxFail: () => { try { sfx.buyFail() } catch {} },
+                });
+                try { sfx.ui() } catch {}
+            } catch (e) {
+                console.error("[advertiser]", e);
+                shareToast = `広告主ポータルを開けません`, shareToastLife = 90;
+                try { sfx.buyFail() } catch {}
+            }
+        }
+
         function shareProgress() {
             let pack = buildSharePayload({
                 playerId: playerId,

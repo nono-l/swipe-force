@@ -1,3 +1,4 @@
+import { advertiserPortalUrl, openAdvertiserPortal } from "@/lib/ad-portal-url";
 /**
  * Dedicated Ad management UI (admin only).
  * - Register YouTube IDs
@@ -127,9 +128,9 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
           <div style="font-size:15px;font-weight:800;color:#9ef">📺 広告管理</div>
           <div style="font-size:10px;color:#8ab;margin-top:2px">全広告表示（運営＋全広告主） · 尺 · 上限 · 実績</div>
           <div style="font-size:10px;margin-top:6px;line-height:1.45">
-            <a id="sf-aa-portal" href="/advertiser" target="_blank" rel="noopener" style="color:#8cf;text-decoration:underline;font-weight:700">📣 ポータルを開く</a>
-            <button type="button" id="sf-aa-portal-copy" style="margin-left:8px;padding:3px 8px;border-radius:6px;border:1px solid #456;background:#122028;color:#bcd;font-size:10px;cursor:pointer">URLコピー</button>
-            <div id="sf-aa-portal-url" title="クリックでコピー" style="font-size:9px;color:#8cf;margin-top:4px;word-break:break-all;user-select:all;cursor:pointer;padding:4px 6px;border:1px dashed #356;border-radius:6px;background:#041018"></div>
+            <button type="button" id="sf-aa-portal" style="margin-right:6px;padding:4px 10px;border-radius:6px;border:1px solid #8cf;background:#102838;color:#cef;font-size:11px;font-weight:700;cursor:pointer">📣 ポータルを開く</button>
+            <button type="button" id="sf-aa-portal-copy" style="padding:3px 8px;border-radius:6px;border:1px solid #456;background:#122028;color:#bcd;font-size:10px;cursor:pointer">URLコピー</button>
+            <a id="sf-aa-portal-url" href="/advertiser" target="_blank" rel="noopener" title="クリックで開く / 長押しでコピー" style="display:block;font-size:9px;color:#8cf;margin-top:4px;word-break:break-all;user-select:all;cursor:pointer;padding:4px 6px;border:1px dashed #356;border-radius:6px;background:#041018;text-decoration:none"></a>
           </div>
         </div>
         <button type="button" id="sf-aa-x" style="border:0;background:transparent;color:#9ab;font-size:22px;cursor:pointer;line-height:1">×</button>
@@ -365,24 +366,16 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
       setDurStatus(`登録済み: ${editing.durationSec}秒 · 「尺を取得」で再取得可`, "#8ab");
     }
 
-    const portalUrl =
-      typeof location !== "undefined" ? location.origin + "/advertiser" : "/advertiser";
-    const urlEl = card.querySelector("#sf-aa-portal-url") as HTMLElement | null;
+    const portalUrl = advertiserPortalUrl();
+    const urlEl = card.querySelector("#sf-aa-portal-url") as HTMLAnchorElement | null;
     if (urlEl) {
+      urlEl.href = portalUrl;
       urlEl.textContent = portalUrl;
-      urlEl.addEventListener("click", async () => {
-        const ok = await copyText(portalUrl);
-        flash = ok ? `ポータルURLをコピーしました` : `コピー失敗: ${portalUrl}`;
-        if (ok) opts.sfxOk?.();
-        else opts.sfxFail?.();
-        render();
-      });
     }
-    const portalA = card.querySelector("#sf-aa-portal") as HTMLAnchorElement | null;
-    if (portalA) {
-      portalA.href = portalUrl;
-      portalA.addEventListener("click", () => opts.sfxUi?.());
-    }
+    card.querySelector("#sf-aa-portal")?.addEventListener("click", () => {
+      opts.sfxUi?.();
+      openAdvertiserPortal();
+    });
     card.querySelector("#sf-aa-portal-copy")?.addEventListener("click", async () => {
       const ok = await copyText(portalUrl);
       flash = ok ? `ポータルURLをコピーしました` : `コピー失敗: ${portalUrl}`;

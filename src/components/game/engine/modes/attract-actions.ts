@@ -74,8 +74,10 @@ export function attractActionForIndex(
     if (i === 5) return { type: "open_ad_advertiser" };
     if (isPromoAdmin) {
       if (i === 6) return { type: "open_promo_admin" };
+      // i === 7 → BACK
       return { type: "back_root", cursor: 4 };
     }
+    // i === 6 → BACK (no promo row)
     return { type: "back_root", cursor: 4 };
   }
 

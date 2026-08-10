@@ -14,6 +14,7 @@ export type AttractDispatch =
   | { type: "stats" }
   | { type: "open_bag" }
   | { type: "open_ad_watch" }
+  | { type: "open_ad_advertiser" }
   | { type: "open_promo_admin" }
   | { type: "back_root"; cursor: number }
   | { type: "start_easy" }
@@ -27,7 +28,10 @@ export type AttractDispatch =
   | { type: "noop_ui" };
 
 /** Pass-through of resolveAttractPointer action → dispatch token. */
-export function toAttractDispatch(action: { type: string; [k: string]: any }): AttractDispatch {
+export function toAttractDispatch(action: {
+  type: string;
+  [k: string]: any;
+}): AttractDispatch {
   const a = action;
   switch (a.type) {
     case "account":
@@ -40,6 +44,7 @@ export function toAttractDispatch(action: { type: string; [k: string]: any }): A
     case "stats":
     case "open_bag":
     case "open_ad_watch":
+    case "open_ad_advertiser":
     case "open_promo_admin":
     case "start_easy":
     case "start_normal":

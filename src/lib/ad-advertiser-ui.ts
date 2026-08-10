@@ -1,3 +1,4 @@
+import { advertiserPortalUrl, openAdvertiserPortal } from "@/lib/ad-portal-url";
 /**
  * Advertiser portal UI (prepaid redeem + own ad videos).
  * Separate from platform ad-admin.
@@ -144,7 +145,8 @@ export function openAdAdvertiserDialog(opts: AdAdvertiserDialogOpts): void {
         <div>
           <div style="font-size:15px;font-weight:800;color:#9ef">📣 広告主ポータル</div>
           <div style="font-size:10px;color:#8ab;margin-top:2px">プリペイドで予算を入れて配信 · <b style="color:#fe8">自分の登録分のみ</b></div>
-          <div style="font-size:9px;color:#6a8;margin-top:4px;word-break:break-all">直URL: <a href="/advertiser" target="_blank" rel="noopener" style="color:#8cf;text-decoration:underline">${esc(typeof location !== "undefined" ? location.origin + "/advertiser" : "/advertiser")}</a></div>
+          <div style="font-size:9px;color:#6a8;margin-top:4px;word-break:break-all">直URL: <a href="${advertiserPortalUrl()}" target="_blank" rel="noopener" style="color:#8cf;text-decoration:underline">${esc(advertiserPortalUrl())}</a>
+          <button type="button" id="sf-adv-open-portal" style="margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid #456;background:#122028;color:#bcd;font-size:9px;cursor:pointer">開く</button></div>
         </div>
         <button type="button" id="sf-adv-x" style="border:0;background:transparent;color:#9ab;font-size:22px;cursor:pointer">×</button>
       </div>
@@ -410,22 +412,12 @@ export function openAdAdvertiserDialog(opts: AdAdvertiserDialogOpts): void {
     });
 
     // issue
+    const portalUrl = advertiserPortalUrl();
     const ppPortal = card.querySelector("#sf-pp-portal") as HTMLAnchorElement | null;
-    const portalUrl =
-      typeof location !== "undefined" ? location.origin + "/advertiser" : "/advertiser";
     if (ppPortal) {
       ppPortal.href = portalUrl;
       ppPortal.textContent = portalUrl;
-      ppPortal.addEventListener("click", async (e) => {
-        // allow open in new tab with modifier; default click copies for convenience
-        if (e.metaKey || e.ctrlKey) return;
-        e.preventDefault();
-        const ok = await copyText(portalUrl);
-        flash = ok ? `ポータルURLをコピーしました` : `コピー失敗`;
-        if (ok) opts.sfxOk?.();
-        else opts.sfxFail?.();
-        paint();
-      });
+      // normal <a> navigation — do not preventDefault
     }
     card.querySelector("#sf-pp-portal-copy")?.addEventListener("click", async () => {
       const ok = await copyText(portalUrl);
@@ -433,6 +425,10 @@ export function openAdAdvertiserDialog(opts: AdAdvertiserDialogOpts): void {
       if (ok) opts.sfxOk?.();
       else opts.sfxFail?.();
       paint();
+    });
+    card.querySelector("#sf-adv-open-portal")?.addEventListener("click", () => {
+      opts.sfxUi?.();
+      openAdvertiserPortal();
     });
     card.querySelector("#sf-pp-create")?.addEventListener("click", async () => {
       if (busy) return;
@@ -531,22 +527,12 @@ export function openAdAdvertiserDialog(opts: AdAdvertiserDialogOpts): void {
       paint();
     });
 
+    const portalUrl = advertiserPortalUrl();
     const ppPortal = card.querySelector("#sf-pp-portal") as HTMLAnchorElement | null;
-    const portalUrl =
-      typeof location !== "undefined" ? location.origin + "/advertiser" : "/advertiser";
     if (ppPortal) {
       ppPortal.href = portalUrl;
       ppPortal.textContent = portalUrl;
-      ppPortal.addEventListener("click", async (e) => {
-        // allow open in new tab with modifier; default click copies for convenience
-        if (e.metaKey || e.ctrlKey) return;
-        e.preventDefault();
-        const ok = await copyText(portalUrl);
-        flash = ok ? `ポータルURLをコピーしました` : `コピー失敗`;
-        if (ok) opts.sfxOk?.();
-        else opts.sfxFail?.();
-        paint();
-      });
+      // normal <a> navigation — do not preventDefault
     }
     card.querySelector("#sf-pp-portal-copy")?.addEventListener("click", async () => {
       const ok = await copyText(portalUrl);
@@ -554,6 +540,10 @@ export function openAdAdvertiserDialog(opts: AdAdvertiserDialogOpts): void {
       if (ok) opts.sfxOk?.();
       else opts.sfxFail?.();
       paint();
+    });
+    card.querySelector("#sf-adv-open-portal")?.addEventListener("click", () => {
+      opts.sfxUi?.();
+      openAdvertiserPortal();
     });
     card.querySelector("#sf-pp-create")?.addEventListener("click", async () => {
       if (busy) return;
@@ -770,7 +760,8 @@ export function openAdAdvertiserDialog(opts: AdAdvertiserDialogOpts): void {
         <div>
           <div style="font-size:15px;font-weight:800;color:#9ef">📣 広告主ポータル</div>
           <div style="font-size:10px;color:#8ab;margin-top:2px">プリペイドで予算を入れて配信 · <b style="color:#fe8">自分の登録分のみ</b></div>
-          <div style="font-size:9px;color:#6a8;margin-top:4px;word-break:break-all">直URL: <a href="/advertiser" target="_blank" rel="noopener" style="color:#8cf;text-decoration:underline">${esc(typeof location !== "undefined" ? location.origin + "/advertiser" : "/advertiser")}</a></div>
+          <div style="font-size:9px;color:#6a8;margin-top:4px;word-break:break-all">直URL: <a href="${advertiserPortalUrl()}" target="_blank" rel="noopener" style="color:#8cf;text-decoration:underline">${esc(advertiserPortalUrl())}</a>
+          <button type="button" id="sf-adv-open-portal" style="margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid #456;background:#122028;color:#bcd;font-size:9px;cursor:pointer">開く</button></div>
         </div>
         <button type="button" id="sf-adv-x" style="border:0;background:transparent;color:#9ab;font-size:22px;cursor:pointer">×</button>
       </div>
