@@ -389,7 +389,7 @@ export function openStatsDialog(opts: {
       <div style="background:#031018;border:1px solid #245;border-radius:8px;padding:10px;font-size:12px;line-height:1.65;font-family:ui-monospace,monospace;color:#cfe">
         ${lines.map((l) => esc(l)).join("<br/>")}
       </div>
-      <div style="font-size:10px;color:#567;margin-top:10px;line-height:1.4">v1.7.0 · プロモ期限 / 使用上限 / ショップティア / 深海のバス</div>
+      <div style="font-size:10px;color:#567;margin-top:10px;line-height:1.4">v1.8.0 · 広告視聴 / 広告主ポータル / プリペイドクレジット</div>
     </div>`;
   document.body.appendChild(dlg);
   dlg.addEventListener("pointerdown", (e) => e.stopPropagation());
