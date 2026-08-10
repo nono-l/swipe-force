@@ -860,26 +860,47 @@ export function makeStormPatch(e, t) {
 }
 
 export function makeAbyssPatch(e, t) {
+    // 深海のバス — 三和音のオルゴール（music box triads）
     let n = Math.floor((Math.max(1, e) - 1) / 16) % 4,
+        // broken-triad melodies (scale degrees 0-2-4-7-…) with rests
         r = [
-            [0, 0, 0, 2, 0, 0, 4, 0, 0, 0, 5, 0, 4, 2, 0, 0],
-            [0, 0, 3, 0, 0, 5, 0, 0, 0, 2, 0, 0, 3, 0, 0, 0],
-            [0, 2, 0, 0, 4, 0, 0, 5, 0, 4, 0, 2, 0, 0, 0, 0],
-            [0, 0, 0, 0, 5, 5, 0, 0, 3, 0, 0, 2, 0, 0, 0, 0]
+            // I · V · vi · IV 風の箱揺らし
+            [0, 2, 4, -1, 4, 2, 0, -1, 0, 4, 7, -1, 5, 4, 2, 0,
+             0, 2, 4, 5, 4, 2, 0, -1, 7, 5, 4, 2, 0, -1, 0, -1],
+            // 少し暗い揺らぎ
+            [0, -1, 2, 4, -1, 5, 4, 2, 0, 2, 4, 7, 5, -1, 4, 0,
+             4, 2, 0, -1, 2, 4, 5, 4, 0, -1, 5, 4, 2, 0, -1, 0],
+            // 高域のつま弾き
+            [4, 2, 0, 2, 4, 7, -1, 5, 4, 2, 0, -1, 4, 5, 7, 4,
+             0, 2, 4, -1, 7, 5, 4, 2, 0, 4, 2, 0, -1, 2, 0, -1],
+            // ゆっくりなカデンツ
+            [0, -1, -1, 4, -1, -1, 7, -1, 5, -1, 4, -1, 2, -1, 0, -1,
+             0, 2, 4, 5, -1, 4, 2, 0, 4, -1, 5, 4, 2, 0, -1, 0],
         ][n],
-        i = r.map((e, t) => t % 4 == 0 ? e + 7 : -1);
+        // カウンターは 3 度上の細い応答（オルゴールの第2ボイス）
+        i = r.map((deg, idx) => {
+            if (deg < 0) return -1;
+            if (idx % 4 === 1 || idx % 4 === 3) return deg + 2;
+            return -1;
+        });
     return makeFlavorPatch(e, t, `abyss`, {
-        tonic: [36, 38, 35, 40][n],
-        scale: BAROQUE_SCALES[1],
-        prog: [0, 0, 5, 0, 0, 3, 0, 0],
-        lead: [...i, ...i],
-        counter: [...r, ...r],
-        tempo: [80, 74, 70, 86][n],
+        tonic: [55, 53, 57, 52][n], // 高め＝箱の金属感
+        scale: BAROQUE_SCALES[0], // major-ish
+        // 三和音進行: I – V – vi – IV – I – iii – V – I
+        prog: [0, 4, 5, 3, 0, 2, 4, 0],
+        lead: r,
+        counter: i,
+        tempo: [68, 64, 60, 72][n],
         drum: 53,
-        leadEvery: 4,
-        leadOct: 0,
-        leadPeak: .07,
-        bassMode: 2
+        leadDuty: `sine`,
+        leadEvery: 2,
+        leadOct: 24,
+        leadPeak: .09,
+        bassMode: 0,
+        gtrMode: 0,
+        brassMode: 0,
+        chordTicks: 8,
+        arpStyle: 0,
     })
 }
 
@@ -1046,6 +1067,53 @@ export function playBell(e, t) {
         l.gain.setValueAtTime(1e-4, i), l.gain.exponentialRampToValueAtTime(a * s[t], i + .01), l.gain.exponentialRampToValueAtTime(1e-4, i + .55 + t * .05), c.connect(l), l.connect(r), c.start(i), c.stop(i + .7)
     }
     tone(e, .08, `sine`, t * .25, void 0, `bgm`)
+}
+
+/** Music-box pluck: bright short partials + soft sine body */
+export function playMusicBoxNote(hz, peak = .08, dur = .45) {
+    let n = ensureAudioCtx(),
+        r = getMasterGain();
+    if (!n || !r || u) return;
+    if (n.state === `suspended`) {
+        n.resume();
+        return
+    }
+    let i = n.currentTime,
+        a = Math.max(.001, peak * f),
+        // music-box partials (slightly inharmonic)
+        o = [1, 2.01, 3.02, 4.2, 5.4],
+        s = [1, .55, .28, .14, .07];
+    for (let t = 0; t < o.length; t++) {
+        let c = n.createOscillator();
+        c.type = `sine`;
+        c.frequency.setValueAtTime(hz * o[t], i);
+        let l = n.createGain();
+        let attack = .004 + t * .002;
+        let release = dur * (1 - t * .12);
+        l.gain.setValueAtTime(1e-4, i);
+        l.gain.exponentialRampToValueAtTime(a * s[t], i + attack);
+        l.gain.exponentialRampToValueAtTime(1e-4, i + Math.max(attack + .05, release));
+        c.connect(l), l.connect(r);
+        c.start(i);
+        c.stop(i + release + .05);
+    }
+}
+
+/** Soft triad as music-box chord (root–third–fifth staggered) */
+export function playMusicBoxTriad(rootDeg, oct = 12, peak = .07) {
+    let delays = [0, 28, 52];
+    let degs = [rootDeg, rootDeg + 2, rootDeg + 4];
+    let peaks = [peak, peak * .78, peak * .62];
+    for (let k = 0; k < 3; k++) {
+        let deg = degs[k];
+        let p = peaks[k];
+        let d = delays[k];
+        setTimeout(() => {
+            try {
+                playMusicBoxNote(midiToHz(degreeToMidi(deg, oct)), p, .55);
+            } catch {}
+        }, d);
+    }
 }
 
 export function playDistorted(e, t) {
@@ -1307,7 +1375,10 @@ export function bgmResume() {
     if (activePatch.fugue || activePatch.flavor === `silence` || activePatch.flavor === `bells`) {
         let e = r;
         e === 0 && tone(80, .04, `triangle`, .035, void 0, `bgm`), e === 8 && activePatch.flavor !== `silence` && noiseBurst(.02, .02, 2e3, `bgm`)
-    } else if (activePatch.flavor === `dawn` || activePatch.flavor === `abyss` || activePatch.flavor === `continuo`) {
+    } else if (activePatch.flavor === `abyss`) {
+        // music box: almost no drums — soft tick only on bar
+        r === 0 && n % 32 === 0 && noiseBurst(.012, .012, 4e3, `bgm`)
+    } else if (activePatch.flavor === `dawn` || activePatch.flavor === `continuo`) {
         let e = r;
         (e === 0 || e === 8) && tone(70, .05, `triangle`, .05, void 0, `bgm`), (e === 4 || e === 12) && noiseBurst(.02, .025, 2500, `bgm`)
     } else if (activePatch.flavor === `iron` || activePatch.flavor === `storm` || activePatch.flavor === `chase`) playDrums(r);
@@ -1532,20 +1603,53 @@ export function bgmResume() {
                 return
             }
             if (e === `abyss`) {
-                if (n % 2 == 0) {
-                    let e = Math.floor(n / 2) % activePatch.counter.length,
-                        t = activePatch.counter[e];
-                    if (t >= 0) {
-                        let e = midiToHz(degreeToMidi(t, -24));
-                        tone(e, .2, `triangle`, .16, void 0, `bgm`), tone(e * 1.5, .16, `triangle`, .05, void 0, `bgm`), tone(Math.max(30, e * .5), .22, `sine`, .08, void 0, `bgm`)
+                // ── 深海のバス: 三和音オルゴール ──
+                let every = t;
+                let peak = i;
+                let oct = o > 12 ? o : 24;
+                // コード三和音（prog ルート）を小節頭で箱を鳴らす
+                if (n % 8 === 0) {
+                    playMusicBoxTriad(a, 12, peak * .55);
+                }
+                // 中間拍で 3 度転回を薄く
+                if (n % 8 === 4) {
+                    playMusicBoxTriad(a, 0, peak * .28);
+                }
+                // メロディ: broken triad ラインを music-box pluck
+                if (n % every === 0) {
+                    let idx = Math.floor(n / every) % activePatch.lead.length;
+                    let deg = activePatch.lead[idx];
+                    if (deg >= 0) {
+                        playMusicBoxNote(
+                            midiToHz(degreeToMidi(deg, oct)),
+                            peak,
+                            .5,
+                        );
+                    }
+                    let cdeg = activePatch.counter[idx];
+                    if (cdeg >= 0) {
+                        setTimeout(() => {
+                            try {
+                                playMusicBoxNote(
+                                    midiToHz(degreeToMidi(cdeg, oct - 12)),
+                                    peak * .4,
+                                    .35,
+                                );
+                            } catch {}
+                        }, 40);
                     }
                 }
-                if (n % t === 0) {
-                    let e = Math.floor(n / t) % activePatch.lead.length,
-                        r = activePatch.lead[e];
-                    r >= 0 && tone(midiToHz(degreeToMidi(r, 12)), .2, `sine`, i * .6, void 0, `bgm`)
+                // アルペジオ的に 1-3-5 を 2 拍おきに散らす
+                if (n % 4 === 2) {
+                    let step = Math.floor(n / 4) % 3;
+                    let arpDeg = a + [0, 2, 4][step];
+                    playMusicBoxNote(
+                        midiToHz(degreeToMidi(arpDeg, 24)),
+                        peak * .35,
+                        .3,
+                    );
                 }
-                n % 16 == 8 && noiseBurst(.12, .025, 300, `bgm`), scheduleNextTick();
+                scheduleNextTick();
                 return
             }
             if (e === `cadence`) {

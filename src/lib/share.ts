@@ -33,6 +33,34 @@ export function getOrCreatePlayerId(): string {
         .map((b) => (b % 36).toString(36))
         .join("");
       localStorage.setItem(PLAYER_KEY, id);
+      try {
+        // lazy import avoided — stamp via dynamic inline to not cycle
+        const metaKey = "swipe_force_id_meta_v1";
+        const m = JSON.parse(localStorage.getItem(metaKey) || "{}") as Record<
+          string,
+          { createdAt?: string }
+        >;
+        if (!m[id]?.createdAt) {
+          m[id] = { createdAt: new Date().toISOString() };
+          localStorage.setItem(metaKey, JSON.stringify(m));
+        }
+      } catch {
+        /* ignore */
+      }
+    } else {
+      try {
+        const metaKey = "swipe_force_id_meta_v1";
+        const m = JSON.parse(localStorage.getItem(metaKey) || "{}") as Record<
+          string,
+          { createdAt?: string }
+        >;
+        if (!m[id]?.createdAt) {
+          m[id] = { createdAt: new Date().toISOString() };
+          localStorage.setItem(metaKey, JSON.stringify(m));
+        }
+      } catch {
+        /* ignore */
+      }
     }
     return id;
   } catch {

@@ -170,12 +170,18 @@ export function shopTierHint(opts: {
   tier3: boolean;
   celebrate: boolean;
   frame: number;
+  linked?: boolean;
 }): { text: string; color: string } {
-  const text = opts.tier2
-    ? opts.tier3
-      ? "最終強化解放済み"
-      : "上級兵器を全MAX → TIER3解放"
-    : "基本強化を全MAX → TIER2兵器解放";
+  let text: string;
+  if (!opts.tier2) {
+    text = "基本強化を全MAX → TIER2兵器解放";
+  } else if (!opts.tier3) {
+    text = "上級兵器を全MAX → TIER3解放";
+  } else if (opts.linked) {
+    text = "最終強化解放済み · OPT/FLAME可";
+  } else {
+    text = "最終強化解放済み · 連携でOPT/FLAME";
+  }
   const color =
     opts.celebrate && opts.frame % 10 < 5 ? "#ff66ff" : "#66aa66";
   return { text, color };

@@ -40,18 +40,16 @@ export function enemyHpMultiplier(score: number): number {
 }
 
 /**
- * Normal difficulty cost scale by shop tier.
- * Recovered pushLocalInbox(tier).
+ * Normal difficulty cost scale by item shop tier.
+ * Geometric ×3 per tier: T1×3 → T2×9 → T3×27 → T4×81
  */
-/** Recovered pushLocalInbox(tier): normal multiplies shop costs by tier. */
 export function normalCostScale(
   tier: number,
   difficulty: "easy" | "normal" | string,
 ): number {
   if (difficulty !== "normal") return 1;
-  // e >= 4 → 27; e >= 3 → 81; e >= 2 → 9; else 3
-  if (tier >= 4) return 27;
-  if (tier >= 3) return 81;
+  if (tier >= 4) return 81;
+  if (tier >= 3) return 27;
   if (tier >= 2) return 9;
   return 3;
 }
@@ -95,16 +93,16 @@ export function shopItemMax(
 }
 
 /**
- * Catalog unlock tier: 1 guest … 4 linked.
- * hasT3 / hasT2 from recovered buildShareUrl/markFanmailSent mission-ish gates.
+ * Catalog unlock tier.
+ * T2 = basic weapons maxed · T3 = advanced maxed · T4 = linked + T3
+ * Account link no longer skips T2/T3 progression (only opens T4 specials).
  */
 export function shopUnlockTier(
   linked: boolean,
   hasTier3: boolean,
   hasTier2: boolean,
 ): number {
-  if (linked) return 4;
-  if (hasTier3) return 3;
+  if (hasTier3) return linked ? 4 : 3;
   if (hasTier2) return 2;
   return 1;
 }
@@ -115,7 +113,11 @@ export function filterShopCatalog<T extends ShopItem>(
   unlockTier: number,
   linked: boolean,
 ): T[] {
-  return catalog.filter((t) =>
-    t.linkOnly || t.tier >= 4 ? linked : t.tier <= unlockTier,
-  );
+  return catalog.filter((t) => {
+    // T4 / link-only: need linked AND catalog at least T3 path (unlock >= 3)
+    if (t.linkOnly || t.tier >= 4) {
+      return linked && unlockTier >= 3;
+    }
+    return t.tier <= unlockTier;
+  });
 }

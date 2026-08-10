@@ -1,4 +1,4 @@
-/** Persistent player stats (local). */
+/** Persistent player stats (local + cloud merge helpers). */
 
 import {
   readLocalEasyUpgrades,
@@ -6,6 +6,11 @@ import {
   readLocalProfile,
 } from "@/lib/account";
 import { readLocalCoins, getOrCreatePlayerId } from "@/lib/share";
+import {
+  ensureIdCreatedAt,
+  formatIdCreatedAt,
+  getIdCreatedAt,
+} from "@/lib/player-id-meta";
 
 const KEY = "swipe_force_stats_v1";
 
@@ -41,22 +46,51 @@ function clamp(n: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, n));
 }
 
+export function emptyStats(): PlayerStats {
+  return { ...EMPTY };
+}
+
+export function normalizeStats(raw: unknown): PlayerStats {
+  const p =
+    raw && typeof raw === "object" ? (raw as Partial<PlayerStats>) : {};
+  return {
+    playTimeSec: clamp(Number(p.playTimeSec) || 0, 0, 1e9),
+    helpAsked: clamp(Number(p.helpAsked) || 0, 0, 1e7),
+    helpReceived: clamp(Number(p.helpReceived) || 0, 0, 1e7),
+    maxStageEasy: clamp(Number(p.maxStageEasy) || 0, 0, 999),
+    maxStageNormal: clamp(Number(p.maxStageNormal) || 0, 0, 999),
+    runs: clamp(Number(p.runs) || 0, 0, 1e7),
+    totalKills: clamp(Number(p.totalKills) || 0, 0, 1e9),
+    bossesDefeated: clamp(Number(p.bossesDefeated) || 0, 0, 1e7),
+    continuesUsed: clamp(Number(p.continuesUsed) || 0, 0, 1e7),
+    hiScore: clamp(Number(p.hiScore) || 0, 0, 1e12),
+    lastPlayedAt: String(p.lastPlayedAt || "").slice(0, 40),
+  };
+}
+
+/** Max-merge two snapshots (safe for multi-device; no double-count). */
+export function mergeStats(a: PlayerStats, b: PlayerStats): PlayerStats {
+  const lastA = a.lastPlayedAt || "";
+  const lastB = b.lastPlayedAt || "";
+  return {
+    playTimeSec: Math.max(a.playTimeSec, b.playTimeSec),
+    helpAsked: Math.max(a.helpAsked, b.helpAsked),
+    helpReceived: Math.max(a.helpReceived, b.helpReceived),
+    maxStageEasy: Math.max(a.maxStageEasy, b.maxStageEasy),
+    maxStageNormal: Math.max(a.maxStageNormal, b.maxStageNormal),
+    runs: Math.max(a.runs, b.runs),
+    totalKills: Math.max(a.totalKills, b.totalKills),
+    bossesDefeated: Math.max(a.bossesDefeated, b.bossesDefeated),
+    continuesUsed: Math.max(a.continuesUsed, b.continuesUsed),
+    hiScore: Math.max(a.hiScore, b.hiScore),
+    lastPlayedAt: lastA >= lastB ? lastA : lastB,
+  };
+}
+
 export function readStats(): PlayerStats {
   try {
     const p = JSON.parse(localStorage.getItem(KEY) || "{}") as Partial<PlayerStats>;
-    return {
-      playTimeSec: clamp(Number(p.playTimeSec) || 0, 0, 1e9),
-      helpAsked: clamp(Number(p.helpAsked) || 0, 0, 1e7),
-      helpReceived: clamp(Number(p.helpReceived) || 0, 0, 1e7),
-      maxStageEasy: clamp(Number(p.maxStageEasy) || 0, 0, 999),
-      maxStageNormal: clamp(Number(p.maxStageNormal) || 0, 0, 999),
-      runs: clamp(Number(p.runs) || 0, 0, 1e7),
-      totalKills: clamp(Number(p.totalKills) || 0, 0, 1e9),
-      bossesDefeated: clamp(Number(p.bossesDefeated) || 0, 0, 1e7),
-      continuesUsed: clamp(Number(p.continuesUsed) || 0, 0, 1e7),
-      hiScore: clamp(Number(p.hiScore) || 0, 0, 1e12),
-      lastPlayedAt: String(p.lastPlayedAt || "").slice(0, 40),
-    };
+    return normalizeStats(p);
   } catch {
     return { ...EMPTY };
   }
@@ -64,10 +98,25 @@ export function readStats(): PlayerStats {
 
 export function writeStats(s: PlayerStats) {
   try {
-    localStorage.setItem(KEY, JSON.stringify(s));
+    localStorage.setItem(KEY, JSON.stringify(normalizeStats(s)));
   } catch {
     /* ignore */
   }
+}
+
+/** Merge cloud/local and persist; returns merged. */
+export function applyCloudStats(cloud: unknown, playTimeSec?: number): PlayerStats {
+  const local = readStats();
+  let remote = normalizeStats(cloud);
+  if (playTimeSec != null && Number.isFinite(Number(playTimeSec))) {
+    remote = {
+      ...remote,
+      playTimeSec: Math.max(remote.playTimeSec, clamp(Number(playTimeSec) || 0, 0, 1e9)),
+    };
+  }
+  const merged = mergeStats(local, remote);
+  writeStats(merged);
+  return merged;
 }
 
 export function patchStats(partial: Partial<PlayerStats>) {
@@ -164,12 +213,14 @@ export function easyUpgradeSummary(up?: EasyUpgrades): string {
 export function buildStatusLines(playerId?: string): string[] {
   const st = readStats();
   const pid = playerId || getOrCreatePlayerId();
+  const created = ensureIdCreatedAt(pid) || getIdCreatedAt(pid);
   const coins = readLocalCoins(pid);
   const prof = readLocalProfile();
   const up = readLocalEasyUpgrades();
   const upTotal = Object.values(up).reduce((a, b) => a + b, 0);
   return [
     `ID ${pid}`,
+    `ID作成 ${formatIdCreatedAt(created)}`,
     `総プレイ ${formatPlayTime(st.playTimeSec)}`,
     `ラン ${st.runs}  撃破 ${st.totalKills}  ボス ${st.bossesDefeated}`,
     `最高到達 E${st.maxStageEasy} / N${st.maxStageNormal}`,

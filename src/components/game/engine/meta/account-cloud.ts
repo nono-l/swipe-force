@@ -1,10 +1,20 @@
 // @ts-nocheck
 /**
- * Account link + cloud save (continue coins / easy ups / inbox merge).
+ * Account link + cloud save (continue coins / easy ups / inbox / play stats).
  * Storage keys + GET/POST /api/account/link helpers.
  */
 import { getBearerToken } from "@/lib/auth/client";
 import { newPlayerId, getCoins, setCoins, loadLocalInbox } from "./share";
+import {
+  applyCloudStats,
+  readStats,
+  type PlayerStats,
+} from "@/lib/player-stats";
+import {
+  applyIdCreatedAt,
+  ensureIdCreatedAt,
+  getIdCreatedAt,
+} from "@/lib/player-id-meta";
 
 export var KEY_LINKED_PLAYER = `swipe_force_linked_player_v1`,
     KEY_LOCAL_PLAYER = `swipe_force_guest_player_v1`,
@@ -37,7 +47,14 @@ export function authHeaders() {
 export function ensureLocalPlayerId() {
     try {
         let e = localStorage.getItem(KEY_LOCAL_PLAYER);
-        return e || (e = newPlayerId(), localStorage.setItem(KEY_LOCAL_PLAYER, e)), e
+        if (!e) {
+            e = newPlayerId();
+            localStorage.setItem(KEY_LOCAL_PLAYER, e);
+            ensureIdCreatedAt(e);
+        } else {
+            ensureIdCreatedAt(e);
+        }
+        return e
     } catch {
         return newPlayerId()
     }
@@ -114,7 +131,7 @@ export function mergeInboxMessages(e, t) {
 /**
  * Apply server snapshot into local storage.
  * @param playerId linked account player id
- * @param cloud response body (coins, easyUpgrades, inbox)
+ * @param cloud response body (coins, easyUpgrades, inbox, playTimeSec, stats)
  * @param guestCoins coins to max-merge
  * @param guestEasy guest easy upgrades
  * @param guestInbox guest inbox messages
@@ -142,10 +159,38 @@ export function applyCloudSnapshot(playerId, cloud, guestCoins, guestEasy, guest
         existing = [];
     }
     mergeInboxMessages(playerId, [...cloudInbox, ...guest, ...existing]);
+
+    // play time + stats (max-merge into local)
+    let stats: PlayerStats | null = null;
+    try {
+        stats = applyCloudStats(cloud?.stats, cloud?.playTimeSec);
+    } catch {
+        try {
+            stats = applyCloudStats({}, cloud?.playTimeSec);
+        } catch {
+            stats = null;
+        }
+    }
+
+    let idCreatedAt = "";
+    try {
+        idCreatedAt = applyIdCreatedAt(playerId, cloud?.idCreatedAt);
+        // also stamp guest id if different
+        try {
+            const guest = ensureLocalPlayerId();
+            if (guest && guest !== playerId) ensureIdCreatedAt(guest);
+        } catch { /* */ }
+    } catch {
+        idCreatedAt = getIdCreatedAt(playerId);
+    }
+
     return {
         coins,
         easyUpgrades,
-        inbox: loadLocalInbox(playerId)
+        inbox: loadLocalInbox(playerId),
+        playTimeSec: stats?.playTimeSec ?? (Number(cloud?.playTimeSec) || 0),
+        stats,
+        idCreatedAt,
     }
 }
 
@@ -157,6 +202,40 @@ function parseMaybeUpgrades(raw) {
         n[k] = Number.isFinite(r) ? Math.max(0, Math.min(99, r | 0)) : 0
     });
     return n
+}
+
+function localStatsPayload() {
+    try {
+        return readStats();
+    } catch {
+        return null;
+    }
+}
+
+function cloudBodyBase(e, t, n, r) {
+    const stats = localStatsPayload() || {
+        playTimeSec: 0,
+        helpAsked: 0,
+        helpReceived: 0,
+        maxStageEasy: 0,
+        maxStageNormal: 0,
+        runs: 0,
+        totalKills: 0,
+        bossesDefeated: 0,
+        continuesUsed: 0,
+        hiScore: 0,
+        lastPlayedAt: "",
+    };
+    const idCreatedAt = ensureIdCreatedAt(e) || getIdCreatedAt(e);
+    return {
+        guestPlayerId: e,
+        guestCoins: t,
+        easyUpgrades: n,
+        inbox: r,
+        playTimeSec: stats.playTimeSec | 0,
+        stats,
+        idCreatedAt,
+    };
 }
 
 export async function fetchAccountGet() {
@@ -192,7 +271,10 @@ export async function fetchAccountGet() {
             image: n.user.image ?? null,
             coins: r.coins,
             easyUpgrades: r.easyUpgrades,
-            inbox: r.inbox
+            inbox: r.inbox,
+            playTimeSec: r.playTimeSec,
+            stats: r.stats,
+            idCreatedAt: r.idCreatedAt,
         }
     } catch (err) {
         console.warn("[SWIPE FORCE] fetchAccountGet failed", err);
@@ -211,16 +293,20 @@ export async function linkAccountPost() {
         n = loadEasyUpgradesCloud(),
         r = loadLocalInbox(e);
     try {
+        // flush play-time accumulator before upload
+        try {
+            const acc = Number((globalThis as any).__sfPlayAcc) || 0;
+            if (acc >= 1) {
+                const { addPlayTime } = await import("@/lib/player-stats");
+                addPlayTime(acc);
+                (globalThis as any).__sfPlayAcc = 0;
+            }
+        } catch { /* ignore */ }
         let res = await fetch(`/api/account/link`, {
             method: `POST`,
             headers: authHeaders(),
             credentials: `include`,
-            body: JSON.stringify({
-                guestPlayerId: e,
-                guestCoins: t,
-                easyUpgrades: n,
-                inbox: r
-            })
+            body: JSON.stringify(cloudBodyBase(e, t, n, r))
         });
         if (res.status === 401) return fetchAccountGet();
         let i = await res.json().catch(() => ({}));
@@ -235,7 +321,10 @@ export async function linkAccountPost() {
                 image: i.user?.image ?? null,
                 coins: a.coins,
                 easyUpgrades: a.easyUpgrades,
-                inbox: a.inbox
+                inbox: a.inbox,
+                playTimeSec: a.playTimeSec,
+                stats: a.stats,
+                idCreatedAt: a.idCreatedAt,
             }
         }
     } catch (err) {
@@ -252,6 +341,16 @@ export async function syncAccountCloud() {
                 return !1
             }
         })()) try {
+        try {
+            const acc = Number((globalThis as any).__sfPlayAcc) || 0;
+            if (acc >= 1) {
+                const { addPlayTime } = await import("@/lib/player-stats");
+                addPlayTime(acc);
+                (globalThis as any).__sfPlayAcc = 0;
+            }
+        } catch { /* ignore */ }
+        const stats = readStats();
+        const idCreatedAt = ensureIdCreatedAt(e) || getIdCreatedAt(e);
         await fetch(`/api/account/link`, {
             method: `POST`,
             headers: authHeaders(),
@@ -260,7 +359,10 @@ export async function syncAccountCloud() {
                 guestPlayerId: e,
                 guestCoins: 0,
                 easyUpgrades: loadEasyUpgradesCloud(),
-                inbox: loadLocalInbox(e)
+                inbox: loadLocalInbox(e),
+                playTimeSec: stats.playTimeSec | 0,
+                stats,
+                idCreatedAt,
             })
         })
     } catch {}

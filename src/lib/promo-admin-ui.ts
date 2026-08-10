@@ -1,30 +1,39 @@
 /**
  * DOM admin UI: promo codes + staff (appointed admins).
- * Gated to super admin + appointed staff.
+ * Promo codes are stored in the server DB (not localStorage-only).
  */
 
 import {
   buildPromoUrl,
-  deleteCustomPromo,
   formatGrantSummary,
-  getAllPromoDefs,
   loadClaimedPromos,
   normalizePromoCode,
-  type PromoDef,
   unclaimPromoCode,
-  upsertCustomPromo,
+  type PromoDef,
   type GrantBundle,
+  PROMO_DEFS,
 } from "@/components/game/engine/modes/bag-grants";
 import {
   appointAdmin,
   fetchStaffList,
   isPromoAdminPlayer,
   isSuperAdmin,
-  normalizePlayerId,
   removeAppointedAdmin,
   SUPER_ADMIN_PLAYER_ID,
   type StaffEntry,
 } from "@/components/game/engine/modes/admin";
+import {
+  deleteAdminPromo,
+  fetchAdminPromos,
+  saveAdminPromo,
+  type ServerPromo,
+} from "@/lib/promo-api";
+import {
+  formatExpiresLabel,
+  formatMaxClaimsLabel,
+  isPromoExpired,
+  isPromoSoldOut,
+} from "@/lib/promo-server";
 
 function esc(s: string) {
   const amp = ["&", "a", "m", "p", ";"].join("");
@@ -62,12 +71,10 @@ export function openPromoAdminDialog(opts: {
   sfxOk?: () => void;
   sfxFail?: () => void;
   onDenied?: () => void;
-  /** notify host that staff list changed (menu may need refresh) */
   onStaffChange?: () => void;
 }) {
   if (document.getElementById("sf-promo-admin")) return;
 
-  // Soft gate: refresh staff then re-check
   void (async () => {
     await fetchStaffList();
     if (!isPromoAdminPlayer(opts.playerId)) {
@@ -101,6 +108,15 @@ export function openPromoAdminDialog(opts: {
       { playerId: SUPER_ADMIN_PLAYER_ID, label: "固定管理者", fixed: true },
     ];
     let staffBusy = false;
+    let promoBusy = false;
+    let serverCustoms: ServerPromo[] = [];
+    let serverBuiltins: ServerPromo[] = PROMO_DEFS.map((d) => ({
+      ...d,
+      custom: false,
+      claimCount: 0,
+    }));
+    let promoLoaded = false;
+    let totalClaims = 0;
 
     const close = () => dlg.remove();
 
@@ -115,6 +131,8 @@ export function openPromoAdminDialog(opts: {
       code: string;
       label: string;
       grant: GrantBundle;
+      expiresAt: string;
+      maxClaims: number;
     } => {
       const code = normalizePromoCode(
         (card.querySelector("#sf-pa-code") as HTMLInputElement)?.value || "",
@@ -136,10 +154,15 @@ export function openPromoAdminDialog(opts: {
           (card.querySelector("#sf-pa-pack") as HTMLInputElement)?.value || 0,
         ),
       };
-      return { code, label, grant };
+      const expiresAt =
+        (card.querySelector("#sf-pa-exp") as HTMLInputElement)?.value || "";
+      const maxClaims = Number(
+        (card.querySelector("#sf-pa-max") as HTMLInputElement)?.value || 0,
+      );
+      return { code, label, grant, expiresAt, maxClaims };
     };
 
-    const fillForm = (def?: PromoDef | null) => {
+    const fillForm = (def?: ServerPromo | null) => {
       editCode = def?.code || "";
       const codeEl = card.querySelector("#sf-pa-code") as HTMLInputElement | null;
       const labelEl = card.querySelector(
@@ -155,6 +178,22 @@ export function openPromoAdminDialog(opts: {
       setN("#sf-pa-x5", def?.grant.ptsX5 || 0);
       setN("#sf-pa-x10", def?.grant.ptsX10 || 0);
       setN("#sf-pa-pack", def?.grant.ptsPack || 0);
+      setN("#sf-pa-max", def?.maxClaims || 0);
+      const expEl = card.querySelector("#sf-pa-exp") as HTMLInputElement | null;
+      if (expEl) {
+        const raw = String(def?.expiresAt || "").trim();
+        if (!raw) expEl.value = "";
+        else {
+          // date input wants YYYY-MM-DD
+          const t = Date.parse(raw);
+          if (Number.isFinite(t)) {
+            const d = new Date(t);
+            expEl.value = d.toISOString().slice(0, 10);
+          } else if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+            expEl.value = raw.slice(0, 10);
+          } else expEl.value = "";
+        }
+      }
     };
 
     async function reloadStaff() {
@@ -163,14 +202,34 @@ export function openPromoAdminDialog(opts: {
       opts.onStaffChange?.();
     }
 
-    function renderPromoBody(): string {
-      const defs = getAllPromoDefs();
-      const claimed = new Set(loadClaimedPromos(null));
-      const customs = defs.filter((d) => d.custom);
-      const builtins = defs.filter((d) => !d.custom);
+    async function reloadPromos() {
+      promoBusy = true;
+      const res = await fetchAdminPromos();
+      promoBusy = false;
+      promoLoaded = true;
+      if (res.ok) {
+        serverCustoms = res.customs.map((c) => ({ ...c, custom: true }));
+        serverBuiltins = res.builtins.map((b) => ({ ...b, custom: false }));
+        totalClaims = res.totalClaims || 0;
+      } else {
+        flash =
+          res.reason === "auth" || res.reason === "forbidden"
+            ? "管理者ログインが必要です（DB未接続の可能性）"
+            : `プロモ読込失敗: ${res.reason || "error"}`;
+      }
+    }
 
+    function renderPromoBody(): string {
+      const customs = serverCustoms;
+      const builtins = serverBuiltins;
       return `
       ${flash ? `<div style="font-size:11px;margin-bottom:8px;padding:8px;border-radius:8px;background:#1a2010;border:1px solid #664;color:#fec">${esc(flash)}</div>` : ""}
+      <div style="font-size:10px;color:#8a7;margin-bottom:8px;line-height:1.4">
+        カスタムコードは<strong style="color:#fc8">サーバーDB</strong>に保存。受取はプレイヤー×コードで1回。<br/>
+        総使用回数 <strong style="color:#8ef">${totalClaims}</strong>
+        ${promoLoaded ? "" : " · 読み込み中…"}
+        ${promoBusy ? " · 通信中…" : ""}
+      </div>
       <div style="background:#0a141c;border:1px solid #345;border-radius:10px;padding:10px;margin-bottom:12px">
         <div style="font-size:11px;font-weight:700;color:#9cf;margin-bottom:8px">${editCode ? `編集: ${esc(editCode)}` : "新規コード"}</div>
         <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">コード (A-Z0-9)</label>
@@ -195,12 +254,23 @@ export function openPromoAdminDialog(opts: {
             <input id="sf-pa-pack" type="number" min="0" max="99" value="0" style="${inputStyle()}" />
           </div>
         </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div>
+            <label style="font-size:10px;color:#8ab">期限 (空=なし)</label>
+            <input id="sf-pa-exp" type="date" style="${inputStyle()}" />
+          </div>
+          <div>
+            <label style="font-size:10px;color:#8ab">使用上限 (0=無制限)</label>
+            <input id="sf-pa-max" type="number" min="0" max="1000000" value="0" style="${inputStyle()}" />
+          </div>
+        </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button type="button" id="sf-pa-save" style="flex:1;${btnStyle("primary")}">${editCode ? "更新" : "追加"}</button>
+          <button type="button" id="sf-pa-save" style="flex:1;${btnStyle("primary")}" ${promoBusy ? "disabled" : ""}>${editCode ? "更新(DB)" : "追加(DB)"}</button>
           <button type="button" id="sf-pa-clear" style="${btnStyle("ghost")}">クリア</button>
+          <button type="button" id="sf-pa-reload" style="${btnStyle("ok")}">再読込</button>
         </div>
       </div>
-      <div style="font-size:11px;font-weight:700;color:#fec;margin-bottom:6px">カスタム (${customs.length})</div>
+      <div style="font-size:11px;font-weight:700;color:#fec;margin-bottom:6px">カスタム DB (${customs.length})</div>
       <div id="sf-pa-custom" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
       <div style="font-size:11px;font-weight:700;color:#8ab;margin-bottom:6px">ビルトイン (${builtins.length})</div>
       <div id="sf-pa-built" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
@@ -254,6 +324,7 @@ export function openPromoAdminDialog(opts: {
         tab = "promo";
         flash = "";
         render();
+        void reloadPromos().then(() => render());
       });
       card.querySelector("#sf-tab-staff")!.addEventListener("click", () => {
         tab = "staff";
@@ -267,19 +338,29 @@ export function openPromoAdminDialog(opts: {
     }
 
     function bindPromoHandlers() {
-      const defs = getAllPromoDefs();
       const claimed = new Set(loadClaimedPromos(null));
-      const customs = defs.filter((d) => d.custom);
-      const builtins = defs.filter((d) => !d.custom);
+      const customs = serverCustoms;
+      const builtins = serverBuiltins;
 
-      const bindRow = (host: HTMLElement, def: PromoDef, isCustom: boolean) => {
+      const bindRow = (host: HTMLElement, def: ServerPromo, isCustom: boolean) => {
         const row = document.createElement("div");
-        const claimedMark = claimed.has(def.code) ? " · 受取済" : "";
+        const claimedMark = claimed.has(def.code) ? " · 端末受取済" : "";
+        const uses = Number(def.claimCount) || 0;
+        const max = Number(def.maxClaims) || 0;
+        const expired = isCustom && isPromoExpired(def.expiresAt);
+        const soldOut = isCustom && isPromoSoldOut(def.maxClaims, uses);
+        const status =
+          expired ? "期限切れ" : soldOut ? "上限到達" : isCustom ? "配布中" : "常設";
+        const statusCol = expired || soldOut ? "#f88" : "#8ef";
         row.style.cssText =
           "background:#031018;border:1px solid #234;border-radius:8px;padding:8px";
         row.innerHTML = `
-        <div style="font-size:12px;font-weight:700;color:${isCustom ? "#ffe088" : "#9cf"}">${esc(def.code)}${isCustom ? "" : " 🔒"}</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+          <div style="font-size:12px;font-weight:700;color:${isCustom ? "#ffe088" : "#9cf"}">${esc(def.code)}${isCustom ? " · DB" : " 🔒"}</div>
+          <div style="font-size:11px;font-weight:800;color:${statusCol};white-space:nowrap">${esc(status)}</div>
+        </div>
         <div style="font-size:10px;color:#9ab;margin-top:2px">${esc(def.label)} · ${esc(formatGrantSummary(def.grant))}${esc(claimedMark)}</div>
+        <div style="font-size:10px;color:#8ab;margin-top:3px">${esc(formatMaxClaimsLabel(max, uses))} · ${esc(isCustom ? formatExpiresLabel(def.expiresAt) : "期限なし")}</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px"></div>
       `;
         const actions = row.lastElementChild as HTMLElement;
@@ -313,22 +394,34 @@ export function openPromoAdminDialog(opts: {
             fillForm(snapshot);
           });
           addBtn("削除", "danger", () => {
-            if (!confirm(`削除: ${def.code} ?`)) return;
-            deleteCustomPromo(def.code);
-            if (editCode === def.code) editCode = "";
-            setFlash(`削除: ${def.code}`);
+            if (!confirm(`DBから削除: ${def.code} ?`)) return;
+            void (async () => {
+              promoBusy = true;
+              const r = await deleteAdminPromo(def.code);
+              promoBusy = false;
+              if (!r.ok) {
+                setFlash(`削除失敗: ${r.reason || "error"}`, false);
+                return;
+              }
+              if (editCode === def.code) editCode = "";
+              await reloadPromos();
+              setFlash(`DB削除: ${def.code}`);
+            })();
           });
         }
-        addBtn("受取解除", "ghost", () => {
+        addBtn("端末受取解除", "ghost", () => {
           unclaimPromoCode(def.code);
-          setFlash(`受取履歴クリア: ${def.code}`);
+          setFlash(`端末の受取履歴クリア: ${def.code}`);
         });
         host.appendChild(row);
       };
 
       const customHost = card.querySelector("#sf-pa-custom") as HTMLElement | null;
       if (customHost) {
-        if (!customs.length) {
+        if (!promoLoaded && !customs.length) {
+          customHost.innerHTML =
+            '<div style="font-size:11px;color:#678;padding:6px">サーバーから読み込み中…</div>';
+        } else if (!customs.length) {
           customHost.innerHTML =
             '<div style="font-size:11px;color:#678;padding:6px">まだカスタムコードがありません</div>';
         } else {
@@ -340,25 +433,43 @@ export function openPromoAdminDialog(opts: {
         for (const d of builtins) bindRow(builtHost, d, false);
       }
 
+      card.querySelector("#sf-pa-reload")?.addEventListener("click", () => {
+        void reloadPromos().then(() => {
+          setFlash("再読込しました");
+        });
+      });
+
       card.querySelector("#sf-pa-save")?.addEventListener("click", () => {
         if (!isPromoAdminPlayer(opts.playerId)) {
           setFlash("管理者のみ操作できます", false);
           return;
         }
         const form = readForm();
-        const res = upsertCustomPromo(form);
-        if (!res.ok) {
-          const msg =
-            res.reason === "bad_code"
-              ? "コードが不正です (2文字以上 A-Z0-9)"
-              : res.reason === "empty_grant"
-                ? "配布内容を1つ以上指定してください"
-                : "ビルトインコードは上書きできません";
-          setFlash(msg, false);
-          return;
-        }
-        editCode = res.def.code;
-        setFlash(`保存: ${res.def.code} (${formatGrantSummary(res.def.grant)})`);
+        void (async () => {
+          promoBusy = true;
+          render();
+          const res = await saveAdminPromo(form);
+          promoBusy = false;
+          if (!res.ok) {
+            const msg =
+              res.reason === "bad_code"
+                ? "コードが不正です (2文字以上 A-Z0-9)"
+                : res.reason === "empty_grant"
+                  ? "配布内容を1つ以上指定してください"
+                  : res.reason === "builtin_locked"
+                    ? "ビルトインコードは上書きできません"
+                    : res.reason === "auth" || res.reason === "forbidden"
+                      ? "管理者としてログインしてください"
+                      : `保存失敗: ${res.reason || "error"}`;
+            setFlash(msg, false);
+            return;
+          }
+          editCode = res.def?.code || form.code;
+          await reloadPromos();
+          setFlash(
+            `DB保存: ${res.def?.code || form.code} (${res.summary || formatGrantSummary(form.grant)}) · ${formatMaxClaimsLabel(form.maxClaims, res.def?.claimCount)} · ${formatExpiresLabel(form.expiresAt || res.def?.expiresAt)}`,
+          );
+        })();
       });
       card.querySelector("#sf-pa-clear")?.addEventListener("click", () => {
         editCode = "";
@@ -367,7 +478,7 @@ export function openPromoAdminDialog(opts: {
         fillForm(null);
       });
       if (editCode) {
-        const cur = defs.find((d) => d.code === editCode && d.custom);
+        const cur = customs.find((d) => d.code === editCode);
         if (cur) fillForm(cur);
       }
     }
@@ -397,84 +508,48 @@ export function openPromoAdminDialog(opts: {
             b.style.cssText = btnStyle("danger");
             b.onclick = () => {
               if (!confirm(`解任: ${s.playerId} ?`)) return;
-              staffBusy = true;
-              void removeAppointedAdmin(s.playerId).then(async (r) => {
+              void (async () => {
+                staffBusy = true;
+                const r = await removeAppointedAdmin(s.playerId);
                 staffBusy = false;
                 if (!r.ok) {
-                  setFlash(
-                    r.reason === "forbidden"
-                      ? "権限がありません"
-                      : r.reason === "fixed"
-                        ? "固定管理者は解任できません"
-                        : `解任失敗 (${r.reason})`,
-                    false,
-                  );
+                  setFlash(`解任失敗: ${r.reason || "error"}`, false);
                   return;
                 }
-                if (r.staff) staff = r.staff;
-                else await reloadStaff();
-                opts.onStaffChange?.();
+                await reloadStaff();
                 setFlash(`解任: ${s.playerId}`);
-              });
+              })();
             };
             actions.appendChild(b);
-          } else {
-            const sp = document.createElement("span");
-            sp.style.cssText = "font-size:10px;color:#567";
-            sp.textContent = "固定 · 削除不可";
-            actions.appendChild(sp);
           }
           listHost.appendChild(row);
         }
       }
 
       card.querySelector("#sf-st-add")?.addEventListener("click", () => {
-        if (staffBusy) return;
-        if (!isPromoAdminPlayer(opts.playerId)) {
-          setFlash("管理者のみ操作できます", false);
-          return;
-        }
-        const id = normalizePlayerId(
-          (card.querySelector("#sf-st-id") as HTMLInputElement)?.value || "",
-        );
+        const rawId =
+          (card.querySelector("#sf-st-id") as HTMLInputElement)?.value || "";
         const label =
-          (card.querySelector("#sf-st-label") as HTMLInputElement)?.value?.trim() ||
-          id;
-        if (!id || id.length < 4) {
-          setFlash("プレイヤーIDを入力してください", false);
-          return;
-        }
-        staffBusy = true;
-        void appointAdmin(id, label).then(async (r) => {
+          (card.querySelector("#sf-st-label") as HTMLInputElement)?.value || "";
+        void (async () => {
+          staffBusy = true;
+          render();
+          const r = await appointAdmin(rawId, label);
           staffBusy = false;
           if (!r.ok) {
-            const msg =
-              r.reason === "forbidden"
-                ? "権限がありません（連携済み管理者のみ）"
-                : r.reason === "auth"
-                  ? "連携セッションが必要です"
-                  : r.reason === "already_super"
-                    ? "既に固定管理者です"
-                    : r.reason === "bad_id"
-                      ? "IDが不正です"
-                      : `任命失敗 (${r.reason})`;
-            setFlash(msg, false);
+            setFlash(`任命失敗: ${r.reason || "error"}`, false);
             return;
           }
-          if (r.staff) staff = r.staff;
-          else await reloadStaff();
-          opts.onStaffChange?.();
-          setFlash(`任命: ${id}`);
-        });
+          await reloadStaff();
+          setFlash(`任命: ${rawId}`);
+        })();
       });
     }
 
-    void reloadStaff().then(() => {
+    // initial load
+    void (async () => {
+      await Promise.all([reloadPromos(), reloadStaff()]);
       render();
-    });
-
-    dlg.addEventListener("click", (e) => {
-      if (e.target === dlg) close();
-    });
+    })();
   }
 }

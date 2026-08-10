@@ -95,7 +95,7 @@ export function attractActionForIndex(
   return { type: "noop" };
 }
 
-/** Full pointer resolve: account → side rails → menu hit → empty confirm */
+/** Full pointer resolve: account → side rails → menu hit (no empty-area confirm) */
 export function resolveAttractPointer(opts: {
   x: number;
   y: number;
@@ -130,14 +130,18 @@ export function resolveAttractPointer(opts: {
 
   const hit = attractMenuIndexAt(sub, y, Z, isPromoAdmin);
   if (hit >= 0) {
+    // First tap on a different row only moves cursor; same row activates.
+    // Avoid accidental starts from empty space; empty area is noop.
+    if (hit !== cursor) {
+      return { cursor: hit, action: { type: "noop" } };
+    }
     return {
       cursor: hit,
       action: attractActionForIndex(sub, hit, cursor, difficulty, isPromoAdmin),
     };
   }
 
-  // empty area = confirm current cursor
-  return {
-    action: attractActionForIndex(sub, -1, cursor, difficulty, isPromoAdmin),
-  };
+  // empty field area — do not confirm (prevents mis-taps)
+  return { action: { type: "noop" } };
 }
+

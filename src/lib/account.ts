@@ -420,6 +420,24 @@ export async function fetchPublicProfile(playerId: string): Promise<PlayerProfil
   }
 }
 
+/**
+ * Pull own profile from server DB into this origin's localStorage.
+ * Needed because localStorage is per-domain (custom domain ≠ vercel.app).
+ * Server profile is keyed by linked playerId and is shared.
+ */
+export async function syncProfileFromServer(
+  playerId: string,
+): Promise<PlayerProfile> {
+  const remote = await fetchPublicProfile(playerId);
+  if (remote.hasProfile) {
+    writeLocalProfile(remote);
+    return remote;
+  }
+  // remote empty: keep local if any (may not have been pushed yet)
+  const local = readLocalProfile();
+  return local.hasProfile ? local : remote;
+}
+
 export async function saveMyProfile(
   displayName: string,
   bio: string,

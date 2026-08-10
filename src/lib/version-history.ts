@@ -1,6 +1,6 @@
 /** SWIPE FORCE version & changelog (newest first). */
 
-export const APP_VERSION = "1.6.0";
+export const APP_VERSION = "1.7.0";
 
 export type VersionEntry = {
   version: string;
@@ -10,6 +10,20 @@ export type VersionEntry = {
 };
 
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "1.7.0",
+    date: "2026-08-10",
+    title: "プロモ制限・ショップ・深海のバス",
+    notes: [
+      "プロモコードに期限・使用上限を設定可能",
+      "プロモ使用回数の集計を管理画面に表示",
+      "武器ショップのティア開放を修正（連携でT2/T3スキップしない）",
+      "NORMAL価格倍率の逆転を修正（T1×3→T4×81）",
+      "ボス曲「深海のバス」を三和音オルゴール風に",
+      "アカウント連携の保存にプレイ時間を追加",
+      "Extra 配下の Esc 戻り・サウンドテスト修正",
+    ],
+  },
   {
     version: "1.6.0",
     date: "2026-08-10",

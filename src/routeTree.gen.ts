@@ -13,8 +13,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ApiAccountLinkRouteImport } from './routes/api/account/link'
 import { Route as ApiAccountProfileRouteImport } from './routes/api/account/profile'
+import { Route as ApiAdminPromoRouteImport } from './routes/api/admin/promo'
 import { Route as ApiAdminStaffRouteImport } from './routes/api/admin/staff'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiPromoClaimRouteImport } from './routes/api/promo/claim'
 import { Route as ApiShareAwardRouteImport } from './routes/api/share/award'
 import { Route as ApiShareBalanceRouteImport } from './routes/api/share/balance'
 import { Route as ApiShareMessageRouteImport } from './routes/api/share/message'
@@ -46,6 +48,11 @@ const ApiAccountProfileRoute = ApiAccountProfileRouteImport.update({
   path: '/api/account/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminPromoRoute = ApiAdminPromoRouteImport.update({
+  id: '/api/admin/promo',
+  path: '/api/admin/promo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminStaffRoute = ApiAdminStaffRouteImport.update({
   id: '/api/admin/staff',
   path: '/api/admin/staff',
@@ -54,6 +61,11 @@ const ApiAdminStaffRoute = ApiAdminStaffRouteImport.update({
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPromoClaimRoute = ApiPromoClaimRouteImport.update({
+  id: '/api/promo/claim',
+  path: '/api/promo/claim',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiShareAwardRoute = ApiShareAwardRouteImport.update({
@@ -112,8 +124,10 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/api/account/link': typeof ApiAccountLinkRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
+  '/api/admin/promo': typeof ApiAdminPromoRoute
   '/api/admin/staff': typeof ApiAdminStaffRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/promo/claim': typeof ApiPromoClaimRoute
   '/api/share/award': typeof ApiShareAwardRoute
   '/api/share/balance': typeof ApiShareBalanceRoute
   '/api/share/message': typeof ApiShareMessageRoute
@@ -130,8 +144,10 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/api/account/link': typeof ApiAccountLinkRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
+  '/api/admin/promo': typeof ApiAdminPromoRoute
   '/api/admin/staff': typeof ApiAdminStaffRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/promo/claim': typeof ApiPromoClaimRoute
   '/api/share/award': typeof ApiShareAwardRoute
   '/api/share/balance': typeof ApiShareBalanceRoute
   '/api/share/message': typeof ApiShareMessageRoute
@@ -149,8 +165,10 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/api/account/link': typeof ApiAccountLinkRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
+  '/api/admin/promo': typeof ApiAdminPromoRoute
   '/api/admin/staff': typeof ApiAdminStaffRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/promo/claim': typeof ApiPromoClaimRoute
   '/api/share/award': typeof ApiShareAwardRoute
   '/api/share/balance': typeof ApiShareBalanceRoute
   '/api/share/message': typeof ApiShareMessageRoute
@@ -169,8 +187,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/api/account/link'
     | '/api/account/profile'
+    | '/api/admin/promo'
     | '/api/admin/staff'
     | '/api/auth/$'
+    | '/api/promo/claim'
     | '/api/share/award'
     | '/api/share/balance'
     | '/api/share/message'
@@ -187,8 +207,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/api/account/link'
     | '/api/account/profile'
+    | '/api/admin/promo'
     | '/api/admin/staff'
     | '/api/auth/$'
+    | '/api/promo/claim'
     | '/api/share/award'
     | '/api/share/balance'
     | '/api/share/message'
@@ -205,8 +227,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/api/account/link'
     | '/api/account/profile'
+    | '/api/admin/promo'
     | '/api/admin/staff'
     | '/api/auth/$'
+    | '/api/promo/claim'
     | '/api/share/award'
     | '/api/share/balance'
     | '/api/share/message'
@@ -224,8 +248,10 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ApiAccountLinkRoute: typeof ApiAccountLinkRoute
   ApiAccountProfileRoute: typeof ApiAccountProfileRoute
+  ApiAdminPromoRoute: typeof ApiAdminPromoRoute
   ApiAdminStaffRoute: typeof ApiAdminStaffRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiPromoClaimRoute: typeof ApiPromoClaimRoute
   ApiShareAwardRoute: typeof ApiShareAwardRoute
   ApiShareBalanceRoute: typeof ApiShareBalanceRoute
   ApiShareMessageRoute: typeof ApiShareMessageRoute
@@ -268,6 +294,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAccountProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/promo': {
+      id: '/api/admin/promo'
+      path: '/api/admin/promo'
+      fullPath: '/api/admin/promo'
+      preLoaderRoute: typeof ApiAdminPromoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/staff': {
       id: '/api/admin/staff'
       path: '/api/admin/staff'
@@ -280,6 +313,13 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/promo/claim': {
+      id: '/api/promo/claim'
+      path: '/api/promo/claim'
+      fullPath: '/api/promo/claim'
+      preLoaderRoute: typeof ApiPromoClaimRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/share/award': {
@@ -360,8 +400,10 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ApiAccountLinkRoute: ApiAccountLinkRoute,
   ApiAccountProfileRoute: ApiAccountProfileRoute,
+  ApiAdminPromoRoute: ApiAdminPromoRoute,
   ApiAdminStaffRoute: ApiAdminStaffRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiPromoClaimRoute: ApiPromoClaimRoute,
   ApiShareAwardRoute: ApiShareAwardRoute,
   ApiShareBalanceRoute: ApiShareBalanceRoute,
   ApiShareMessageRoute: ApiShareMessageRoute,

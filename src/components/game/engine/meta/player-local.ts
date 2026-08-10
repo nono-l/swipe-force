@@ -36,7 +36,19 @@ export var KEY_PLAYER_ID = `swipe_force_player_v1`,
 export function newPlayerId() {
     try {
         let e = localStorage.getItem(KEY_PLAYER_ID);
-        return (!e || e.length < 6) && (e = Array.from(crypto.getRandomValues(new Uint8Array(6))).map(e => (e % 36).toString(36)).join(``), localStorage.setItem(KEY_PLAYER_ID, e)), e
+        if (!e || e.length < 6) {
+            e = Array.from(crypto.getRandomValues(new Uint8Array(6))).map(e => (e % 36).toString(36)).join(``);
+            localStorage.setItem(KEY_PLAYER_ID, e);
+        }
+        try {
+            const metaKey = `swipe_force_id_meta_v1`;
+            const m = JSON.parse(localStorage.getItem(metaKey) || `{}`);
+            if (!m[e]?.createdAt) {
+                m[e] = { createdAt: new Date().toISOString() };
+                localStorage.setItem(metaKey, JSON.stringify(m));
+            }
+        } catch {}
+        return e
     } catch {
         return `guest`
     }
@@ -89,7 +101,7 @@ export function newShareId() {
 
 export function getMissionsForShare(e) {
     return e ? {
-        ...Dn()[e]
+        ...(loadAllMissions()[e] || {})
     } : {}
 }
 

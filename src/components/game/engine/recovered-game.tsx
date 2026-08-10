@@ -68,9 +68,13 @@ import {
 import {
   openProfileDialog,
   openStatsDialog,
+  openViewProfileDialog,
+  loadSharerProfile,
   shareProfilePayload,
 } from "@/lib/profile-ui";
+import { syncProfileFromServer } from "@/lib/account";
 import { openPromoAdminDialog } from "@/lib/promo-admin-ui";
+import { claimPromoRemote } from "@/lib/promo-api";
 import { isPromoAdminPlayer, fetchStaffList } from "./modes/admin";
 import {
   addPlayTime,
@@ -344,7 +348,6 @@ import {
   loadClaimedPromos,
   serializeClaimedPromos,
   parsePromoFromUrl,
-  claimPromoCode,
   stripPromoFromUrl,
 } from "./modes/game-api";
 
@@ -477,7 +480,17 @@ function SwipeForceEngine() {
                 image: null
             },
             accountBusy = !1,
-            continueCoins = 0;
+            continueCoins = 0,
+            inbox = [],
+            inboxCursor = 0,
+            inboxDetail = !1;
+
+        function reloadInbox() {
+            fetchInboxMessages(playerId).then(e => {
+                inbox = e, inboxCursor >= inbox.length && (inboxCursor = Math.max(0, inbox.length - 1))
+            })
+        }
+
         async function refreshAccount(e = !1) {
             try {
                 const acc = e ? await linkAccountPost() : await fetchAccountGet();
@@ -492,7 +505,11 @@ function SwipeForceEngine() {
                 continueCoins = typeof acc.coins === `number` ? acc.coins : loadContinueCoins(playerId);
                 try { reloadInbox(); } catch {}
                 try { refreshCoins(); } catch {}
-                if (account.linked) void fetchStaffList().catch(() => {});
+                if (account.linked) {
+                    void fetchStaffList().catch(() => {});
+                    // pull profile from DB into this origin (custom domain ↔ main)
+                    void syncProfileFromServer(playerId).catch(() => {});
+                }
                 return account;
             } catch (err) {
                 console.warn("[SWIPE FORCE] account refresh failed", err);
@@ -509,6 +526,40 @@ function SwipeForceEngine() {
             shareId = shareParams.sid;
         sharerId && sharerId === playerId && (sharerId = null, shareId = null), (!sharerId || !shareId) && (sharerId = null, shareId = null);
         continueCoins = loadContinueCoins(playerId);
+        let sharerProfile = {
+                displayName: ``,
+                bio: ``,
+                shareBlurb: ``,
+                hasProfile: !1
+            },
+            sharerProfileLoaded = !1;
+        function refreshSharerProfile() {
+            if (!sharerId) {
+                sharerProfile = { displayName: ``, bio: ``, shareBlurb: ``, hasProfile: !1 };
+                sharerProfileLoaded = !0;
+                return
+            }
+            sharerProfileLoaded = !1;
+            loadSharerProfile(sharerId).then(p => {
+                if (sharerId) {
+                    sharerProfile = p;
+                    sharerProfileLoaded = !0;
+                }
+            }).catch(() => { sharerProfileLoaded = !0 })
+        }
+        refreshSharerProfile();
+        function openSharerProfileView() {
+            if (!sharerId) return;
+            openViewProfileDialog({
+                ownerId: sharerId,
+                profile: sharerProfileLoaded ? sharerProfile : null,
+                viewerId: playerId,
+                linked: !!account.linked,
+                onNeedLink: () => openAccount(),
+                sfxUi: () => sfx.ui(),
+                sfxFail: () => sfx.buyFail(),
+            });
+        }
         let runStartedAt = 0,
             firstBossFlagged = !1,
             shareToast = ``,
@@ -533,15 +584,6 @@ function SwipeForceEngine() {
 
         function alreadySentFanmail() {
             return !!shareId && alreadySentFanmailTo(shareId, playerId)
-        }
-        let inbox = [],
-            inboxCursor = 0,
-            inboxDetail = !1;
-
-        function reloadInbox() {
-            fetchInboxMessages(playerId).then(e => {
-                inbox = e, inboxCursor >= inbox.length && (inboxCursor = Math.max(0, inbox.length - 1))
-            })
         }
         reloadInbox();
         let mailBusy = !1;
@@ -802,17 +844,32 @@ function SwipeForceEngine() {
         function tryClaimPromoFromUrl() {
             let code = parsePromoFromUrl();
             if (!code) return;
-            let res = claimPromoCode(bagStock, code, promoClaimed);
             stripPromoFromUrl();
-            if (!res.ok) {
-                shareToast = res.reason === `already` ? `プロモ済 ${code}` : `無効プロモ ${code}`;
-                shareToastLife = 120;
-                if (res.reason === `invalid`) sfx.buyFail();
-                else sfx.ui();
-                return
-            }
-            bagStock = res.bag, persistBag(), persistPromoClaimed(res.claimed);
-            shareToast = `PROMO ${res.label} ${res.summary}`, shareToastLife = 160, sfx.buy()
+            void (async () => {
+                const res = await claimPromoRemote(bagStock, code, playerId, promoClaimed);
+                if (!res.ok) {
+                    shareToast =
+                        res.reason === `already`
+                            ? `プロモ済 ${code}`
+                            : res.reason === `expired`
+                              ? `期限切れ ${code}`
+                              : res.reason === `sold_out`
+                                ? `配布終了 ${code}`
+                                : res.reason === `network`
+                                  ? `プロモ通信エラー ${code}`
+                                  : `無効プロモ ${code}`;
+                    shareToastLife = 120;
+                    if (res.reason === `already`) {
+                        promoClaimed = [...new Set([...promoClaimed, code.toUpperCase()])];
+                        persistPromoClaimed(promoClaimed);
+                        sfx.ui();
+                    } else sfx.buyFail();
+                    return
+                }
+                bagStock = res.bag, persistBag(), persistPromoClaimed(res.claimed);
+                promoClaimed = res.claimed;
+                shareToast = `PROMO ${res.label} ${res.summary}`, shareToastLife = 160, sfx.buy()
+            })()
         }
 
         // gift claims once on boot
@@ -1467,12 +1524,25 @@ function SwipeForceEngine() {
 
         function drawTitleMissions(e) {
             if (!sharerId) return;
-            reloadMissions(), fillRect(58, 90, 204, 72, `#001820`), ctx.strokeStyle = allMissionsClear() ? `#ffee66` : `#44ffcc`, ctx.lineWidth = 2, ctx.strokeRect(58.5, 90.5, 203, 71), ctx.lineWidth = 1, drawText(`◆ SHARE MISSIONS`, e, 94, `#66ffee`, 9, `center`), drawText(`4段階 × 各1枚 = 最大4 COIN`, e, 106, `#ffcc66`, 7, `center`);
-            for (let row of buildTitleMissionRows(MISSION_DEFS, missionsDone)) {
+            reloadMissions(), fillRect(58, 90, 204, 82, `#001820`), ctx.strokeStyle = allMissionsClear() ? `#ffee66` : `#44ffcc`, ctx.lineWidth = 2, ctx.strokeRect(58.5, 90.5, 203, 81), ctx.lineWidth = 1;
+            drawText(`◆ SHARE MISSIONS`, e, 94, `#66ffee`, 9, `center`);
+            {
+                let who = sharerProfile.hasProfile && sharerProfile.displayName
+                    ? sharerProfile.displayName.slice(0, 12)
+                    : `ID ${String(sharerId).slice(0, 8)}`;
+                drawText(`依頼主 ${who}`, e, 106, `#aaddff`, 7, `center`);
+            }
+            drawText(`4段階 × 各1枚 = 最大4 COIN`, e, 116, `#ffcc66`, 6, `center`);
+            for (let row of buildTitleMissionRows(MISSION_DEFS, missionsDone, 126, 9)) {
                 drawText(row.line, 66, row.y, row.color, 7);
             }
             let foot = titleMissionFooter(allMissionsClear(), alreadySentFanmail());
-            foot && drawText(foot, e, 152, alreadySentFanmail() ? `#88aa88` : `#ffff88`, 7, `center`)
+            foot && drawText(foot, e, 164, alreadySentFanmail() ? `#88aa88` : `#ffff88`, 6, `center`);
+            drawText(`タップで依頼主プロフ`, e, 173, `#5588aa`, 6, `center`);
+        }
+
+        function titleMissionHit(x, y) {
+            return !!sharerId && x >= 58 && x <= 262 && y >= 90 && y <= 174
         }
 
         function drawVirtualStick() {
@@ -1521,7 +1591,7 @@ function SwipeForceEngine() {
             ctx.lineWidth = 1;
             let statusLine = shopStatusLine({ pts: pts, tier: currentShopTier(), difficulty: difficulty });
             drawText(statusLine.text, PLAY_W / 2, 46, statusLine.color, 8, `center`);
-            let tier = shopTierHint({ tier2: tier2Unlocked(), tier3: tier3Unlocked(), celebrate: celebrate > 0, frame: frame });
+            let tier = shopTierHint({ tier2: tier2Unlocked(), tier3: tier3Unlocked(), celebrate: celebrate > 0, frame: frame, linked: !!account.linked });
             drawText(tier.text, PLAY_W / 2, 56, tier.color, 6, `center`);
             for (let row of buildShopRows({
                 catalog: e,
@@ -2089,7 +2159,7 @@ function SwipeForceEngine() {
                         drawText(row.text, 64, row.y + 4, row.selected ? `#ffffff` : `#99bbaa`, 7)
                     }
                 }
-                drawText(account.linked ? `👍 ${L.likes}   👎 ${L.dislikes}` : `評価・投稿はアカウント連携必須`, PLAY_W / 2, 348, account.linked ? `#88aa88` : `#aa8844`, 7, `center`);
+                drawText(account.linked ? `👍 ${ratings.likes}   👎 ${ratings.dislikes}` : `評価・投稿はアカウント連携必須`, PLAY_W / 2, 348, account.linked ? `#88aa88` : `#aa8844`, 7, `center`);
                 for (let entity of commentsFooterButtons({ mine: ratings.mine })) {
                     fillRect(entity.x, entity.y, entity.w, entity.h, entity.fill);
                     ctx.strokeStyle = entity.stroke;
@@ -2104,7 +2174,7 @@ function SwipeForceEngine() {
                 cardH = 0;
             if (playing) cardH = drawTrackCard(36, { compact: !1 });
             let top = soundTestListTop(playing, cardH);
-            if (playing && top.ratingY != null) drawText(`この曲の評価  👍${L.likes}  👎${L.dislikes}`, PLAY_W / 2, top.ratingY, `#88aa88`, 6, `center`);
+            if (playing && top.ratingY != null) drawText(`この曲の評価  👍${ratings.likes}  👎${ratings.dislikes}`, PLAY_W / 2, top.ratingY, `#88aa88`, 6, `center`);
             else if (top.hintY != null) drawText(`曲を選ぶと、その曲の評価・コメントが対象になります`, PLAY_W / 2, top.hintY, `#556666`, 6, `center`);
             let t = soundTestPageSize(playing),
                 n = top.listTop;
@@ -2144,7 +2214,8 @@ function SwipeForceEngine() {
                 if (!account.linked) drawText(`評価・コメントは連携必須`, PLAY_W / 2, 350, `#aa8844`, 6, `center`);
                 else {
                     let e = currentTrackCard();
-                    drawText(`対象: ${e.cat}${soundPlayMode===`title`?``:soundIndex} ${e.short.slice(0,16)}`, PLAY_W / 2, 350, `#668866`, 5, `center`)
+                    let idxPart = soundPlayMode === "title" ? "" : String(soundIndex);
+                    drawText(`対象: ${e.cat}${idxPart} ${e.short.slice(0, 16)}`, PLAY_W / 2, 350, `#668866`, 5, `center`)
                 }
             } else drawText(`上下スワイプ · タップ決定`, PLAY_W / 2, 366, `#335544`, 6, `center`);
             soundToastLife > 0 && drawText(soundToast, PLAY_W / 2, 388, `#ffaa66`, 6, `center`)
@@ -2266,6 +2337,11 @@ function SwipeForceEngine() {
         }
 
         function handleAttractTap(e, t) {
+            // mission host profile (before menu resolve)
+            if (titleMissionHit(e, t)) {
+                openSharerProfileView();
+                return
+            }
             let adminMenu = !!(account.linked && isPromoAdminPlayer(playerId));
             let res = resolveAttractPointer({
                 x: e,
@@ -2302,6 +2378,10 @@ function SwipeForceEngine() {
             if (a.type === `options`) { openOptions(`attract`); return }
             if (a.type === `open_extra`) { titleSub = `extra`, titleCursor = 0, sfx.ui(); return }
             if (a.type === `changelog`) { openChangelog(); return }
+            if (a.type === `noop`) {
+                if (res.cursor != null) sfx.ui();
+                return
+            }
             sfx.ui()
         }
 
@@ -3178,6 +3258,8 @@ function SwipeForceEngine() {
             openOptions: () => openOptions(`shop`),
             openBag: () => openBag(`attract`),
             openBagPlay: () => openBag(`play`),
+            openSoundTest: () => openSoundTest(),
+            setLinked: (v) => { account.linked = !!v; },
             playerPos: () => ({ x: player.x, y: player.y }),
             pressKeys: (arr) => {
                 try {

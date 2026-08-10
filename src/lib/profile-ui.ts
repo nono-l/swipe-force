@@ -5,6 +5,7 @@ import {
   writeLocalProfile,
   saveMyProfile,
   fetchPublicProfile,
+  syncProfileFromServer,
   type PlayerProfile,
 } from "@/lib/account";
 import {
@@ -243,7 +244,7 @@ export function openProfileDialog(opts: {
   }
   if (document.getElementById("sf-profile-dlg")) return;
   opts.sfxUi?.();
-  const my = readLocalProfile();
+  const local = readLocalProfile();
   const dlg = document.createElement("div");
   dlg.id = "sf-profile-dlg";
   dlg.style.cssText =
@@ -254,19 +255,20 @@ export function openProfileDialog(opts: {
         <div style="font-size:14px;font-weight:700;color:#8ff">プロフィール</div>
         <button type="button" id="sf-pr-x" style="border:0;background:transparent;color:#9ab;font-size:18px;cursor:pointer">×</button>
       </div>
-      <div style="font-size:11px;color:#6a9;line-height:1.4;margin-bottom:10px">連携特典。助けに来た相手に表示。シェア文は別テンプレです。</div>
+      <div style="font-size:11px;color:#6a9;line-height:1.4;margin-bottom:10px">連携特典。サーバーに保存 · ドメインをまたいで同期。助けに来た相手に表示。</div>
+      <div id="sf-pr-sync" style="font-size:10px;color:#8a7;margin-bottom:8px">同期中…</div>
       <label style="font-size:11px;color:#9ab">表示名（必須 · 16）</label>
-      <input id="sf-pr-name" maxlength="16" value="${esc(my.displayName)}" placeholder="パイロット名"
+      <input id="sf-pr-name" maxlength="16" value="${esc(local.displayName)}" placeholder="パイロット名"
         style="width:100%;box-sizing:border-box;margin:4px 0 10px;padding:9px;border-radius:8px;border:1px solid #2a6;background:#001a10;color:#efe;font-size:14px" />
       <label style="font-size:11px;color:#9ab">シェア文テンプレ（任意 · 40）</label>
       <div style="font-size:10px;color:#678;margin:2px 0 4px">Xシェア本文に載る短い一文</div>
-      <input id="sf-pr-share" maxlength="40" value="${esc(my.shareBlurb)}" placeholder="例: 4面ボス詰み助けて"
+      <input id="sf-pr-share" maxlength="40" value="${esc(local.shareBlurb)}" placeholder="例: 4面ボス詰み助けて"
         style="width:100%;box-sizing:border-box;margin:0 0 4px;padding:9px;border-radius:8px;border:1px solid #2a6;background:#001a10;color:#efe" />
       <div id="sf-pr-sc" style="font-size:10px;color:#678;text-align:right;margin-bottom:10px">0 / 40</div>
       <label style="font-size:11px;color:#9ab">自己紹介（任意 · 5000）</label>
       <div style="font-size:10px;color:#678;margin:2px 0 4px">https URLは自動リンク · # & = クエリOK · クッション経由</div>
       <textarea id="sf-pr-bio" maxlength="5000" rows="6" placeholder="例: 関東勢です&#10;https://x.com/you?s=20&t=abc#hi"
-        style="width:100%;box-sizing:border-box;margin:4px 0 6px;padding:9px;border-radius:8px;border:1px solid #2a6;background:#001a10;color:#efe;resize:vertical;min-height:90px">${esc(my.bio)}</textarea>
+        style="width:100%;box-sizing:border-box;margin:4px 0 6px;padding:9px;border-radius:8px;border:1px solid #2a6;background:#001a10;color:#efe;resize:vertical;min-height:90px">${esc(local.bio)}</textarea>
       <div id="sf-pr-bc" style="font-size:10px;color:#678;text-align:right;margin-bottom:8px">0 / 5000</div>
       <div id="sf-pr-msg" style="min-height:1.2em;font-size:11px;color:#fc8;text-align:center;margin-bottom:8px"></div>
       <div style="display:flex;gap:8px">
@@ -283,6 +285,7 @@ export function openProfileDialog(opts: {
   const sc = dlg.querySelector("#sf-pr-sc") as HTMLElement;
   const bc = dlg.querySelector("#sf-pr-bc") as HTMLElement;
   const msg = dlg.querySelector("#sf-pr-msg") as HTMLElement;
+  const syncEl = dlg.querySelector("#sf-pr-sync") as HTMLElement;
   const paint = () => {
     sc.textContent = `${[...shareEl.value].length} / 40`;
     bc.textContent = `${[...bioEl.value].length} / 5000`;
@@ -290,6 +293,29 @@ export function openProfileDialog(opts: {
   shareEl.oninput = paint;
   bioEl.oninput = paint;
   paint();
+
+  // pull server copy so custom domain / vercel.app stay in sync
+  void syncProfileFromServer(opts.playerId).then((p) => {
+    if (!document.getElementById("sf-profile-dlg")) return;
+    // only overwrite fields if user hasn't typed yet (still match local open)
+    const dirty =
+      nameEl.value !== local.displayName ||
+      shareEl.value !== local.shareBlurb ||
+      bioEl.value !== local.bio;
+    if (!dirty) {
+      nameEl.value = p.displayName || "";
+      shareEl.value = p.shareBlurb || "";
+      bioEl.value = p.bio || "";
+      paint();
+    }
+    if (syncEl) {
+      syncEl.textContent = p.hasProfile
+        ? "サーバーと同期済み"
+        : "サーバー未設定 · この端末の下書きがあれば表示中";
+      syncEl.style.color = p.hasProfile ? "#6a9" : "#a86";
+    }
+  });
+
   dlg.querySelector("#sf-pr-x")!.addEventListener("click", () => {
     dlg.remove();
     opts.sfxUi?.();
@@ -328,7 +354,11 @@ export function openProfileDialog(opts: {
         opts.sfxFail?.();
         return;
       }
-      msg.textContent = "保存しました";
+      msg.textContent = "サーバーに保存しました";
+      if (syncEl) {
+        syncEl.textContent = "サーバーと同期済み";
+        syncEl.style.color = "#6a9";
+      }
       opts.sfxOk?.();
       opts.onSaved?.(r.profile!);
       setTimeout(() => dlg.remove(), 400);
@@ -359,7 +389,7 @@ export function openStatsDialog(opts: {
       <div style="background:#031018;border:1px solid #245;border-radius:8px;padding:10px;font-size:12px;line-height:1.65;font-family:ui-monospace,monospace;color:#cfe">
         ${lines.map((l) => esc(l)).join("<br/>")}
       </div>
-      <div style="font-size:10px;color:#567;margin-top:10px;line-height:1.4">v1.5.0 · プロフ / シェア文 / 自己紹介URL / 統計画面</div>
+      <div style="font-size:10px;color:#567;margin-top:10px;line-height:1.4">v1.7.0 · プロモ期限 / 使用上限 / ショップティア / 深海のバス</div>
     </div>`;
   document.body.appendChild(dlg);
   dlg.addEventListener("pointerdown", (e) => e.stopPropagation());
@@ -371,6 +401,97 @@ export function openStatsDialog(opts: {
 
 export async function loadSharerProfile(playerId: string): Promise<PlayerProfile> {
   return fetchPublicProfile(playerId);
+}
+
+/** Read-only public profile (share mission host, etc.) */
+export function openViewProfileDialog(opts: {
+  ownerId: string;
+  /** optional preloaded */
+  profile?: PlayerProfile | null;
+  viewerId: string;
+  linked: boolean;
+  onNeedLink?: () => void;
+  sfxUi?: () => void;
+  sfxFail?: () => void;
+}) {
+  if (document.getElementById("sf-view-profile-dlg")) return;
+  opts.sfxUi?.();
+  const dlg = document.createElement("div");
+  dlg.id = "sf-view-profile-dlg";
+  dlg.style.cssText =
+    "position:fixed;inset:0;z-index:9990;display:flex;align-items:center;justify-content:center;background:rgba(0,8,6,.82);padding:12px;font-family:system-ui,sans-serif";
+  dlg.innerHTML = `
+    <div style="width:min(360px,96vw);max-height:92vh;overflow:auto;background:#061018;border:2px solid #66ccff;border-radius:12px;padding:14px;color:#dff">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:14px;font-weight:700;color:#8ef">依頼主プロフィール</div>
+        <button type="button" id="sf-vp-x" style="border:0;background:transparent;color:#9ab;font-size:18px;cursor:pointer">×</button>
+      </div>
+      <div id="sf-vp-body" style="font-size:12px;color:#9ab">読み込み中…</div>
+    </div>`;
+  document.body.appendChild(dlg);
+  dlg.addEventListener("pointerdown", (e) => e.stopPropagation());
+  const close = () => {
+    dlg.remove();
+    opts.sfxUi?.();
+  };
+  dlg.querySelector("#sf-vp-x")!.addEventListener("click", close);
+  dlg.addEventListener("click", (e) => {
+    if (e.target === dlg) close();
+  });
+
+  const paint = (p: PlayerProfile) => {
+    const body = dlg.querySelector("#sf-vp-body") as HTMLElement;
+    if (!body) return;
+    if (!p.hasProfile) {
+      body.innerHTML = `
+        <div style="font-size:11px;color:#89a;margin-bottom:8px">ID ${esc(opts.ownerId)}</div>
+        <div style="padding:16px;text-align:center;color:#789;background:#031018;border-radius:8px;border:1px solid #234">
+          プロフィール未設定です
+        </div>`;
+      return;
+    }
+    body.innerHTML = `
+      <div style="font-size:10px;color:#678;margin-bottom:4px">ID ${esc(opts.ownerId)}</div>
+      <div style="font-size:18px;font-weight:800;color:#eff;margin-bottom:6px">${esc(p.displayName || "—")}</div>
+      ${
+        p.shareBlurb
+          ? `<div style="font-size:11px;color:#fc8;background:#1a1408;border:1px solid #653;border-radius:8px;padding:8px;margin-bottom:10px">「${esc(p.shareBlurb)}」</div>`
+          : ""
+      }
+      <div style="font-size:11px;color:#8ab;margin-bottom:4px">自己紹介</div>
+      <div id="sf-vp-bio" style="min-height:60px;background:#031018;border:1px solid #245;border-radius:8px;padding:10px;font-size:12px;line-height:1.55;color:#cde;white-space:pre-wrap"></div>
+      <div style="font-size:10px;color:#567;margin-top:10px">URLは2段クッション経由 · 連携後に開封</div>`;
+    const bioHost = body.querySelector("#sf-vp-bio") as HTMLElement;
+    if (bioHost) {
+      if (p.bio) {
+        fillLinkedBio(
+          bioHost,
+          p.bio,
+          opts.ownerId,
+          "依頼主プロフの自己紹介URL",
+          opts.viewerId,
+          opts.linked,
+          opts.onNeedLink,
+        );
+      } else {
+        bioHost.textContent = "（未記入）";
+        bioHost.style.color = "#567";
+      }
+    }
+  };
+
+  if (opts.profile && opts.profile.hasProfile) {
+    paint(opts.profile);
+  } else {
+    void fetchPublicProfile(opts.ownerId).then((p) => {
+      if (!document.getElementById("sf-view-profile-dlg")) return;
+      paint(p);
+    }).catch(() => {
+      const body = dlg.querySelector("#sf-vp-body") as HTMLElement;
+      if (body) body.textContent = "読み込みに失敗しました";
+      opts.sfxFail?.();
+    });
+  }
 }
 
 export function shareProfilePayload(): {
@@ -386,3 +507,4 @@ export function shareProfilePayload(): {
     shareBlurb: p.shareBlurb,
   };
 }
+
