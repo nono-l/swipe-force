@@ -15,6 +15,10 @@ export const STORAGE = {
   inbox: "swipe_force_msgs_v1",
   stats: "swipe_force_stats_v1",
   profile: "swipe_force_profile_v1",
+  bag: "swipe_force_bag_v1",
+  bagPending: "swipe_force_bag_pending_v1",
+  loginBonus: "swipe_force_login_bonus_v1",
+  promoClaimed: "swipe_force_promo_claimed_v1",
 } as const;
 
 export const PLAYFIELD = {
@@ -31,6 +35,8 @@ export const APP_MODES = [
   "bossintro",
   "shop",
   "options",
+  "bag",
+  "stageselect",
   "stageclear",
   "gameover",
   "name",

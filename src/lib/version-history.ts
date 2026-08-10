@@ -1,6 +1,6 @@
 /** SWIPE FORCE version & changelog (newest first). */
 
-export const APP_VERSION = "1.5.0";
+export const APP_VERSION = "1.6.0";
 
 export type VersionEntry = {
   version: string;
@@ -10,6 +10,20 @@ export type VersionEntry = {
 };
 
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "1.6.0",
+    date: "2026-08-10",
+    title: "バッグ・プロモ・管理者",
+    notes: [
+      "使い捨てアイテム（STAGE TICKET / PTS×5×10 / +5000）",
+      "バッグ画面・ログインボーナス・プロモコード配布",
+      "プロモ管理UIと追加管理者の任命（固定管理者あり）",
+      "プレイ中サイドレールから BAG / キーBで使用",
+      "AUTO SHOP 設定・オプションからタイトルへ戻る",
+      "キーボード移動（WASD / 矢印）を復元",
+      "カスタムドメイン認証（Invalid origin）対応",
+    ],
+  },
   {
     version: "1.5.0",
     date: "2026-08-10",

@@ -70,6 +70,8 @@ import {
   openStatsDialog,
   shareProfilePayload,
 } from "@/lib/profile-ui";
+import { openPromoAdminDialog } from "@/lib/promo-admin-ui";
+import { isPromoAdminPlayer, fetchStaffList } from "./modes/admin";
 import {
   addPlayTime,
   noteHelpAsked,
@@ -80,6 +82,7 @@ import {
   noteBossClear,
   noteContinue,
   noteHiScore,
+  readStats,
 } from "@/lib/player-stats";
 
 import { openAccountDialog } from "./ui/account-dialog";
@@ -317,6 +320,32 @@ import {
   scanlineFill,
   planWeaponFire,
   planSpawn,
+  BAG_KEY,
+  BAG_PENDING_KEY,
+  loadBag,
+  serializeBag,
+  loadPending,
+  serializePending,
+  addBagStock,
+  consumeBagStock,
+  bagFieldForShopId,
+  isStockableShopId,
+  buildBagRows,
+  buildStageSelectRows,
+  maxSelectableStage,
+  LOGIN_BONUS_KEY,
+  PROMO_CLAIMED_KEY,
+  loginBonusGrant,
+  formatGrantSummary,
+  loadLastLoginDate,
+  serializeLoginBonus,
+  canClaimLoginBonus,
+  claimLoginBonus,
+  loadClaimedPromos,
+  serializeClaimedPromos,
+  parsePromoFromUrl,
+  claimPromoCode,
+  stripPromoFromUrl,
 } from "./modes/game-api";
 
 // Auth bindings (readable names; openAccountDialog may still expect short aliases via props)
@@ -417,6 +446,16 @@ function SwipeForceEngine() {
             optionsSub = `main`,
             optionsToast = ``,
             optionsToastLife = 0,
+            bagCursor = 0,
+            bagFrom = `attract`,
+            bagToast = ``,
+            bagToastLife = 0,
+            stageSelectCursor = 0,
+            bagStock = loadBag(typeof localStorage < `u` ? localStorage.getItem(BAG_KEY) : null),
+            bagPending = loadPending(typeof localStorage < `u` ? localStorage.getItem(BAG_PENDING_KEY) : null),
+            loginLastDate = loadLastLoginDate(typeof localStorage < `u` ? localStorage.getItem(LOGIN_BONUS_KEY) : null),
+            promoClaimed = loadClaimedPromos(typeof localStorage < `u` ? localStorage.getItem(PROMO_CLAIMED_KEY) : null),
+            runPtsMult = 1,
             optionsDragOn = !1,
             optionsDragX = 0,
             optionsDragY = 0,
@@ -437,7 +476,8 @@ function SwipeForceEngine() {
                 email: null,
                 image: null
             },
-            accountBusy = !1;
+            accountBusy = !1,
+            continueCoins = 0;
         async function refreshAccount(e = !1) {
             try {
                 const acc = e ? await linkAccountPost() : await fetchAccountGet();
@@ -449,23 +489,27 @@ function SwipeForceEngine() {
                     image: acc.image ?? null
                 };
                 playerId = account.linked && account.playerId ? account.playerId : loadPlayerId();
-                continueCoins = loadContinueCoins(playerId);
-                reloadInbox();
-                refreshCoins();
-                sfx.ui();
+                continueCoins = typeof acc.coins === `number` ? acc.coins : loadContinueCoins(playerId);
+                try { reloadInbox(); } catch {}
+                try { refreshCoins(); } catch {}
+                if (account.linked) void fetchStaffList().catch(() => {});
                 return account;
             } catch (err) {
                 console.warn("[SWIPE FORCE] account refresh failed", err);
                 return account;
             }
         }
-        refreshAccount(!1);
+        // initial status (no SFX)
+        void fetchStaffList().catch(() => {});
+        void refreshAccount(!1).then(() => {
+            continueCoins = loadContinueCoins(playerId);
+        });
         let shareParams = parseShareParams(),
             sharerId = shareParams.ref,
             shareId = shareParams.sid;
         sharerId && sharerId === playerId && (sharerId = null, shareId = null), (!sharerId || !shareId) && (sharerId = null, shareId = null);
-        let continueCoins = loadContinueCoins(playerId),
-            runStartedAt = 0,
+        continueCoins = loadContinueCoins(playerId);
+        let runStartedAt = 0,
             firstBossFlagged = !1,
             shareToast = ``,
             shareToastLife = 0,
@@ -611,7 +655,8 @@ function SwipeForceEngine() {
             keysDown = new Set;
 
         function clearInput() {
-            vstickActive = !1, vstickAxisX = 0, vstickAxisY = 0
+            vstickActive = !1, vstickAxisX = 0, vstickAxisY = 0, swipeActive = !1;
+            try { keysDown.clear() } catch {}
         }
 
         function layoutCanvas() {
@@ -671,6 +716,9 @@ function SwipeForceEngine() {
         }
 
         function canBuyItem(e) {
+            if (e.stockable) {
+                return bagStockOfId(e.id) < itemMaxOf(e) && pts >= itemCostOf(e)
+            }
             return e.consumable ? e.id === `life` && lives >= 5 || e.id === `shield` && shield > 0 ? !1 : pts >= itemCostOf(e) : (e.linkOnly || e.tier >= 4) && !account.linked || upgrades[e.id] >= itemMaxOf(e) ? !1 : pts >= itemCostOf(e)
         }
 
@@ -695,6 +743,238 @@ function SwipeForceEngine() {
             return Object.keys(DEFAULT_UPGRADES).reduce((t, n) => t + e[n], 0)
         }
 
+        function persistBag() {
+            try {
+                localStorage.setItem(BAG_KEY, serializeBag(bagStock))
+            } catch {}
+        }
+
+        function persistPending() {
+            try {
+                localStorage.setItem(BAG_PENDING_KEY, serializePending(bagPending))
+            } catch {}
+        }
+
+        function reloadBag() {
+            try {
+                bagStock = loadBag(localStorage.getItem(BAG_KEY));
+                bagPending = loadPending(localStorage.getItem(BAG_PENDING_KEY));
+                loginLastDate = loadLastLoginDate(localStorage.getItem(LOGIN_BONUS_KEY));
+                promoClaimed = loadClaimedPromos(localStorage.getItem(PROMO_CLAIMED_KEY));
+            } catch {
+                bagStock = loadBag(null);
+                bagPending = loadPending(null);
+            }
+        }
+
+        function persistLoginDate(d) {
+            loginLastDate = d;
+            try {
+                localStorage.setItem(LOGIN_BONUS_KEY, serializeLoginBonus(d))
+            } catch {}
+        }
+
+        function persistPromoClaimed(list) {
+            promoClaimed = list;
+            try {
+                localStorage.setItem(PROMO_CLAIMED_KEY, serializeClaimedPromos(list))
+            } catch {}
+        }
+
+        function tryClaimLoginBonus(silent) {
+            let res = claimLoginBonus(bagStock, loginLastDate);
+            if (!res.ok) {
+                if (!silent) {
+                    bagToast = `本日は受取済`, bagToastLife = 60, sfx.buyFail();
+                }
+                return !1
+            }
+            bagStock = res.bag, persistBag(), persistLoginDate(res.today);
+            if (silent) {
+                shareToast = `LOGIN BONUS ${res.summary}`, shareToastLife = 140;
+            } else {
+                bagToast = `LOGIN ${res.summary}`, bagToastLife = 80;
+            }
+            sfx.buy();
+            return !0
+        }
+
+        function tryClaimPromoFromUrl() {
+            let code = parsePromoFromUrl();
+            if (!code) return;
+            let res = claimPromoCode(bagStock, code, promoClaimed);
+            stripPromoFromUrl();
+            if (!res.ok) {
+                shareToast = res.reason === `already` ? `プロモ済 ${code}` : `無効プロモ ${code}`;
+                shareToastLife = 120;
+                if (res.reason === `invalid`) sfx.buyFail();
+                else sfx.ui();
+                return
+            }
+            bagStock = res.bag, persistBag(), persistPromoClaimed(res.claimed);
+            shareToast = `PROMO ${res.label} ${res.summary}`, shareToastLife = 160, sfx.buy()
+        }
+
+        // gift claims once on boot
+        try {
+            tryClaimPromoFromUrl();
+            if (canClaimLoginBonus(loginLastDate)) tryClaimLoginBonus(!0);
+        } catch {}
+
+
+        function bagStockOfId(id) {
+            let f = bagFieldForShopId(id);
+            return f ? bagStock[f] || 0 : 0
+        }
+
+        function maxClearedForDiff() {
+            try {
+                let st = readStats();
+                // allow skip to any stage cleared on either difficulty
+                return Math.max(st.maxStageEasy | 0, st.maxStageNormal | 0)
+            } catch {
+                return 0
+            }
+        }
+
+        function bagInRunContext() {
+            return bagFrom === `shop` || bagFrom === `play`
+        }
+
+        function bagRows() {
+            let ready = canClaimLoginBonus(loginLastDate);
+            return buildBagRows({
+                bag: bagStock,
+                pending: bagPending,
+                difficulty: difficulty,
+                inRun: bagInRunContext(),
+                maxStage: maxClearedForDiff(),
+                runPtsMult: runPtsMult,
+                loginReady: ready,
+                loginSummary: ready ? formatGrantSummary(loginBonusGrant()) : ``
+            })
+        }
+
+        function openBag(from) {
+            reloadBag();
+            bagFrom = from || (mode === `shop` ? `shop` : `attract`);
+            if (mode === `playing` || mode === `ready` || mode === `bossintro`) bagFrom = `play`;
+            mode = `bag`, bagCursor = 0, bagToast = ``, bagToastLife = 0, clearInput(), sfx.ui()
+        }
+
+        function closeBag() {
+            if (bagFrom === `shop`) mode = `shop`, bgm.start(`attract`);
+            else if (bagFrom === `play`) mode = `playing`, invuln = Math.max(invuln, 45), bossActive ? bgm.boss(bossForStage(stage).vibe, stage) : bgm.start(`play`, stage);
+            else mode = `attract`, titleSub = `extra`, titleCursor = 3, bgm.start(`attract`);
+            sfx.ui()
+        }
+
+        function openStageSelect() {
+            let maxS = maxClearedForDiff();
+            if (maxS < 1) {
+                bagToast = `クリア記録がありません`, bagToastLife = 70, sfx.buyFail();
+                return
+            }
+            stageSelectCursor = Math.max(0, Math.min(maxS - 1, (bagPending.startStage || 1) - 1));
+            mode = `stageselect`, sfx.ui()
+        }
+
+        function useBagRow(row) {
+            if (!row || row.kind === `header` || row.kind === `status`) return;
+            if (row.kind === `back`) {
+                closeBag();
+                return
+            }
+            if (row.kind === `claim_login`) {
+                tryClaimLoginBonus(!1);
+                return
+            }
+            if (row.kind !== `item` || row.action === `locked`) {
+                bagToast = row.lockedReason || `使用不可`, bagToastLife = 60, sfx.buyFail();
+                return
+            }
+            if (row.action === `use_stage`) {
+                openStageSelect();
+                return
+            }
+            if (row.action === `use_x5` || row.action === `use_x10`) {
+                if (bagPending.ptsMult > 1 || (bagInRunContext() && runPtsMult > 1)) {
+                    bagToast = `倍率は重複できません`, bagToastLife = 70, sfx.buyFail();
+                    return
+                }
+                let field = row.action === `use_x5` ? `ptsX5` : `ptsX10`;
+                let res = consumeBagStock(bagStock, field, 1);
+                if (!res.ok) {
+                    bagToast = `在庫なし`, bagToastLife = 50, sfx.buyFail();
+                    return
+                }
+                bagStock = res.bag, persistBag();
+                let mult = row.action === `use_x5` ? 5 : 10;
+                if (bagInRunContext()) {
+                    if (difficulty !== `normal`) {
+                        // refund stock if wrong difficulty mid-run
+                        bagStock = addBagStock(bagStock, field, 1);
+                        persistBag();
+                        bagToast = `NORMAL専用`, bagToastLife = 60, sfx.buyFail();
+                        return
+                    }
+                    runPtsMult = mult;
+                    bagToast = `PTS×${mult} 発動!`, bagToastLife = 70, sfx.buy();
+                    return
+                }
+                bagPending = {
+                    ...bagPending,
+                    ptsMult: mult
+                }, persistPending();
+                bagToast = `PTS×${mult} を次のNORMALにセット`, bagToastLife = 70, sfx.buy();
+                return
+            }
+            if (row.action === `use_pack`) {
+                if (difficulty !== `normal`) {
+                    bagToast = `NORMAL専用`, bagToastLife = 60, sfx.buyFail();
+                    return
+                }
+                let res = consumeBagStock(bagStock, `ptsPack`, 1);
+                if (!res.ok) {
+                    bagToast = `在庫なし`, bagToastLife = 50, sfx.buyFail();
+                    return
+                }
+                bagStock = res.bag, persistBag();
+                pts += 5e3;
+                bagToast = `PTS +5000!`, bagToastLife = 70, sfx.buy();
+                return
+            }
+        }
+
+        function confirmStageSelect() {
+            let maxS = maxClearedForDiff();
+            let rows = buildStageSelectRows(maxS);
+            let row = rows[stageSelectCursor];
+            if (!row || row.stage === 0) {
+                mode = `bag`, sfx.ui();
+                return
+            }
+            let res = consumeBagStock(bagStock, `stageTicket`, 1);
+            if (!res.ok) {
+                bagToast = `チケットがありません`, bagToastLife = 60, mode = `bag`, sfx.buyFail();
+                return
+            }
+            bagStock = res.bag, persistBag();
+            if (bagFrom === `shop` || bagFrom === `play`) {
+                stage = row.stage;
+                shopPaused = !1;
+                startStage();
+                bagToast = `STAGE ${row.stage} スタート`, bagToastLife = 60, sfx.buy();
+                return
+            }
+            bagPending = {
+                ...bagPending,
+                startStage: row.stage
+            }, persistPending();
+            bagToast = `開始 STAGE ${row.stage} セット`, bagToastLife = 70;
+            mode = `attract`, titleSub = `extra`, titleCursor = 3, sfx.buy()
+        }
+
         function buyShopItem(e) {
             let before = { ...upgrades };
             let result = applyShopPurchase({
@@ -708,7 +988,8 @@ function SwipeForceEngine() {
                 canBuy: canBuyItem(e),
                 difficulty: difficulty,
                 wepLv: settings.wepLv,
-                wepCap: weaponLevelCap
+                wepCap: weaponLevelCap,
+                bagStock: bagStockOfId(e.id)
             }, {
                 tier2Ready: false,
                 tier3Ready: false,
@@ -722,7 +1003,13 @@ function SwipeForceEngine() {
             if (result.wepLvChanged) {
                 settings.wepLv = result.wepLv, persistSettings()
             }
-            if (e.id !== `life` && e.id !== `shield`) syncEasyCarry();
+            if (result.bagAddId) {
+                let field = bagFieldForShopId(result.bagAddId);
+                if (field) {
+                    bagStock = addBagStock(bagStock, field, 1, itemMaxOf(e)), persistBag()
+                }
+            }
+            if (e.id !== `life` && e.id !== `shield` && !e.stockable) syncEasyCarry();
             sfx.buy(), shopToast = result.message, shopToastLife = 50;
             // celebrate after state applied (match original)
             if (tier2Unlocked() || tier3Unlocked() || account.linked && (upgrades.beam > 0 || upgrades.flame > 0)) celebrate = 90
@@ -805,6 +1092,31 @@ function SwipeForceEngine() {
             sfx.ui()
         }
 
+        /** Quit current run / menus and return to title attract */
+        function quitToTitle() {
+            try { persistSettings() } catch {}
+            shopPaused = !1;
+            optionsSub = `main`;
+            bagFrom = `attract`;
+            bossActive = !1;
+            bullets.length = 0;
+            enemies.length = 0;
+            lockBeams.length = 0;
+            fxParticles.length = 0;
+            floatTexts.length = 0;
+            runPtsMult = 1;
+            bagPending = { ...bagPending, ptsMult: 1 };
+            try { persistPending() } catch {}
+            clearInput();
+            titleSub = `root`;
+            titleCursor = 0;
+            mode = `attract`;
+            refreshCoins();
+            bgm.start(`attract`);
+            sfx.ui();
+            shareToast = `タイトルに戻りました`, shareToastLife = 70;
+        }
+
         function nudgeOptionFromMenu(e) {
             return formatVolumeBar(e);
         }
@@ -833,6 +1145,7 @@ function SwipeForceEngine() {
             });
             if (res.type === `noop`) return;
             if (res.type === `back`) { closeOptions(); return }
+            if (res.type === `title`) { quitToTitle(); return }
             if (res.type === `navigate_shot`) { optionsSub = `shot`, optionsCursor = 1, sfx.ui(); return }
             if (res.type === `navigate_weapons`) { optionsSub = `weapons`, optionsCursor = 1, sfx.ui(); return }
             if (res.type === `applied`) {
@@ -870,12 +1183,26 @@ function SwipeForceEngine() {
             spawnBurst(out.burst.x, out.burst.y, out.burst.color, out.burst.count);
             sfx.explode(out.boss);
             score += out.scoreAdd;
-            pts += out.ptsAdd;
+            {
+                let mult = difficulty === `normal` && runPtsMult > 1 ? runPtsMult : 1;
+                let gained = (out.ptsAdd | 0) * mult;
+                pts += gained;
+                if (mult > 1 && out.float) {
+                    out.float = { ...out.float, text: `+${gained}`, color: `#ffee66` };
+                }
+            }
             floatTexts.push(out.float);
-            if (!out.boss) kills++;
+            if (!out.boss) {
+                kills++;
+                try { noteKill(1); } catch {}
+            }
             if (out.boss) {
                 missionBossClear(), mode = `stageclear`, readyTimer = 120, sfx.stageClear(), bgm.stop();
                 if (settings.shake && out.shake) shake = out.shake;
+                try {
+                    noteBossClear();
+                    noteStage(difficulty === `normal` ? `normal` : `easy`, stage);
+                } catch {}
             }
             let idx = enemies.indexOf(e);
             idx >= 0 && enemies.splice(idx, 1)
@@ -1098,6 +1425,9 @@ function SwipeForceEngine() {
             drawText(top.pts, 52, 14, `#ffff66`, 8);
             drawText(top.coins, 118, 14, `#ffee88`, 8);
             drawText(top.stage, 268, 14, `#88ffaa`, 8, `right`);
+            if (difficulty === `normal` && runPtsMult > 1) {
+                drawText(`PTS×${runPtsMult}`, 168, 14, `#ffcc44`, 7);
+            }
             let flags = buildHudFlags({
                 weaponsEnabledCount: armedWeaponCount(),
                 shotArmed: isWeaponArmed(`shot`),
@@ -1200,6 +1530,7 @@ function SwipeForceEngine() {
                 upgrades: upgrades,
                 lives: lives,
                 shieldFrames: shield,
+                bagStockOf: bagStockOfId,
                 costOf: itemCostOf,
                 maxOf: itemMaxOf,
                 canBuy: canBuyItem
@@ -1252,6 +1583,64 @@ function SwipeForceEngine() {
             t > 0 && drawText(`▲`, PLAY_W / 2, 38, `#00ccff`, 7, `center`), t + 14 < e.length && drawText(`▼`, PLAY_W / 2, 372, `#00ccff`, 7, `center`);
             let hint = optionsHint({ submenu: optionsSub, feedback: optionsToast, feedbackActive: optionsToastLife > 0 });
             drawText(hint, PLAY_W / 2, 386, optionsToastLife > 0 ? `#ffaa00` : `#446666`, 6, `center`)
+        }
+
+        function drawBag() {
+            let rows = bagRows();
+            bagCursor = Math.max(0, Math.min(rows.length - 1, bagCursor));
+            fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#140c00`), fillRect(54, 18, 212, 370, `#1a1200`), ctx.strokeStyle = `#ffcc66`, ctx.strokeRect(54.5, 18.5, 211, 369);
+            drawText(`ITEM BAG`, PLAY_W / 2, 22, `#ffee88`, 11, `center`);
+            drawText(`ログイン/プロモ配布 · ショップ非売品`, PLAY_W / 2, 36, `#886644`, 7, `center`);
+            let win = listWindowStart(rows.length, bagCursor, 12);
+            for (let i = 0; i < Math.min(12, rows.length); i++) {
+                let idx = i + win, row = rows[idx], y = 50 + i * 24, sel = idx === bagCursor;
+                if (row.kind === `header`) {
+                    drawText(row.label, PLAY_W / 2, y + 6, `#665533`, 7, `center`);
+                    continue
+                }
+                if (row.kind === `claim_login`) {
+                    sel && (fillRect(60, y - 1, 200, 22, `#3a2800`), ctx.strokeStyle = `#ffcc44`, ctx.strokeRect(60.5, y - .5, 199, 21));
+                    drawText(row.label, 64, y + 2, sel ? `#fff` : `#ffee88`, 8);
+                    drawText(`GET`, 256, y + 2, `#66ff88`, 8, `right`);
+                    drawText(row.desc, 64, y + 12, `#aa8844`, 6);
+                    continue
+                }
+                if (row.kind === `status`) {
+                    sel && (fillRect(60, y - 1, 200, 20, `#2a2000`), ctx.strokeStyle = `#886600`, ctx.strokeRect(60.5, y - .5, 199, 19));
+                    drawText(row.label, 64, y + 4, `#aa8866`, 8);
+                    drawText(row.value, 256, y + 4, `#ffdd88`, 7, `right`);
+                    continue
+                }
+                if (row.kind === `back`) {
+                    sel && (fillRect(60, y - 1, 200, 20, `#332200`), ctx.strokeStyle = `#ffcc66`, ctx.strokeRect(60.5, y - .5, 199, 19));
+                    drawText(row.label, PLAY_W / 2, y + 4, sel ? `#fff` : `#ccaa66`, 9, `center`);
+                    continue
+                }
+                // item
+                sel && (fillRect(60, y - 1, 200, 22, `#3a2800`), ctx.strokeStyle = `#ffaa33`, ctx.strokeRect(60.5, y - .5, 199, 21));
+                let can = row.action !== `locked`;
+                drawText(row.label, 64, y + 2, can ? (sel ? `#fff` : `#ffe088`) : `#665544`, 8);
+                drawText(`×${row.stock}`, 256, y + 2, can ? `#ffff66` : `#554433`, 8, `right`);
+                drawText(can ? row.desc : (row.lockedReason || row.desc), 64, y + 12, can ? `#887744` : `#553322`, 6);
+            }
+            bagToastLife > 0 ? drawText(bagToast, PLAY_W / 2, 386, `#ffaa00`, 6, `center`) : drawText(`上下=項目  空き=使用/受取`, PLAY_W / 2, 386, `#554422`, 6, `center`)
+        }
+
+        function drawStageSelect() {
+            let maxS = maxClearedForDiff();
+            let rows = buildStageSelectRows(maxS);
+            stageSelectCursor = Math.max(0, Math.min(rows.length - 1, stageSelectCursor));
+            fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#001018`), fillRect(54, 18, 212, 370, `#001a28`), ctx.strokeStyle = `#66ccff`, ctx.strokeRect(54.5, 18.5, 211, 369);
+            drawText(`STAGE SELECT`, PLAY_W / 2, 22, `#88eeff`, 11, `center`);
+            drawText(`クリア済みまで · チケット消費`, PLAY_W / 2, 36, `#447788`, 7, `center`);
+            let win = listWindowStart(rows.length, stageSelectCursor, 12);
+            for (let i = 0; i < Math.min(12, rows.length); i++) {
+                let idx = i + win, row = rows[idx], y = 52 + i * 24, sel = idx === stageSelectCursor;
+                sel && (fillRect(60, y - 1, 200, 20, `#003344`), ctx.strokeStyle = `#66eeff`, ctx.strokeRect(60.5, y - .5, 199, 19));
+                drawText(row.label, PLAY_W / 2, y + 2, sel ? `#fff` : `#88ccee`, 9, `center`);
+                drawText(row.sub, PLAY_W / 2, y + 12, `#446677`, 6, `center`);
+            }
+            drawText(`空き=決定 · チケット×1消費`, PLAY_W / 2, 386, `#335566`, 6, `center`)
         }
 
         
@@ -1329,7 +1718,8 @@ function SwipeForceEngine() {
             sharerId ? drawTitleMissions(e) : drawText(`シェア先が1面ボス到達 → コインGET`, e, 96, `#558866`, 7, `center`);
             shareToastLife > 0 && drawText(shareToast, e, sharerId ? 148 : 110, `#ffaa00`, 7, `center`);
             drawText(titleSelectLabel(titleSub), e, PLAY_H * .385, `#ffff66`, 7, `center`);
-            let t = titleMenuYs(titleSub, PLAY_H),
+            let adminMenu = !!(account.linked && isPromoAdminPlayer(playerId));
+            let t = titleMenuYs(titleSub, PLAY_H, { isPromoAdmin: adminMenu }),
                 n = easyCarryLevelOf(loadEasyCarryState()),
                 inboxLabels = titleInboxLabels({ canSendFanmail: canSendFanmail(), alreadySent: alreadySentFanmail(), inboxCount: inbox.length }),
                 r = buildTitleMenu(titleSub, {
@@ -1337,8 +1727,11 @@ function SwipeForceEngine() {
                     easyCarryLv: n,
                     msgTitle: inboxLabels.title,
                     msgSub: inboxLabels.sub,
-                    versionLabel: APP_VERSION
+                    versionLabel: APP_VERSION,
+                    isPromoAdmin: adminMenu
                 });
+            // clamp cursor if menu shrank
+            if (titleCursor >= r.length) titleCursor = Math.max(0, r.length - 1);
             for (let n = 0; n < r.length; n++) {
                 let i = t[n],
                     a = titleCursor === n,
@@ -1354,7 +1747,23 @@ function SwipeForceEngine() {
         
         // ── start run ──
         function startRun() {
-            resetRun(), runStartedAt = performance.now(), firstBossFlagged = !1, reloadMissions(), missionBannerLife = 0, missionToast = ``, missionToastLife = 0, sfx.start(), startStage();
+            reloadBag();
+            resetRun();
+            // apply stage ticket pending
+            if (bagPending.startStage > 0) {
+                stage = bagPending.startStage;
+                bagPending = { ...bagPending, startStage: 0 };
+                persistPending();
+            }
+            // PTS mult only on normal; consume pending on start
+            if (difficulty === `normal` && bagPending.ptsMult > 1) {
+                runPtsMult = bagPending.ptsMult;
+                bagPending = { ...bagPending, ptsMult: 1 };
+                persistPending();
+            } else {
+                runPtsMult = 1;
+            }
+            runStartedAt = performance.now(), firstBossFlagged = !1, reloadMissions(), missionBannerLife = 0, missionToast = ``, missionToastLife = 0, sfx.start(), startStage();
             try { noteRunStart(); window.__sfPlayAcc = 0; } catch (err) {}
         }
 
@@ -1822,6 +2231,24 @@ function SwipeForceEngine() {
 
         
         // ── share (PLAY_W) ──
+        function tryOpenPromoAdmin() {
+            try {
+                openPromoAdminDialog({
+                    playerId: account.linked ? playerId : null,
+                    sfxUi: () => { try { sfx.ui() } catch {} },
+                    sfxOk: () => { try { sfx.buy() } catch {} },
+                    sfxFail: () => { try { sfx.buyFail() } catch {} },
+                    onDenied: () => {
+                        shareToast = `管理者のみ · プロモ管理`, shareToastLife = 90;
+                        try { sfx.buyFail() } catch {}
+                    },
+                    onStaffChange: () => {
+                        // menu re-evaluates isPromoAdminPlayer from cache
+                    },
+                });
+            } catch {}
+        }
+
         function shareProgress() {
             let pack = buildSharePayload({
                 playerId: playerId,
@@ -1839,15 +2266,17 @@ function SwipeForceEngine() {
         }
 
         function handleAttractTap(e, t) {
+            let adminMenu = !!(account.linked && isPromoAdminPlayer(playerId));
             let res = resolveAttractPointer({
                 x: e,
                 y: t,
-                PLAY_H,
+                Z: PLAY_H,
                 left: RAIL_W,
                 right: FIELD_RIGHT,
                 sub: titleSub,
                 cursor: titleCursor,
-                difficulty: difficulty
+                difficulty: difficulty,
+                isPromoAdmin: adminMenu
             });
             if (res.cursor != null) titleCursor = res.cursor;
             let a = toAttractDispatch(res.action);
@@ -1859,6 +2288,11 @@ function SwipeForceEngine() {
             if (a.type === `sound_test`) { openSoundTest(); return }
             if (a.type === `profile`) { try { window.__sfOpenProfile?.() } catch {} return }
             if (a.type === `stats`) { try { window.__sfOpenStats?.() } catch {} return }
+            if (a.type === `open_bag`) { openBag(`attract`); return }
+            if (a.type === `open_promo_admin`) {
+                tryOpenPromoAdmin();
+                return
+            }
             if (a.type === `back_root`) { titleSub = `root`, titleCursor = a.cursor, sfx.ui(); return }
             if (a.type === `start_easy`) { difficulty = `easy`, startRun(); return }
             if (a.type === `start_normal`) { difficulty = `normal`, startRun(); return }
@@ -1890,6 +2324,7 @@ function SwipeForceEngine() {
                 shake = decayed.shake, shopToastLife = decayed.shopToast, optionsToastLife = decayed.optToast, soundToastLife = decayed.stToast;
                 shareToastLife = decayed.shareToast, missionBannerLife = decayed.missionBanner, missionToastLife = decayed.missionToast;
                 shield = decayed.shield, celebrate = decayed.celebrate;
+                if (bagToastLife > 0) bagToastLife--;
             }
             tickStars(stars, mode, PLAY_H, RAIL_W, FIELD_INNER_W);
             tickFloats(floatTexts);
@@ -1900,7 +2335,10 @@ function SwipeForceEngine() {
             if (mtick.type === `menu_idle`) return;
             if (mtick.type === `stageclear_to_shop`) {
                 readyTimer = mtick.readyLeft;
-                if (mtick.openShop) openShop(!1);
+                if (mtick.openShop) {
+                    if (settings.autoShop !== !1) openShop(!1);
+                    else stage++, startStage();
+                }
                 return
             }
             if (mtick.type === `gameover_poll`) {
@@ -1913,13 +2351,19 @@ function SwipeForceEngine() {
                 readyTimer = mtick.readyLeft;
                 if (readyTimer <= 0) mode = `playing`;
             } else if (mtick.type === `play`) {
-                if (settings.vstick && vstickActive) {
                 let speed = playerSpeed(upgrades.speed, settings.sense);
-                Math.min(1, Math.hypot(vstickAxisX, vstickAxisY)) > VSTICK_DEADZONE && (player.x += vstickAxisX * speed * e, player.y += vstickAxisY * speed * e);
-            } else if (!settings.vstick && swipeActive) {
-                let t = swipeFollowFactor(upgrades.speed, settings.sense, e);
-                player.x += (swipeX - player.x) * t, player.y += (swipeY - player.y) * t
-            }
+                let ka = normalizeAxis(keyboardAxis(keysDown));
+                // keyboard has priority so WASD/arrows always work mid-run
+                if (ka.x !== 0 || ka.y !== 0) {
+                    player.x += ka.x * speed * e;
+                    player.y += ka.y * speed * e;
+                    swipeActive = !1;
+                } else if (settings.vstick && vstickActive) {
+                    Math.min(1, Math.hypot(vstickAxisX, vstickAxisY)) > VSTICK_DEADZONE && (player.x += vstickAxisX * speed * e, player.y += vstickAxisY * speed * e);
+                } else if (!settings.vstick && swipeActive) {
+                    let t = swipeFollowFactor(upgrades.speed, settings.sense, e);
+                    player.x += (swipeX - player.x) * t, player.y += (swipeY - player.y) * t
+                }
             }
             {
                 let pos = clampPlayerPos(player.x, player.y);
@@ -2024,6 +2468,8 @@ function SwipeForceEngine() {
             else if (route === `soundtest`) drawSoundTest();
             else if (route === `shop`) drawShop();
             else if (route === `options`) drawOptions();
+            else if (route === `bag`) drawBag();
+            else if (route === `stageselect`) drawStageSelect();
             else {
                 for (let e of stars) fillRect(e.x, e.y, e.s, e.s, starColor(e.s));
                 if (fieldDrawsEntities(mode)) {
@@ -2039,7 +2485,7 @@ function SwipeForceEngine() {
                     ctx.globalAlpha = 1, drawVirtualStick()
                 }
                 {
-                    let bannerOverlay = stageBannerOverlay(stageBanner(mode, stage, bossName, frame), PLAY_W, PLAY_H);
+                    let bannerOverlay = stageBannerOverlay(stageBanner(mode, stage, bossName, frame, settings.autoShop !== !1), PLAY_W, PLAY_H);
                     if (bannerOverlay) {
                         for (let r of bannerOverlay.rects) {
                             if (r.fill) fillRect(r.x, r.y, r.w, r.h, r.fill);
@@ -2158,7 +2604,7 @@ function SwipeForceEngine() {
                 cursor: shopCursor
             });
             let n = shopCatalog();
-            if (act.type === `side_opt`) { openOptions(`shop`); return }
+            if (act.type === `side_opt`) { openBag(`shop`); return }
             if (act.type === `side_back`) { closeShop(); return }
             if (act.type === `header_share` || act.type === `footer_share`) { shopCursor = n.length + 2, shareProgress(); return }
             if (act.type === `header_opt` || act.type === `footer_opt`) { shopCursor = n.length + 1, openOptions(`shop`); return }
@@ -2281,6 +2727,7 @@ function SwipeForceEngine() {
             if (act.type === `noop`) return;
             optionsCursor = n;
             if (act.type === `back`) { closeOptions(); return }
+            if (act.type === `title`) { quitToTitle(); return }
             if (act.type === `submenu`) {
                 act.key === `shot` ? (optionsSub = `shot`, optionsCursor = 1) : (optionsSub = `weapons`, optionsCursor = 1), sfx.ui();
                 return
@@ -2339,6 +2786,38 @@ function SwipeForceEngine() {
             if (route.type === `mode` && route.mode === `soundtest`) { onSoundTestPointerDown(n.x, n.y); return }
             if (route.type === `mode` && route.mode === `options`) { onOptionsPointerDown(n.x, n.y); return }
             if (route.type === `mode` && route.mode === `shop`) { onShopPointerDown(n.x, n.y); return }
+            if (route.type === `mode` && route.mode === `bag`) {
+                if (n.x < RAIL_W || n.x > FIELD_RIGHT) { closeBag(); return }
+                let rows = bagRows();
+                let win = listWindowStart(rows.length, bagCursor, 12);
+                for (let i = 0; i < Math.min(12, rows.length); i++) {
+                    let idx = i + win, y = 50 + i * 24;
+                    if (n.y >= y - 1 && n.y < y + 23) {
+                        if (bagCursor === idx) useBagRow(rows[idx]);
+                        else bagCursor = idx, sfx.ui();
+                        return
+                    }
+                }
+                // empty confirm
+                useBagRow(rows[bagCursor]);
+                return
+            }
+            if (route.type === `mode` && route.mode === `stageselect`) {
+                if (n.x < RAIL_W || n.x > FIELD_RIGHT) { mode = `bag`, sfx.ui(); return }
+                let maxS = maxClearedForDiff();
+                let rows = buildStageSelectRows(maxS);
+                let win = listWindowStart(rows.length, stageSelectCursor, 12);
+                for (let i = 0; i < Math.min(12, rows.length); i++) {
+                    let idx = i + win, y = 52 + i * 24;
+                    if (n.y >= y - 1 && n.y < y + 23) {
+                        if (stageSelectCursor === idx) confirmStageSelect();
+                        else stageSelectCursor = idx, sfx.ui();
+                        return
+                    }
+                }
+                confirmStageSelect();
+                return
+            }
             if (route.type === `mode` && route.mode === `gameover`) {
                 let hit = gameOverHit(n.x, n.y, RAIL_W, FIELD_RIGHT);
                 if (hit === `side_share` || hit === `share`) { shareProgress(), refreshCoins(); return }
@@ -2390,8 +2869,21 @@ function SwipeForceEngine() {
                 return
             }
             if (route.type === `play_side`) {
-                if (route.left) route.upper ? openShop(!0) : openOptions(`play`);
-                else route.upper ? openOptions(`play`) : openShop(!0);
+                let slot = route.slot != null ? route.slot : (route.upper ? 0 : 2);
+                // left: shop / bag / opt · right: opt / bag / shop
+                let act =
+                    slot === 1
+                        ? `bag`
+                        : route.left
+                          ? slot === 0
+                            ? `shop`
+                            : `options`
+                          : slot === 0
+                            ? `options`
+                            : `shop`;
+                if (act === `bag`) openBag(`play`);
+                else if (act === `shop`) openShop(!0);
+                else openOptions(`play`);
                 return
             }
             if (route.type === `play_move`) {
@@ -2508,7 +3000,10 @@ function SwipeForceEngine() {
                     else if (act.type === `options_right`) nudgeOption(1);
                     else if (act.type === `options_confirm`) {
                         let t = optionRows();
-                        t[optionsCursor]?.kind === `back` ? closeOptions() : nudgeOption(1)
+                        let row = t[optionsCursor];
+                        if (row?.kind === `back`) closeOptions();
+                        else if (row?.kind === `title`) quitToTitle();
+                        else nudgeOption(1)
                     } else if (act.type === `options_back`) closeOptions();
                     return
                 }
@@ -2533,13 +3028,17 @@ function SwipeForceEngine() {
                     return
                 }
                 if (mode === `attract`) {
-                    if (act.type === `attract_up`) titleCursor = (titleCursor + titleMenuLen(titleSub) - 1) % titleMenuLen(titleSub), sfx.ui();
-                    else if (act.type === `attract_down`) titleCursor = (titleCursor + 1) % titleMenuLen(titleSub), sfx.ui();
+                    let adminMenu = !!(account.linked && isPromoAdminPlayer(playerId));
+                    let menuLen = titleMenuLen(titleSub, { isPromoAdmin: adminMenu });
+                    if (act.type === `attract_up`) titleCursor = (titleCursor + menuLen - 1) % menuLen, sfx.ui();
+                    else if (act.type === `attract_down`) titleCursor = (titleCursor + 1) % menuLen, sfx.ui();
                     else if (act.type === `attract_confirm`) {
                         if (titleSub === `extra`) {
                             if (titleCursor === 0) openSoundTest();
                             else if (titleCursor === 1) (typeof window.__sfOpenProfile === `function` ? window.__sfOpenProfile() : 0);
                             else if (titleCursor === 2) (typeof window.__sfOpenStats === `function` ? window.__sfOpenStats() : 0);
+                            else if (titleCursor === 3) openBag(`attract`);
+                            else if (adminMenu && titleCursor === 4) tryOpenPromoAdmin();
                             else titleSub = `root`, titleCursor = 4, sfx.ui();
                         } else if (titleSub === `diff`) {
                             if (titleCursor === 0) difficulty = `easy`, startRun();
@@ -2599,6 +3098,10 @@ function SwipeForceEngine() {
                     e.preventDefault(), openOptions(`play`);
                     return
                 }
+                if (act.type === `open_bag_play`) {
+                    e.preventDefault(), openBag(mode === `shop` ? `shop` : `play`);
+                    return
+                }
                 if (mode === `shop`) {
                     let t = shopCatalog(),
                         n = t.length + 2;
@@ -2607,6 +3110,24 @@ function SwipeForceEngine() {
                     else if (act.type === `shop_confirm`) {
                         shopCursor === t.length ? closeShop() : shopCursor === t.length + 1 ? openOptions(`shop`) : shopCursor === t.length + 2 ? shareProgress() : buyShopItem(t[shopCursor])
                     } else if (act.type === `shop_escape`) shopPaused && closeShop()
+                    return
+                }
+                if (mode === `bag`) {
+                    let rows = bagRows();
+                    if (act.type === `bag_up`) bagCursor = (bagCursor + rows.length - 1) % rows.length, sfx.ui();
+                    else if (act.type === `bag_down`) bagCursor = (bagCursor + 1) % rows.length, sfx.ui();
+                    else if (act.type === `bag_confirm`) useBagRow(rows[bagCursor]);
+                    else if (act.type === `bag_back`) closeBag();
+                    return
+                }
+                if (mode === `stageselect`) {
+                    let maxS = maxClearedForDiff();
+                    let rows = buildStageSelectRows(maxS);
+                    if (act.type === `stage_up`) stageSelectCursor = (stageSelectCursor + rows.length - 1) % rows.length, sfx.ui();
+                    else if (act.type === `stage_down`) stageSelectCursor = (stageSelectCursor + 1) % rows.length, sfx.ui();
+                    else if (act.type === `stage_confirm`) confirmStageSelect();
+                    else if (act.type === `stage_back`) mode = `bag`, sfx.ui();
+                    return
                 }
             },
             onKeyUp = e => {
@@ -2637,11 +3158,29 @@ function SwipeForceEngine() {
                   sfxUi: function(){ try{sfx.ui()}catch(e){} }
                 });
               } catch (err) { console.error(err); }
+            }, window.__sfOpenPromoAdmin = function() {
+              try {
+                tryOpenPromoAdmin();
+              } catch (err) { console.error(err); }
             }, window.__swipeForceTest = {
             mode: () => mode,
             start: () => startRun(),
             openShop: () => openShop(!0),
             openOptions: () => openOptions(`shop`),
+            openBag: () => openBag(`attract`),
+            openBagPlay: () => openBag(`play`),
+            playerPos: () => ({ x: player.x, y: player.y }),
+            pressKeys: (arr) => {
+                try {
+                    for (const k of arr || []) keysDown.add(k);
+                } catch {}
+            },
+            releaseKeys: () => { try { keysDown.clear() } catch {} },
+            bag: () => ({ ...bagStock }),
+            maxCleared: () => maxClearedForDiff(),
+            readStatsProbe: () => {
+                try { return readStats(); } catch (e) { return { err: String(e) }; }
+            },
             setVstick: e => {
                 settings.vstick = e, persistSettings()
             },

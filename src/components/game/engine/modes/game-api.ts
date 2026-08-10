@@ -358,3 +358,62 @@ export { buildSideRailPaint } from "./side-rail-paint";
 
 export { stageBannerOverlay, scanlineFill } from "./field-overlays";
 export { planWeaponFire, planSpawn } from "./play-combat-step";
+
+export {
+  BAG_KEY,
+  BAG_PENDING_KEY,
+  loadBag,
+  serializeBag,
+  loadPending,
+  serializePending,
+  addBagStock,
+  consumeBagStock,
+  bagFieldForShopId,
+  isStockableShopId,
+  buildBagRows,
+  buildStageSelectRows,
+  maxSelectableStage,
+  EMPTY_BAG,
+  EMPTY_PENDING,
+} from "./bag-inventory";
+export type { BagStock, BagPending, BagRow } from "./bag-inventory";
+
+export {
+  LOGIN_BONUS_KEY,
+  PROMO_CLAIMED_KEY,
+  CUSTOM_PROMO_KEY,
+  loginBonusGrant,
+  formatGrantSummary,
+  applyGrantToBag,
+  loadLastLoginDate,
+  serializeLoginBonus,
+  canClaimLoginBonus,
+  claimLoginBonus,
+  loadClaimedPromos,
+  serializeClaimedPromos,
+  parsePromoFromUrl,
+  claimPromoCode,
+  stripPromoFromUrl,
+  jstDateKey,
+  PROMO_DEFS,
+  getAllPromoDefs,
+  loadCustomPromos,
+  upsertCustomPromo,
+  deleteCustomPromo,
+  buildPromoUrl,
+  unclaimPromoCode,
+  findPromoDef,
+} from "./bag-grants";
+
+export {
+  isPromoAdminPlayer,
+  isSuperAdmin,
+  SUPER_ADMIN_PLAYER_ID,
+  ADMIN_PLAYER_IDS,
+  fetchStaffList,
+  appointAdmin,
+  removeAppointedAdmin,
+  loadExtraAdminIds,
+} from "./admin";
+
+

@@ -12,6 +12,7 @@ export type ShopItem = {
   tier: number;
   consumable?: boolean;
   linkOnly?: boolean;
+  stockable?: boolean;
 };
 
 /** Score thresholds that double enemy HP (cumulative). */
@@ -87,7 +88,7 @@ export function shopItemMax(
   linked: boolean,
   weaponExtendIds: readonly string[] = WEAPON_EXTEND_IDS,
 ): number {
-  if (item.consumable) return item.max;
+  if (item.stockable || item.consumable) return item.max;
   if (linked && weaponExtendIds.includes(item.id)) return 20;
   if ((item.linkOnly || item.tier >= 4) && !linked) return 0;
   return item.max;

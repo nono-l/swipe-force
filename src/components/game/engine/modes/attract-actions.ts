@@ -28,6 +28,8 @@ export type AttractAction =
   | { type: "sound_test" }
   | { type: "profile" }
   | { type: "stats" }
+  | { type: "open_bag" }
+  | { type: "open_promo_admin" }
   | { type: "noop" };
 
 /** LINK button top-right hasVisitedUrl attract */
@@ -39,22 +41,25 @@ export function attractMenuIndexAt(
   sub: TitleSub,
   y: number,
   Z: number,
+  isPromoAdmin = false,
 ): number {
-  const ys = titleMenuYs(sub, Z);
-  const hs = titleHitHeights(sub);
-  const len = titleMenuLen(sub);
+  const ctx = { isPromoAdmin };
+  const ys = titleMenuYs(sub, Z, ctx);
+  const hs = titleHitHeights(sub, ctx);
+  const len = titleMenuLen(sub, ctx);
   for (let i = 0; i < len; i++) {
     if (y >= ys[i] - 2 && y <= ys[i] + hs[i]) return i;
   }
   return -1;
 }
 
-/** Action for a menu index (KEY_CLOUD_INBOX current cursor when index < 0 → use cursor). */
+/** Action for a menu index (use cursor when index < 0). */
 export function attractActionForIndex(
   sub: TitleSub,
   index: number,
   cursor: number,
   difficulty: "easy" | "normal" | string,
+  isPromoAdmin = false,
 ): AttractAction {
   const i = index >= 0 ? index : cursor;
 
@@ -62,6 +67,11 @@ export function attractActionForIndex(
     if (i === 0) return { type: "sound_test" };
     if (i === 1) return { type: "profile" };
     if (i === 2) return { type: "stats" };
+    if (i === 3) return { type: "open_bag" };
+    if (isPromoAdmin) {
+      if (i === 4) return { type: "open_promo_admin" };
+      return { type: "back_root", cursor: 4 };
+    }
     return { type: "back_root", cursor: 4 };
   }
 
@@ -95,8 +105,19 @@ export function resolveAttractPointer(opts: {
   sub: TitleSub;
   cursor: number;
   difficulty: "easy" | "normal" | string;
+  isPromoAdmin?: boolean;
 }): { cursor?: number; action: AttractAction } {
-  const { x, y, Z, left, right, sub, cursor, difficulty } = opts;
+  const {
+    x,
+    y,
+    Z,
+    left,
+    right,
+    sub,
+    cursor,
+    difficulty,
+    isPromoAdmin = false,
+  } = opts;
 
   if (attractAccountHit(x, y)) return { action: { type: "account" } };
 
@@ -107,16 +128,16 @@ export function resolveAttractPointer(opts: {
     return { action: { type: "side_extra" } };
   }
 
-  const hit = attractMenuIndexAt(sub, y, Z);
+  const hit = attractMenuIndexAt(sub, y, Z, isPromoAdmin);
   if (hit >= 0) {
     return {
       cursor: hit,
-      action: attractActionForIndex(sub, hit, cursor, difficulty),
+      action: attractActionForIndex(sub, hit, cursor, difficulty, isPromoAdmin),
     };
   }
 
   // empty area = confirm current cursor
   return {
-    action: attractActionForIndex(sub, -1, cursor, difficulty),
+    action: attractActionForIndex(sub, -1, cursor, difficulty, isPromoAdmin),
   };
 }

@@ -13,6 +13,8 @@ export type GameSettings = {
   shake: boolean;
   sense: number;
   vstick: boolean;
+  /** Open POWER SHOP after boss clear (default ON) */
+  autoShop: boolean;
   wepLv: WepLvTable;
 };
 
@@ -43,6 +45,7 @@ export function defaultSettings(): GameSettings {
     shake: true,
     sense: 1,
     vstick: true,
+    autoShop: true,
     wepLv: defaultWepLv(),
   };
 }

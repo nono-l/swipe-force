@@ -29,7 +29,7 @@ export function titleHeader(version: string): TitleHeader {
     title: "SWIPE FORCE",
     tagline: "RETRO VERTICAL SHOOTER",
     credit: `${version} · Grok Build iOS`,
-    versionLine: "v1.5 · 連携特典は EXTRA へ",
+    versionLine: "v1.6 · バッグ・プロモは EXTRA へ",
   };
 }
 

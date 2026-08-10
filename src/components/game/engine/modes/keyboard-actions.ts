@@ -38,10 +38,19 @@ export type KeyAction =
   | { type: "gameover_title" }
   | { type: "pause_shop" }
   | { type: "open_options_play" }
+  | { type: "open_bag_play" }
   | { type: "shop_up" }
   | { type: "shop_down" }
   | { type: "shop_confirm" }
   | { type: "shop_escape" }
+  | { type: "bag_up" }
+  | { type: "bag_down" }
+  | { type: "bag_confirm" }
+  | { type: "bag_back" }
+  | { type: "stage_up" }
+  | { type: "stage_down" }
+  | { type: "stage_confirm" }
+  | { type: "stage_back" }
   | { type: "none" };
 
 function isUp(k: string) {
@@ -145,12 +154,35 @@ export function resolveKeyAction(opts: {
   ) {
     return { type: "open_options_play" };
   }
+  if (
+    (k === "b" || k === "B" || k === "i" || k === "I") &&
+    (p === "playing" || p === "ready" || p === "bossintro")
+  ) {
+    return { type: "open_bag_play" };
+  }
 
   if (p === "shop") {
     if (isUp(k)) return { type: "shop_up" };
     if (isDown(k)) return { type: "shop_down" };
     if (isConfirm(k)) return { type: "shop_confirm" };
     if (k === "Escape" && opts.shopPaused) return { type: "shop_escape" };
+    if (k === "b" || k === "B") return { type: "open_bag_play" };
+    return { type: "none" };
+  }
+
+  if (p === "bag") {
+    if (isUp(k)) return { type: "bag_up" };
+    if (isDown(k)) return { type: "bag_down" };
+    if (isConfirm(k)) return { type: "bag_confirm" };
+    if (k === "Escape") return { type: "bag_back" };
+    return { type: "none" };
+  }
+
+  if (p === "stageselect") {
+    if (isUp(k)) return { type: "stage_up" };
+    if (isDown(k)) return { type: "stage_down" };
+    if (isConfirm(k)) return { type: "stage_confirm" };
+    if (k === "Escape") return { type: "stage_back" };
     return { type: "none" };
   }
 

@@ -8,6 +8,7 @@ export type ShopCatalogItem = {
   tier: number;
   consumable?: boolean;
   linkOnly?: boolean;
+  stockable?: boolean;
   baseCost: number;
   max: number;
 };
@@ -36,6 +37,8 @@ export type ShopRowContext = {
   upgrades: Record<string, number>;
   lives: number;
   shieldFrames: number;
+  /** bag stock lookup for stockable items */
+  bagStockOf?: (id: string) => number;
   costOf: (item: ShopCatalogItem) => number;
   maxOf: (item: ShopCatalogItem) => number;
   canBuy: (item: ShopCatalogItem) => boolean;
@@ -57,7 +60,10 @@ export function buildShopRows(ctx: ShopRowContext): ShopRowView[] {
     const maxed = !item.consumable && (ctx.upgrades[item.id] || 0) >= maxLv;
     const canBuy = ctx.canBuy(item);
     let levelText: string;
-    if (item.id === "life") levelText = `${ctx.lives}/5`;
+    if (item.stockable) {
+      const st = ctx.bagStockOf?.(item.id) ?? 0;
+      levelText = `×${st}`;
+    } else if (item.id === "life") levelText = `${ctx.lives}/5`;
     else if (item.id === "shield")
       levelText = ctx.shieldFrames > 0 ? "ON" : "OK";
     else levelText = `Lv${ctx.upgrades[item.id] || 0}/${maxLv}`;
@@ -67,9 +73,13 @@ export function buildShopRows(ctx: ShopRowContext): ShopRowView[] {
         ? "#ff88ff"
         : item.tier === 2
           ? "#66ccff"
-          : selected
-            ? "#fff"
-            : "#88ff88";
+          : item.stockable
+            ? selected
+              ? "#ffe088"
+              : "#ddaa44"
+            : selected
+              ? "#fff"
+              : "#88ff88";
 
     rows.push({
       index,

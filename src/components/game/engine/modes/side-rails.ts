@@ -34,9 +34,11 @@ export function getSideRailButtons(ctx: SideRailContext): RailButton[] {
   if (play) {
     return [
       { side: "left", y: 48, label: "SHOP", sub: "開く", hot: true },
-      { side: "left", y: 100, label: "OPT", sub: "設定", hot: false },
+      { side: "left", y: 100, label: "BAG", sub: "アイテム", hot: true },
+      { side: "left", y: 152, label: "OPT", sub: "設定", hot: false },
       { side: "right", y: 48, label: "OPT", sub: "設定", hot: true },
-      { side: "right", y: 100, label: "SHOP", sub: "開く", hot: false },
+      { side: "right", y: 100, label: "BAG", sub: "アイテム", hot: true },
+      { side: "right", y: 152, label: "SHOP", sub: "開く", hot: false },
     ];
   }
 
@@ -45,8 +47,15 @@ export function getSideRailButtons(ctx: SideRailContext): RailButton[] {
     return [
       { side: "left", y: 48, label: "BACK", sub: backSub, hot: true },
       { side: "right", y: 48, label: "BACK", sub: backSub, hot: true },
-      { side: "left", y: 100, label: "OPT", sub: "設定", hot: false },
-      { side: "right", y: 100, label: "OPT", sub: "設定", hot: false },
+      { side: "left", y: 100, label: "BAG", sub: "アイテム", hot: false },
+      { side: "right", y: 100, label: "BAG", sub: "アイテム", hot: false },
+    ];
+  }
+
+  if (mode === "bag" || mode === "stageselect") {
+    return [
+      { side: "left", y: 48, label: "BACK", sub: "戻る", hot: true },
+      { side: "right", y: 48, label: "BACK", sub: "戻る", hot: true },
     ];
   }
 
@@ -115,7 +124,28 @@ export function sideRailHints(mode: GameMode): {
   right?: string;
 } {
   if (mode === "playing" || mode === "ready" || mode === "bossintro") {
-    return { left: "便利", right: "ボタン" };
+    return { left: "SHOP/BAG", right: "OPT/BAG" };
   }
   return {};
+}
+
+/** Play rail slot from Y: 0=upper, 1=mid(BAG), 2=lower */
+export function playRailSlot(y: number): 0 | 1 | 2 {
+  if (y < 90) return 0;
+  if (y < 140) return 1;
+  return 2;
+}
+
+/**
+ * Map play side rail tap to action.
+ * left: 0 shop, 1 bag, 2 opt
+ * right: 0 opt, 1 bag, 2 shop
+ */
+export function playRailAction(
+  left: boolean,
+  slot: 0 | 1 | 2,
+): "shop" | "bag" | "options" {
+  if (slot === 1) return "bag";
+  if (left) return slot === 0 ? "shop" : "options";
+  return slot === 0 ? "options" : "shop";
 }

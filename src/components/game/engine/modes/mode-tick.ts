@@ -22,7 +22,9 @@ export function tickMode(opts: {
     p === "shop" ||
     p === "options" ||
     p === "soundtest" ||
-    p === "changelog"
+    p === "changelog" ||
+    p === "bag" ||
+    p === "stageselect"
   ) {
     return { type: "menu_idle" };
   }

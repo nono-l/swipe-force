@@ -18,6 +18,7 @@ export type SettingsLike = {
   scanlines?: boolean;
   sense: number;
   vstick: boolean;
+  autoShop?: boolean;
   wepLv: Record<string, number>;
   [k: string]: unknown;
 };
@@ -27,6 +28,7 @@ export type OptionAdjustResult =
   | { type: "navigate_shot" }
   | { type: "navigate_weapons" }
   | { type: "back" }
+  | { type: "title" }
   | {
       type: "applied";
       settings: SettingsLike;
@@ -48,6 +50,7 @@ export function applyOptionDelta(opts: {
   if (!n) return { type: "noop" };
   if (n.kind === "header") return { type: "noop" };
   if (n.kind === "back") return { type: "back" };
+  if (n.kind === "title") return { type: "title" };
   if (n.kind === "submenu") {
     if (n.key === "shot") return { type: "navigate_shot" };
     return { type: "navigate_weapons" };

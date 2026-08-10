@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ApiAccountLinkRouteImport } from './routes/api/account/link'
 import { Route as ApiAccountProfileRouteImport } from './routes/api/account/profile'
+import { Route as ApiAdminStaffRouteImport } from './routes/api/admin/staff'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiShareAwardRouteImport } from './routes/api/share/award'
 import { Route as ApiShareBalanceRouteImport } from './routes/api/share/balance'
@@ -43,6 +44,11 @@ const ApiAccountLinkRoute = ApiAccountLinkRouteImport.update({
 const ApiAccountProfileRoute = ApiAccountProfileRouteImport.update({
   id: '/api/account/profile',
   path: '/api/account/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminStaffRoute = ApiAdminStaffRouteImport.update({
+  id: '/api/admin/staff',
+  path: '/api/admin/staff',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/api/account/link': typeof ApiAccountLinkRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
+  '/api/admin/staff': typeof ApiAdminStaffRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/share/award': typeof ApiShareAwardRoute
   '/api/share/balance': typeof ApiShareBalanceRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/api/account/link': typeof ApiAccountLinkRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
+  '/api/admin/staff': typeof ApiAdminStaffRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/share/award': typeof ApiShareAwardRoute
   '/api/share/balance': typeof ApiShareBalanceRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/api/account/link': typeof ApiAccountLinkRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
+  '/api/admin/staff': typeof ApiAdminStaffRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/share/award': typeof ApiShareAwardRoute
   '/api/share/balance': typeof ApiShareBalanceRoute
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/api/account/link'
     | '/api/account/profile'
+    | '/api/admin/staff'
     | '/api/auth/$'
     | '/api/share/award'
     | '/api/share/balance'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/api/account/link'
     | '/api/account/profile'
+    | '/api/admin/staff'
     | '/api/auth/$'
     | '/api/share/award'
     | '/api/share/balance'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/api/account/link'
     | '/api/account/profile'
+    | '/api/admin/staff'
     | '/api/auth/$'
     | '/api/share/award'
     | '/api/share/balance'
@@ -212,6 +224,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ApiAccountLinkRoute: typeof ApiAccountLinkRoute
   ApiAccountProfileRoute: typeof ApiAccountProfileRoute
+  ApiAdminStaffRoute: typeof ApiAdminStaffRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiShareAwardRoute: typeof ApiShareAwardRoute
   ApiShareBalanceRoute: typeof ApiShareBalanceRoute
@@ -253,6 +266,13 @@ declare module '@tanstack/react-router' {
       path: '/api/account/profile'
       fullPath: '/api/account/profile'
       preLoaderRoute: typeof ApiAccountProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/staff': {
+      id: '/api/admin/staff'
+      path: '/api/admin/staff'
+      fullPath: '/api/admin/staff'
+      preLoaderRoute: typeof ApiAdminStaffRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -340,6 +360,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ApiAccountLinkRoute: ApiAccountLinkRoute,
   ApiAccountProfileRoute: ApiAccountProfileRoute,
+  ApiAdminStaffRoute: ApiAdminStaffRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiShareAwardRoute: ApiShareAwardRoute,
   ApiShareBalanceRoute: ApiShareBalanceRoute,

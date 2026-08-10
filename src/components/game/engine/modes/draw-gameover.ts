@@ -65,17 +65,18 @@ export function buildNameEntryView(opts: {
 export type StageBanner =
   | { kind: "ready"; stage: number }
   | { kind: "bossintro"; name: string; blink: boolean }
-  | { kind: "stageclear" };
+  | { kind: "stageclear"; autoShop: boolean };
 
 export function stageBanner(
   mode: string,
   stage: number,
   bossName: string,
   frame: number,
+  autoShop = true,
 ): StageBanner | null {
   if (mode === "ready") return { kind: "ready", stage };
   if (mode === "bossintro")
     return { kind: "bossintro", name: bossName, blink: frame % 12 < 6 };
-  if (mode === "stageclear") return { kind: "stageclear" };
+  if (mode === "stageclear") return { kind: "stageclear", autoShop: !!autoShop };
   return null;
 }

@@ -61,11 +61,11 @@ export function loadEasyUpgradesCloud() {
     try {
         let e = localStorage.getItem(KEY_EASY_CLOUD);
         if (!e) return {
-            ...sr
+            ...EMPTY_EASY_UPGRADES
         };
         let t = JSON.parse(e),
             n = {
-                ...sr
+                ...EMPTY_EASY_UPGRADES
             };
         return Object.keys(EMPTY_EASY_UPGRADES).forEach(e => {
             let r = Number(t[e]);
@@ -73,7 +73,7 @@ export function loadEasyUpgradesCloud() {
         }), n
     } catch {
         return {
-            ...sr
+            ...EMPTY_EASY_UPGRADES
         }
     }
 }
@@ -111,17 +111,54 @@ export function mergeInboxMessages(e, t) {
     } catch {}
 }
 
-export function applyCloudSnapshot(e, t, n, r, i) {
-    let a = Math.max(Number(t.coins) || 0, getCoins(e), n);
-    setCoins(e, a);
-    let o = loadEasyUpgradesCloud(),
-        s = mergeEasyUpgrades(o, t.easyUpgrades ? mergeEasyUpgrades(t.easyUpgrades, r) : mergeEasyUpgrades(o, r));
-    return saveEasyUpgradesCloud(s), mergeInboxMessages(e, [...t.inbox || [], ...i, ...Xn(e)]), {
-        coins: a,
-        easyUpgrades: s,
-        inbox: loadLocalInbox(e)
+/**
+ * Apply server snapshot into local storage.
+ * @param playerId linked account player id
+ * @param cloud response body (coins, easyUpgrades, inbox)
+ * @param guestCoins coins to max-merge
+ * @param guestEasy guest easy upgrades
+ * @param guestInbox guest inbox messages
+ */
+export function applyCloudSnapshot(playerId, cloud, guestCoins, guestEasy, guestInbox) {
+    let coins = Math.max(
+        Number(cloud?.coins) || 0,
+        getCoins(playerId),
+        Number(guestCoins) || 0,
+    );
+    setCoins(playerId, coins);
+    let localEasy = loadEasyUpgradesCloud();
+    let cloudEasy = cloud?.easyUpgrades
+        ? mergeEasyUpgrades(parseMaybeUpgrades(cloud.easyUpgrades), guestEasy || EMPTY_EASY_UPGRADES)
+        : mergeEasyUpgrades(localEasy, guestEasy || EMPTY_EASY_UPGRADES);
+    let easyUpgrades = mergeEasyUpgrades(localEasy, cloudEasy);
+    saveEasyUpgradesCloud(easyUpgrades);
+
+    let cloudInbox = Array.isArray(cloud?.inbox) ? cloud.inbox : [];
+    let guest = Array.isArray(guestInbox) ? guestInbox : [];
+    let existing = [];
+    try {
+        existing = loadLocalInbox(playerId) || [];
+    } catch {
+        existing = [];
+    }
+    mergeInboxMessages(playerId, [...cloudInbox, ...guest, ...existing]);
+    return {
+        coins,
+        easyUpgrades,
+        inbox: loadLocalInbox(playerId)
     }
 }
+
+function parseMaybeUpgrades(raw) {
+    if (!raw || typeof raw !== `object`) return { ...EMPTY_EASY_UPGRADES };
+    let n = { ...EMPTY_EASY_UPGRADES };
+    Object.keys(EMPTY_EASY_UPGRADES).forEach(k => {
+        let r = Number(raw[k]);
+        n[k] = Number.isFinite(r) ? Math.max(0, Math.min(99, r | 0)) : 0
+    });
+    return n
+}
+
 export async function fetchAccountGet() {
     let e = ensureLocalPlayerId();
     try {
@@ -157,7 +194,8 @@ export async function fetchAccountGet() {
             easyUpgrades: r.easyUpgrades,
             inbox: r.inbox
         }
-    } catch {
+    } catch (err) {
+        console.warn("[SWIPE FORCE] fetchAccountGet failed", err);
         return {
             linked: !1,
             playerId: e,
@@ -193,14 +231,16 @@ export async function linkAccountPost() {
                 linked: !0,
                 playerId: i.playerId,
                 name: i.user?.name ?? null,
-                email: null,
-                image: null,
+                email: i.user?.email ?? null,
+                image: i.user?.image ?? null,
                 coins: a.coins,
                 easyUpgrades: a.easyUpgrades,
                 inbox: a.inbox
             }
         }
-    } catch {}
+    } catch (err) {
+        console.warn("[SWIPE FORCE] linkAccountPost failed", err);
+    }
     return fetchAccountGet()
 }
 export async function syncAccountCloud() {

@@ -10,6 +10,7 @@ export type OptionRow =
   | { kind: "sense"; label: string }
   | { kind: "submenu"; key: "weapons" | "shot"; label: string }
   | { kind: "weapon"; key: string; label: string }
+  | { kind: "title"; label: string }
   | { kind: "back"; label: string };
 
 export type OptionsSubmenu = "main" | "weapons" | "shot" | string;
@@ -96,8 +97,10 @@ export function buildOptionRows(
     { kind: "toggle", key: "scanlines", label: "SCANLINES" },
     { kind: "toggle", key: "shake", label: "SCREEN SHAKE" },
     { kind: "toggle", key: "vstick", label: "V-STICK" },
+    { kind: "toggle", key: "autoShop", label: "AUTO SHOP" },
     { kind: "sense", label: "MOVE SENSE" },
     { kind: "submenu", key: "weapons", label: "WEAPON LOADOUT" },
+    { kind: "title", label: "タイトルへ戻る" },
     { kind: "back", label: "BACK" },
   ];
 }
@@ -161,5 +164,6 @@ export function formatOptionValue(
     return t <= 0 ? "◀ OFF ▶" : `◀ Lv${t}/${n} ▶`;
   }
   if (row.kind === "back") return "◀";
+  if (row.kind === "title") return "▶";
   return "";
 }

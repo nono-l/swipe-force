@@ -63,14 +63,14 @@ function buildHtml(state: AccountDialogState, providers: readonly AccountProvide
             <button type="button" id="sf-acc-close" style="border:0;background:transparent;color:#9ab;font-size:18px;cursor:pointer;line-height:1;">×</button>
           </div>
           <div style="font-size:11px;color:#6a9;line-height:1.4;margin-bottom:10px;">
-            X / Google と連携すると引き継ぎます<unlinkAccountLocal>
-            · コンティニューコイン<unlinkAccountLocal>
-            · イージーのパワーアップ<unlinkAccountLocal>
-            · INBOXメッセージ<unlinkAccountLocal>
-            · OPT-LASER / FLAME 解放<unlinkAccountLocal>
-            · 攻撃Lv20まで解禁<unlinkAccountLocal>
-            · SOUND TEST（全曲試聴）<unlinkAccountLocal>
-            · プロフィール / シェア文40字<unlinkAccountLocal>
+            X / Google と連携すると引き継ぎます<br/>
+            · コンティニューコイン<br/>
+            · イージーのパワーアップ<br/>
+            · INBOXメッセージ<br/>
+            · OPT-LASER / FLAME 解放<br/>
+            · 攻撃Lv20まで解禁<br/>
+            · SOUND TEST（全曲試聴）<br/>
+            · プロフィール / シェア文40字<br/>
             · ゲーム情報（統計画面）
           </div>
           <div style="background:#03140e;border-radius:8px;padding:10px;border:1px solid #245;">

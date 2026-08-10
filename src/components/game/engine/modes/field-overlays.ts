@@ -29,7 +29,7 @@ export function stageBannerOverlay(
   ban:
     | { kind: "ready"; stage: number }
     | { kind: "bossintro"; name: string; blink: boolean }
-    | { kind: "stageclear" }
+    | { kind: "stageclear"; autoShop?: boolean }
     | null
     | undefined,
   fieldW: number,
@@ -121,7 +121,7 @@ export function stageBannerOverlay(
         align: "center",
       },
       {
-        text: "→ POWER SHOP",
+        text: ban.autoShop === false ? "→ NEXT STAGE" : "→ POWER SHOP",
         x: cx,
         y: 228,
         color: "#ffff66",

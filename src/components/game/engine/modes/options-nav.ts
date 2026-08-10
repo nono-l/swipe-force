@@ -21,6 +21,7 @@ export function optionsCursorStep(
 
 export type OptionsActivate =
   | { type: "back" }
+  | { type: "title" }
   | { type: "submenu"; key: string }
   | { type: "toggle" }
   | { type: "confirm_slider"; label: string }
@@ -30,6 +31,7 @@ export type OptionsActivate =
 export function optionsActivate(row: OptRow | undefined): OptionsActivate {
   if (!row || row.kind === "header") return { type: "noop" };
   if (row.kind === "back") return { type: "back" };
+  if (row.kind === "title") return { type: "title" };
   if (row.kind === "submenu") return { type: "submenu", key: row.key || "" };
   if (row.kind === "toggle") return { type: "toggle" };
   if (row.kind === "vol" || row.kind === "sense" || row.kind === "weapon") {

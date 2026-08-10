@@ -26,7 +26,7 @@ export function optionsScreenTitle(submenu: string): {
   }
   return {
     title: "OPTIONS",
-    subtitle: "音量・操作 · 武装は下の LOADOUT へ",
+    subtitle: "音量・操作 · AUTO SHOP=ボス後ショップ",
     border: "#00ccff",
     titleColor: "#66eeff",
   };
@@ -49,6 +49,12 @@ export function optionsRowColors(opts: {
     return {
       label: o ? "#aaffdd" : "#66ccaa",
       value: "#88ffcc",
+    };
+  }
+  if (opts.kind === "title") {
+    return {
+      label: o ? "#ffcc88" : "#cc8844",
+      value: o ? "#ffaa44" : "#886633",
     };
   }
   return {

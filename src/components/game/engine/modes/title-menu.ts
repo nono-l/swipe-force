@@ -17,41 +17,65 @@ export type TitleMenuContext = {
   /** inbox / mission message line */
   msgTitle: string;
   msgSub: string;
-  versionLabel: string; // e.g. "1.5.0" KEY_CLOUD_INBOX "v1.5.0"
+  versionLabel: string; // e.g. "1.5.0"
+  /** promo admin menu (linked allow-list only) */
+  isPromoAdmin?: boolean;
 };
 
 /** Y positions as fractions of playfield height Z */
 export const TITLE_YS = {
   root: [0.42, 0.5, 0.58, 0.66, 0.74, 0.83],
   diff: [0.44, 0.56, 0.68, 0.8],
-  extra: [0.44, 0.54, 0.64, 0.74, 0.84],
+  extra5: [0.44, 0.54, 0.64, 0.74, 0.84],
+  extra6: [0.42, 0.5, 0.58, 0.66, 0.74, 0.83],
 } as const;
 
 /** Hit-box heights (px) matching draw */
 export const TITLE_HIT_H = {
   root: [18, 16, 16, 14, 14, 13],
   diff: [20, 20, 14, 14],
-  extra: [16, 16, 16, 14, 14],
+  extra5: [16, 16, 16, 15, 14],
+  extra6: [15, 15, 15, 15, 15, 14],
 } as const;
 
-export function titleMenuLen(sub: TitleSub): number {
-  if (sub === "extra") return 4;
+export function titleMenuLen(
+  sub: TitleSub,
+  ctx?: Pick<TitleMenuContext, "isPromoAdmin"> | boolean,
+): number {
+  if (sub === "extra") {
+    const admin =
+      typeof ctx === "boolean" ? ctx : !!(ctx && ctx.isPromoAdmin);
+    return admin ? 6 : 5;
+  }
   if (sub === "diff") return 3;
   return 6;
 }
 
-export function titleMenuYs(sub: TitleSub, Z: number): number[] {
-  const loadEasyUpgradesCloud =
-    sub === "extra"
-      ? TITLE_YS.extra
-      : sub === "diff"
-        ? TITLE_YS.diff
-        : TITLE_YS.root;
-  return loadEasyUpgradesCloud.map((f) => Z * f);
+export function titleMenuYs(
+  sub: TitleSub,
+  Z: number,
+  ctx?: Pick<TitleMenuContext, "isPromoAdmin">,
+): number[] {
+  let fracs: readonly number[];
+  if (sub === "extra") {
+    fracs = ctx?.isPromoAdmin ? TITLE_YS.extra6 : TITLE_YS.extra5;
+  } else if (sub === "diff") {
+    fracs = TITLE_YS.diff;
+  } else {
+    fracs = TITLE_YS.root;
+  }
+  return fracs.map((f) => Z * f);
 }
 
-export function titleHitHeights(sub: TitleSub): number[] {
-  if (sub === "extra") return [...TITLE_HIT_H.extra];
+export function titleHitHeights(
+  sub: TitleSub,
+  ctx?: Pick<TitleMenuContext, "isPromoAdmin">,
+): number[] {
+  if (sub === "extra") {
+    return ctx?.isPromoAdmin
+      ? [...TITLE_HIT_H.extra6]
+      : [...TITLE_HIT_H.extra5];
+  }
   if (sub === "diff") return [...TITLE_HIT_H.diff];
   return [...TITLE_HIT_H.root];
 }
@@ -61,7 +85,7 @@ export function buildTitleMenu(
   ctx: TitleMenuContext,
 ): TitleMenuItem[] {
   if (sub === "extra") {
-    return [
+    const items: TitleMenuItem[] = [
       {
         title: ctx.linked ? "♪ SOUND TEST" : "♪ SOUND TEST 🔒",
         sub: ctx.linked ? "全ステージ/ボス曲" : "連携で解放",
@@ -78,11 +102,24 @@ export function buildTitleMenu(
         h: 16,
       },
       {
-        title: "◀ BACK",
-        sub: "タイトルへ",
-        h: 14,
+        title: "🎒 ITEMS",
+        sub: "ログイン/プロモ配布",
+        h: 15,
       },
     ];
+    if (ctx.isPromoAdmin) {
+      items.push({
+        title: "🛠 PROMO",
+        sub: "管理者 · 配布コード",
+        h: 15,
+      });
+    }
+    items.push({
+      title: "◀ BACK",
+      sub: "タイトルへ",
+      h: 14,
+    });
+    return items;
   }
 
   if (sub === "diff") {

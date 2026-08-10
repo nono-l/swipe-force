@@ -6,6 +6,7 @@ export type ShopItem = {
   id: string;
   name: string;
   consumable?: boolean;
+  stockable?: boolean;
 };
 
 export type PurchaseInput = {
@@ -21,6 +22,8 @@ export type PurchaseInput = {
   wepLv: Record<string, number>;
   /** max for wepLv key */
   wepCap: (key: string) => number;
+  /** current bag stock for stockable items */
+  bagStock?: number;
 };
 
 export type PurchaseResult =
@@ -38,6 +41,8 @@ export type PurchaseResult =
       wepLvChanged: boolean;
       message: string;
       celebrateTier: boolean;
+      /** stockable: add 1 to this bag field via shop id */
+      bagAddId?: string;
     };
 
 export function applyShopPurchase(
@@ -56,8 +61,11 @@ export function applyShopPurchase(
   const upgrades = { ...input.upgrades };
   const wepLv = { ...input.wepLv };
   let wepLvChanged = false;
+  let bagAddId: string | undefined;
 
-  if (input.item.id === "life") {
+  if (input.item.stockable) {
+    bagAddId = input.item.id;
+  } else if (input.item.id === "life") {
     lives = Math.min(5, lives + 1);
   } else if (input.item.id === "shield") {
     shieldFrames = 480;
@@ -73,10 +81,14 @@ export function applyShopPurchase(
     }
   }
 
+  const stockNote =
+    bagAddId != null
+      ? ` 在庫${(input.bagStock || 0) + 1}`
+      : "";
   const message =
     input.difficulty === "easy" && !input.item.consumable
       ? `${input.item.name} GET! (EASY引継ぎ)`
-      : `${input.item.name} GET!`;
+      : `${input.item.name} GET!${stockNote}`;
 
   const celebrateTier =
     celebrate.tier2Ready ||
@@ -93,5 +105,6 @@ export function applyShopPurchase(
     wepLvChanged,
     message,
     celebrateTier,
+    bagAddId,
   };
 }

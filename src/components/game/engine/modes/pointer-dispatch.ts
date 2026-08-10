@@ -19,7 +19,7 @@ export type PointerMode =
 export type PointerRoute =
   | { type: "mute" }
   | { type: "mode"; mode: PointerMode }
-  | { type: "play_side"; left: boolean; upper: boolean }
+  | { type: "play_side"; left: boolean; upper: boolean; slot: 0 | 1 | 2 }
   | { type: "play_move" }
   | { type: "none" };
 
@@ -47,6 +47,8 @@ export function routePointerDown(opts: {
     p === "soundtest" ||
     p === "options" ||
     p === "shop" ||
+    p === "bag" ||
+    p === "stageselect" ||
     p === "gameover" ||
     p === "name" ||
     p === "inbox"
@@ -56,10 +58,12 @@ export function routePointerDown(opts: {
 
   if (p === "playing" || p === "ready" || p === "bossintro") {
     if (opts.x < opts.left || opts.x > opts.right) {
+      const slot: 0 | 1 | 2 = opts.y < 90 ? 0 : opts.y < 140 ? 1 : 2;
       return {
         type: "play_side",
         left: opts.x < opts.left,
-        upper: opts.y < 100,
+        upper: slot === 0,
+        slot,
       };
     }
     return { type: "play_move" };

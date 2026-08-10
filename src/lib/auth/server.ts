@@ -89,6 +89,11 @@ export const authConfigured =
 // it derives the origin per-request from the (proxied) host, validated against the
 // preview allowlist, which makes the OAuth `redirect_uri` the concrete preview URL
 // the broker's preview client accepts.
+//
+// Custom domains: a fixed BETTER_AUTH_URL alone rejects Origin from the custom
+// host ("Invalid origin"). We always use dynamic baseURL + an expanded host
+// allowlist (Vercel hosts, BETTER_AUTH_URL host, BETTER_AUTH_ALLOWED_HOSTS /
+// BETTER_AUTH_TRUSTED_ORIGINS) so custom domains and *.vercel.app both work.
 const explicitBaseURL = env("BETTER_AUTH_URL");
 // Explicit `string[]` (not a readonly tuple) — Better Auth's DynamicBaseURLConfig
 // requires a mutable `allowedHosts: string[]`.
@@ -101,29 +106,169 @@ const LOCAL_DEV_ORIGINS: string[] = [
   "http://127.0.0.1:8080",
   "http://[::1]:8080",
 ];
-const baseURL = explicitBaseURL ?? {
-  // Include loopback hosts so dynamic baseURL resolves for local email/password
-  // (not only the preview wildcard).
-  allowedHosts: [...previewAllowedHosts, "localhost", "127.0.0.1", "[::1]"],
+
+/** Split comma/space separated env lists. */
+function parseEnvList(key: string): string[] {
+  const raw = env(key);
+  if (!raw) return [];
+  return raw
+    .split(/[, \n\t]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/** Normalize to hostname (no scheme/path). Keeps wildcards like `*.vercel.app`. */
+function toHost(raw: string): string | null {
+  const s = String(raw || "").trim();
+  if (!s) return null;
+  // Keep wildcard host patterns as-is (minus scheme/path)
+  if (s.includes("*")) {
+    return s
+      .replace(/^https?:\/\//i, "")
+      .replace(/\/.*$/, "")
+      .toLowerCase() || null;
+  }
+  try {
+    if (s.includes("://")) return new URL(s).host.toLowerCase();
+  } catch {
+    /* fall through */
+  }
+  return s
+    .replace(/^https?:\/\//i, "")
+    .replace(/\/.*$/, "")
+    .toLowerCase() || null;
+}
+
+/**
+ * Hosts/patterns allowed for dynamic baseURL + origin checks.
+ * Includes preview wildcards, loopback, Vercel, BETTER_AUTH_URL host,
+ * and optional env extras for custom domains.
+ */
+function collectAllowedHosts(): string[] {
+  const hosts = new Set<string>();
+  const add = (v?: string | null) => {
+    if (!v) return;
+    const h = toHost(v);
+    if (h) hosts.add(h);
+  };
+
+  for (const h of previewAllowedHosts) hosts.add(h);
+  hosts.add("localhost");
+  hosts.add("127.0.0.1");
+  hosts.add("[::1]");
+
+  // Production / custom domain
+  add(explicitBaseURL);
+  add(env("VERCEL_URL"));
+  add(env("VERCEL_PROJECT_PRODUCTION_URL"));
+  add(env("VERCEL_BRANCH_URL"));
+  // Common Vercel / platform patterns
+  hosts.add("*.vercel.app");
+  // App custom domain(s)
+  hosts.add("force.grok.pachimanzi.uk");
+  hosts.add("*.pachimanzi.uk");
+
+  for (const x of parseEnvList("BETTER_AUTH_ALLOWED_HOSTS")) add(x);
+  for (const x of parseEnvList("BETTER_AUTH_TRUSTED_ORIGINS")) add(x);
+
+  return [...hosts];
+}
+
+const allowedHosts: string[] = collectAllowedHosts();
+
+// Always dynamic so the OAuth redirect_uri / cookies follow the host the user
+// actually opened (custom domain vs vercel.app vs preview).
+const baseURL = {
+  allowedHosts,
   // `auto` → trust both http:// and https:// expansions of allowedHosts
   // (preview is https; local dev is http).
   protocol: "auto" as const,
-  fallback: "http://localhost:8080",
+  fallback: explicitBaseURL ?? "http://localhost:8080",
 };
+
+function hostMatchesAllowlist(host: string, patterns: string[]): boolean {
+  const h = host.toLowerCase();
+  for (const p of patterns) {
+    const pat = p.toLowerCase();
+    if (pat === h) return true;
+    // simple *.example.com wildcard (matches one or more labels on the left)
+    if (pat.startsWith("*.")) {
+      const suffix = pat.slice(1); // ".example.com"
+      if (h.endsWith(suffix) || h === pat.slice(2)) return true;
+    }
+  }
+  return false;
+}
 
 // Origins Better Auth accepts on credentialed POSTs (sign-up/sign-in, etc.).
 // Missing entries here surface as FORBIDDEN "Invalid origin".
-const trustedOrigins: string[] = explicitBaseURL
-  ? [explicitBaseURL, ...LOCAL_DEV_ORIGINS]
-  : [
-      // Host wildcards (matched against Origin's host)
-      ...previewAllowedHosts,
-      // Full-origin wildcards (matched against Origin)
-      ...previewAllowedHosts.flatMap((host) => [`https://${host}`, `http://${host}`]),
-      ...LOCAL_DEV_ORIGINS,
-    ];
+// Static list + per-request Origin/Host when that host is on the allowlist
+// (so custom domains work without listing every variant as a full origin).
+const staticTrustedOrigins: string[] = [
+  ...LOCAL_DEV_ORIGINS,
+  ...previewAllowedHosts,
+  ...previewAllowedHosts.flatMap((host) => [
+    `https://${host}`,
+    `http://${host}`,
+  ]),
+  ...(explicitBaseURL ? [explicitBaseURL] : []),
+  // App custom domain
+  "https://force.grok.pachimanzi.uk",
+  "http://force.grok.pachimanzi.uk",
+  "force.grok.pachimanzi.uk",
+  ...parseEnvList("BETTER_AUTH_TRUSTED_ORIGINS"),
+  ...allowedHosts.flatMap((h) =>
+    h.includes("*") ? [h, `https://${h}`, `http://${h}`] : [h, `https://${h}`, `http://${h}`],
+  ),
+];
+
+
+const trustedOrigins = async (request?: Request): Promise<string[]> => {
+  const out = new Set<string>(staticTrustedOrigins.filter(Boolean));
+  if (!request) return [...out];
+
+  const rawHost = (
+    request.headers.get("x-forwarded-host") ||
+    request.headers.get("host") ||
+    ""
+  )
+    .split(",")[0]
+    .trim()
+    .toLowerCase();
+  const hostNoPort = rawHost.replace(/:\d+$/, "");
+
+  if (rawHost && hostMatchesAllowlist(rawHost, allowedHosts)) {
+    out.add(rawHost);
+    out.add(`https://${rawHost}`);
+    out.add(`http://${rawHost}`);
+  }
+  if (hostNoPort && hostNoPort !== rawHost && hostMatchesAllowlist(hostNoPort, allowedHosts)) {
+    out.add(hostNoPort);
+    out.add(`https://${hostNoPort}`);
+    out.add(`http://${hostNoPort}`);
+  }
+
+  const origin = request.headers.get("origin");
+  if (origin) {
+    try {
+      const oh = new URL(origin).host.toLowerCase();
+      // Same-origin browser calls: Origin host matches Host (custom domain OK)
+      if (
+        rawHost &&
+        (oh === rawHost || oh === hostNoPort || hostMatchesAllowlist(oh, allowedHosts))
+      ) {
+        out.add(origin);
+      }
+    } catch {
+      /* ignore bad Origin */
+    }
+  }
+
+  return [...out];
+};
 
 const databaseUrl = env("DATABASE_URL");
+
 
 // Static broker OAuth endpoints (skip OIDC discovery on every sign-in / callback).
 // Discovery would cost an extra network hop to the broker before the popup can
