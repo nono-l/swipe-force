@@ -10,23 +10,27 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdvertiserRouteImport } from './routes/advertiser'
+import { Route as BannerRouteImport } from './routes/banner'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PartnerRouteImport } from './routes/partner'
+import { Route as TitleBgmRouteImport } from './routes/title-bgm'
 import { Route as ApiAccountLinkRouteImport } from './routes/api/account/link'
 import { Route as ApiAccountProfileRouteImport } from './routes/api/account/profile'
 import { Route as ApiAdminPromoRouteImport } from './routes/api/admin/promo'
 import { Route as ApiAdminStaffRouteImport } from './routes/api/admin/staff'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiPromoClaimRouteImport } from './routes/api/promo/claim'
-import { Route as ApiShareAdAdvertiserRouteImport } from './routes/api/share/ad-advertiser'
-import { Route as ApiShareAdPrepaidRouteImport } from './routes/api/share/ad-prepaid'
-import { Route as ApiShareAdVideosRouteImport } from './routes/api/share/ad-videos'
-import { Route as ApiShareAdWatchRouteImport } from './routes/api/share/ad-watch'
 import { Route as ApiShareAwardRouteImport } from './routes/api/share/award'
 import { Route as ApiShareBalanceRouteImport } from './routes/api/share/balance'
+import { Route as ApiShareMediaCatalogRouteImport } from './routes/api/share/media-catalog'
+import { Route as ApiShareMediaWatchRouteImport } from './routes/api/share/media-watch'
 import { Route as ApiShareMessageRouteImport } from './routes/api/share/message'
 import { Route as ApiShareMissionRouteImport } from './routes/api/share/mission'
+import { Route as ApiSharePartnerRouteImport } from './routes/api/share/partner'
+import { Route as ApiSharePartnerBannerRouteImport } from './routes/api/share/partner-banner'
+import { Route as ApiSharePartnerCreditRouteImport } from './routes/api/share/partner-credit'
 import { Route as ApiShareSpendRouteImport } from './routes/api/share/spend'
+import { Route as ApiShareStripPresetsRouteImport } from './routes/api/share/strip-presets'
 import { Route as ApiShareSyncRouteImport } from './routes/api/share/sync'
 import { Route as ApiShareYoutubeMetaRouteImport } from './routes/api/share/youtube-meta'
 import { Route as ApiSoundCommentsRouteImport } from './routes/api/sound/comments'
@@ -39,14 +43,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdvertiserRoute = AdvertiserRouteImport.update({
-  id: '/advertiser',
-  path: '/advertiser',
+const BannerRoute = BannerRouteImport.update({
+  id: '/banner',
+  path: '/banner',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnerRoute = PartnerRouteImport.update({
+  id: '/partner',
+  path: '/partner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TitleBgmRoute = TitleBgmRouteImport.update({
+  id: '/title-bgm',
+  path: '/title-bgm',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAccountLinkRoute = ApiAccountLinkRouteImport.update({
@@ -79,26 +93,6 @@ const ApiPromoClaimRoute = ApiPromoClaimRouteImport.update({
   path: '/api/promo/claim',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiShareAdAdvertiserRoute = ApiShareAdAdvertiserRouteImport.update({
-  id: '/api/share/ad-advertiser',
-  path: '/api/share/ad-advertiser',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiShareAdPrepaidRoute = ApiShareAdPrepaidRouteImport.update({
-  id: '/api/share/ad-prepaid',
-  path: '/api/share/ad-prepaid',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiShareAdVideosRoute = ApiShareAdVideosRouteImport.update({
-  id: '/api/share/ad-videos',
-  path: '/api/share/ad-videos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiShareAdWatchRoute = ApiShareAdWatchRouteImport.update({
-  id: '/api/share/ad-watch',
-  path: '/api/share/ad-watch',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiShareAwardRoute = ApiShareAwardRouteImport.update({
   id: '/api/share/award',
   path: '/api/share/award',
@@ -107,6 +101,16 @@ const ApiShareAwardRoute = ApiShareAwardRouteImport.update({
 const ApiShareBalanceRoute = ApiShareBalanceRouteImport.update({
   id: '/api/share/balance',
   path: '/api/share/balance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShareMediaCatalogRoute = ApiShareMediaCatalogRouteImport.update({
+  id: '/api/share/media-catalog',
+  path: '/api/share/media-catalog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShareMediaWatchRoute = ApiShareMediaWatchRouteImport.update({
+  id: '/api/share/media-watch',
+  path: '/api/share/media-watch',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiShareMessageRoute = ApiShareMessageRouteImport.update({
@@ -119,9 +123,29 @@ const ApiShareMissionRoute = ApiShareMissionRouteImport.update({
   path: '/api/share/mission',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSharePartnerRoute = ApiSharePartnerRouteImport.update({
+  id: '/api/share/partner',
+  path: '/api/share/partner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSharePartnerBannerRoute = ApiSharePartnerBannerRouteImport.update({
+  id: '/api/share/partner-banner',
+  path: '/api/share/partner-banner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSharePartnerCreditRoute = ApiSharePartnerCreditRouteImport.update({
+  id: '/api/share/partner-credit',
+  path: '/api/share/partner-credit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiShareSpendRoute = ApiShareSpendRouteImport.update({
   id: '/api/share/spend',
   path: '/api/share/spend',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShareStripPresetsRoute = ApiShareStripPresetsRouteImport.update({
+  id: '/api/share/strip-presets',
+  path: '/api/share/strip-presets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiShareSyncRoute = ApiShareSyncRouteImport.update({
@@ -157,23 +181,27 @@ const ApiSoundVotesRoute = ApiSoundVotesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/advertiser': typeof AdvertiserRoute
+  '/banner': typeof BannerRoute
   '/login': typeof LoginRoute
+  '/partner': typeof PartnerRoute
+  '/title-bgm': typeof TitleBgmRoute
   '/api/account/link': typeof ApiAccountLinkRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
   '/api/admin/promo': typeof ApiAdminPromoRoute
   '/api/admin/staff': typeof ApiAdminStaffRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/promo/claim': typeof ApiPromoClaimRoute
-  '/api/share/ad-advertiser': typeof ApiShareAdAdvertiserRoute
-  '/api/share/ad-prepaid': typeof ApiShareAdPrepaidRoute
-  '/api/share/ad-videos': typeof ApiShareAdVideosRoute
-  '/api/share/ad-watch': typeof ApiShareAdWatchRoute
   '/api/share/award': typeof ApiShareAwardRoute
   '/api/share/balance': typeof ApiShareBalanceRoute
+  '/api/share/media-catalog': typeof ApiShareMediaCatalogRoute
+  '/api/share/media-watch': typeof ApiShareMediaWatchRoute
   '/api/share/message': typeof ApiShareMessageRoute
   '/api/share/mission': typeof ApiShareMissionRoute
+  '/api/share/partner': typeof ApiSharePartnerRoute
+  '/api/share/partner-banner': typeof ApiSharePartnerBannerRoute
+  '/api/share/partner-credit': typeof ApiSharePartnerCreditRoute
   '/api/share/spend': typeof ApiShareSpendRoute
+  '/api/share/strip-presets': typeof ApiShareStripPresetsRoute
   '/api/share/sync': typeof ApiShareSyncRoute
   '/api/share/youtube-meta': typeof ApiShareYoutubeMetaRoute
   '/api/sound/comments': typeof ApiSoundCommentsRoute
@@ -183,23 +211,27 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/advertiser': typeof AdvertiserRoute
+  '/banner': typeof BannerRoute
   '/login': typeof LoginRoute
+  '/partner': typeof PartnerRoute
+  '/title-bgm': typeof TitleBgmRoute
   '/api/account/link': typeof ApiAccountLinkRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
   '/api/admin/promo': typeof ApiAdminPromoRoute
   '/api/admin/staff': typeof ApiAdminStaffRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/promo/claim': typeof ApiPromoClaimRoute
-  '/api/share/ad-advertiser': typeof ApiShareAdAdvertiserRoute
-  '/api/share/ad-prepaid': typeof ApiShareAdPrepaidRoute
-  '/api/share/ad-videos': typeof ApiShareAdVideosRoute
-  '/api/share/ad-watch': typeof ApiShareAdWatchRoute
   '/api/share/award': typeof ApiShareAwardRoute
   '/api/share/balance': typeof ApiShareBalanceRoute
+  '/api/share/media-catalog': typeof ApiShareMediaCatalogRoute
+  '/api/share/media-watch': typeof ApiShareMediaWatchRoute
   '/api/share/message': typeof ApiShareMessageRoute
   '/api/share/mission': typeof ApiShareMissionRoute
+  '/api/share/partner': typeof ApiSharePartnerRoute
+  '/api/share/partner-banner': typeof ApiSharePartnerBannerRoute
+  '/api/share/partner-credit': typeof ApiSharePartnerCreditRoute
   '/api/share/spend': typeof ApiShareSpendRoute
+  '/api/share/strip-presets': typeof ApiShareStripPresetsRoute
   '/api/share/sync': typeof ApiShareSyncRoute
   '/api/share/youtube-meta': typeof ApiShareYoutubeMetaRoute
   '/api/sound/comments': typeof ApiSoundCommentsRoute
@@ -210,23 +242,27 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/advertiser': typeof AdvertiserRoute
+  '/banner': typeof BannerRoute
   '/login': typeof LoginRoute
+  '/partner': typeof PartnerRoute
+  '/title-bgm': typeof TitleBgmRoute
   '/api/account/link': typeof ApiAccountLinkRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
   '/api/admin/promo': typeof ApiAdminPromoRoute
   '/api/admin/staff': typeof ApiAdminStaffRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/promo/claim': typeof ApiPromoClaimRoute
-  '/api/share/ad-advertiser': typeof ApiShareAdAdvertiserRoute
-  '/api/share/ad-prepaid': typeof ApiShareAdPrepaidRoute
-  '/api/share/ad-videos': typeof ApiShareAdVideosRoute
-  '/api/share/ad-watch': typeof ApiShareAdWatchRoute
   '/api/share/award': typeof ApiShareAwardRoute
   '/api/share/balance': typeof ApiShareBalanceRoute
+  '/api/share/media-catalog': typeof ApiShareMediaCatalogRoute
+  '/api/share/media-watch': typeof ApiShareMediaWatchRoute
   '/api/share/message': typeof ApiShareMessageRoute
   '/api/share/mission': typeof ApiShareMissionRoute
+  '/api/share/partner': typeof ApiSharePartnerRoute
+  '/api/share/partner-banner': typeof ApiSharePartnerBannerRoute
+  '/api/share/partner-credit': typeof ApiSharePartnerCreditRoute
   '/api/share/spend': typeof ApiShareSpendRoute
+  '/api/share/strip-presets': typeof ApiShareStripPresetsRoute
   '/api/share/sync': typeof ApiShareSyncRoute
   '/api/share/youtube-meta': typeof ApiShareYoutubeMetaRoute
   '/api/sound/comments': typeof ApiSoundCommentsRoute
@@ -238,23 +274,27 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/advertiser'
+    | '/banner'
     | '/login'
+    | '/partner'
+    | '/title-bgm'
     | '/api/account/link'
     | '/api/account/profile'
     | '/api/admin/promo'
     | '/api/admin/staff'
     | '/api/auth/$'
     | '/api/promo/claim'
-    | '/api/share/ad-advertiser'
-    | '/api/share/ad-prepaid'
-    | '/api/share/ad-videos'
-    | '/api/share/ad-watch'
     | '/api/share/award'
     | '/api/share/balance'
+    | '/api/share/media-catalog'
+    | '/api/share/media-watch'
     | '/api/share/message'
     | '/api/share/mission'
+    | '/api/share/partner'
+    | '/api/share/partner-banner'
+    | '/api/share/partner-credit'
     | '/api/share/spend'
+    | '/api/share/strip-presets'
     | '/api/share/sync'
     | '/api/share/youtube-meta'
     | '/api/sound/comments'
@@ -264,23 +304,27 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/advertiser'
+    | '/banner'
     | '/login'
+    | '/partner'
+    | '/title-bgm'
     | '/api/account/link'
     | '/api/account/profile'
     | '/api/admin/promo'
     | '/api/admin/staff'
     | '/api/auth/$'
     | '/api/promo/claim'
-    | '/api/share/ad-advertiser'
-    | '/api/share/ad-prepaid'
-    | '/api/share/ad-videos'
-    | '/api/share/ad-watch'
     | '/api/share/award'
     | '/api/share/balance'
+    | '/api/share/media-catalog'
+    | '/api/share/media-watch'
     | '/api/share/message'
     | '/api/share/mission'
+    | '/api/share/partner'
+    | '/api/share/partner-banner'
+    | '/api/share/partner-credit'
     | '/api/share/spend'
+    | '/api/share/strip-presets'
     | '/api/share/sync'
     | '/api/share/youtube-meta'
     | '/api/sound/comments'
@@ -290,23 +334,27 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/advertiser'
+    | '/banner'
     | '/login'
+    | '/partner'
+    | '/title-bgm'
     | '/api/account/link'
     | '/api/account/profile'
     | '/api/admin/promo'
     | '/api/admin/staff'
     | '/api/auth/$'
     | '/api/promo/claim'
-    | '/api/share/ad-advertiser'
-    | '/api/share/ad-prepaid'
-    | '/api/share/ad-videos'
-    | '/api/share/ad-watch'
     | '/api/share/award'
     | '/api/share/balance'
+    | '/api/share/media-catalog'
+    | '/api/share/media-watch'
     | '/api/share/message'
     | '/api/share/mission'
+    | '/api/share/partner'
+    | '/api/share/partner-banner'
+    | '/api/share/partner-credit'
     | '/api/share/spend'
+    | '/api/share/strip-presets'
     | '/api/share/sync'
     | '/api/share/youtube-meta'
     | '/api/sound/comments'
@@ -317,23 +365,27 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdvertiserRoute: typeof AdvertiserRoute
+  BannerRoute: typeof BannerRoute
   LoginRoute: typeof LoginRoute
+  PartnerRoute: typeof PartnerRoute
+  TitleBgmRoute: typeof TitleBgmRoute
   ApiAccountLinkRoute: typeof ApiAccountLinkRoute
   ApiAccountProfileRoute: typeof ApiAccountProfileRoute
   ApiAdminPromoRoute: typeof ApiAdminPromoRoute
   ApiAdminStaffRoute: typeof ApiAdminStaffRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiPromoClaimRoute: typeof ApiPromoClaimRoute
-  ApiShareAdAdvertiserRoute: typeof ApiShareAdAdvertiserRoute
-  ApiShareAdPrepaidRoute: typeof ApiShareAdPrepaidRoute
-  ApiShareAdVideosRoute: typeof ApiShareAdVideosRoute
-  ApiShareAdWatchRoute: typeof ApiShareAdWatchRoute
   ApiShareAwardRoute: typeof ApiShareAwardRoute
   ApiShareBalanceRoute: typeof ApiShareBalanceRoute
+  ApiShareMediaCatalogRoute: typeof ApiShareMediaCatalogRoute
+  ApiShareMediaWatchRoute: typeof ApiShareMediaWatchRoute
   ApiShareMessageRoute: typeof ApiShareMessageRoute
   ApiShareMissionRoute: typeof ApiShareMissionRoute
+  ApiSharePartnerRoute: typeof ApiSharePartnerRoute
+  ApiSharePartnerBannerRoute: typeof ApiSharePartnerBannerRoute
+  ApiSharePartnerCreditRoute: typeof ApiSharePartnerCreditRoute
   ApiShareSpendRoute: typeof ApiShareSpendRoute
+  ApiShareStripPresetsRoute: typeof ApiShareStripPresetsRoute
   ApiShareSyncRoute: typeof ApiShareSyncRoute
   ApiShareYoutubeMetaRoute: typeof ApiShareYoutubeMetaRoute
   ApiSoundCommentsRoute: typeof ApiSoundCommentsRoute
@@ -351,11 +403,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/advertiser': {
-      id: '/advertiser'
-      path: '/advertiser'
-      fullPath: '/advertiser'
-      preLoaderRoute: typeof AdvertiserRouteImport
+    '/banner': {
+      id: '/banner'
+      path: '/banner'
+      fullPath: '/banner'
+      preLoaderRoute: typeof BannerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -363,6 +415,20 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partner': {
+      id: '/partner'
+      path: '/partner'
+      fullPath: '/partner'
+      preLoaderRoute: typeof PartnerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/title-bgm': {
+      id: '/title-bgm'
+      path: '/title-bgm'
+      fullPath: '/title-bgm'
+      preLoaderRoute: typeof TitleBgmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/account/link': {
@@ -407,34 +473,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPromoClaimRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/share/ad-advertiser': {
-      id: '/api/share/ad-advertiser'
-      path: '/api/share/ad-advertiser'
-      fullPath: '/api/share/ad-advertiser'
-      preLoaderRoute: typeof ApiShareAdAdvertiserRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/share/ad-prepaid': {
-      id: '/api/share/ad-prepaid'
-      path: '/api/share/ad-prepaid'
-      fullPath: '/api/share/ad-prepaid'
-      preLoaderRoute: typeof ApiShareAdPrepaidRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/share/ad-videos': {
-      id: '/api/share/ad-videos'
-      path: '/api/share/ad-videos'
-      fullPath: '/api/share/ad-videos'
-      preLoaderRoute: typeof ApiShareAdVideosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/share/ad-watch': {
-      id: '/api/share/ad-watch'
-      path: '/api/share/ad-watch'
-      fullPath: '/api/share/ad-watch'
-      preLoaderRoute: typeof ApiShareAdWatchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/share/award': {
       id: '/api/share/award'
       path: '/api/share/award'
@@ -447,6 +485,20 @@ declare module '@tanstack/react-router' {
       path: '/api/share/balance'
       fullPath: '/api/share/balance'
       preLoaderRoute: typeof ApiShareBalanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/media-catalog': {
+      id: '/api/share/media-catalog'
+      path: '/api/share/media-catalog'
+      fullPath: '/api/share/media-catalog'
+      preLoaderRoute: typeof ApiShareMediaCatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/media-watch': {
+      id: '/api/share/media-watch'
+      path: '/api/share/media-watch'
+      fullPath: '/api/share/media-watch'
+      preLoaderRoute: typeof ApiShareMediaWatchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/share/message': {
@@ -463,11 +515,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiShareMissionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/share/partner': {
+      id: '/api/share/partner'
+      path: '/api/share/partner'
+      fullPath: '/api/share/partner'
+      preLoaderRoute: typeof ApiSharePartnerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/partner-banner': {
+      id: '/api/share/partner-banner'
+      path: '/api/share/partner-banner'
+      fullPath: '/api/share/partner-banner'
+      preLoaderRoute: typeof ApiSharePartnerBannerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/partner-credit': {
+      id: '/api/share/partner-credit'
+      path: '/api/share/partner-credit'
+      fullPath: '/api/share/partner-credit'
+      preLoaderRoute: typeof ApiSharePartnerCreditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/share/spend': {
       id: '/api/share/spend'
       path: '/api/share/spend'
       fullPath: '/api/share/spend'
       preLoaderRoute: typeof ApiShareSpendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/share/strip-presets': {
+      id: '/api/share/strip-presets'
+      path: '/api/share/strip-presets'
+      fullPath: '/api/share/strip-presets'
+      preLoaderRoute: typeof ApiShareStripPresetsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/share/sync': {
@@ -517,23 +597,27 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdvertiserRoute: AdvertiserRoute,
+  BannerRoute: BannerRoute,
   LoginRoute: LoginRoute,
+  PartnerRoute: PartnerRoute,
+  TitleBgmRoute: TitleBgmRoute,
   ApiAccountLinkRoute: ApiAccountLinkRoute,
   ApiAccountProfileRoute: ApiAccountProfileRoute,
   ApiAdminPromoRoute: ApiAdminPromoRoute,
   ApiAdminStaffRoute: ApiAdminStaffRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiPromoClaimRoute: ApiPromoClaimRoute,
-  ApiShareAdAdvertiserRoute: ApiShareAdAdvertiserRoute,
-  ApiShareAdPrepaidRoute: ApiShareAdPrepaidRoute,
-  ApiShareAdVideosRoute: ApiShareAdVideosRoute,
-  ApiShareAdWatchRoute: ApiShareAdWatchRoute,
   ApiShareAwardRoute: ApiShareAwardRoute,
   ApiShareBalanceRoute: ApiShareBalanceRoute,
+  ApiShareMediaCatalogRoute: ApiShareMediaCatalogRoute,
+  ApiShareMediaWatchRoute: ApiShareMediaWatchRoute,
   ApiShareMessageRoute: ApiShareMessageRoute,
   ApiShareMissionRoute: ApiShareMissionRoute,
+  ApiSharePartnerRoute: ApiSharePartnerRoute,
+  ApiSharePartnerBannerRoute: ApiSharePartnerBannerRoute,
+  ApiSharePartnerCreditRoute: ApiSharePartnerCreditRoute,
   ApiShareSpendRoute: ApiShareSpendRoute,
+  ApiShareStripPresetsRoute: ApiShareStripPresetsRoute,
   ApiShareSyncRoute: ApiShareSyncRoute,
   ApiShareYoutubeMetaRoute: ApiShareYoutubeMetaRoute,
   ApiSoundCommentsRoute: ApiSoundCommentsRoute,

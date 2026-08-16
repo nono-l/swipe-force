@@ -1,14 +1,14 @@
 /**
- * Direct URL for linked advertisers: /advertiser
- * Requires external account link. Guests are sent to /login?next=/advertiser
+ * Direct URL for linked advertisers: /partner
+ * Requires external account link. Guests are sent to /login?next=/partner
  */
 
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { fetchLinkedAccount } from "@/lib/account";
-import { openAdAdvertiserDialog } from "@/lib/ad-advertiser-ui";
+import { openPartnerPortalDialog } from "@/lib/partner-portal-ui";
 
-export const Route = createFileRoute("/advertiser")({
+export const Route = createFileRoute("/partner")({
   component: AdvertiserPortalPage,
   head: () => ({
     meta: [
@@ -27,10 +27,10 @@ function AdvertiserPortalPage() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [playerId, setPlayerId] = useState("");
   const [name, setName] = useState<string | null>(null);
-  const [portalUrl, setPortalUrl] = useState("/advertiser");
+  const [portalUrl, setPortalUrl] = useState("/partner");
 
   useEffect(() => {
-    setPortalUrl(`${window.location.origin}/advertiser`);
+    setPortalUrl(`${window.location.origin}/partner`);
     let cancelled = false;
     (async () => {
       try {
@@ -44,7 +44,7 @@ function AdvertiserPortalPage() {
         setName(acc.name);
         setPhase("ready");
         // Open portal UI once (dialog host on this page)
-        openAdAdvertiserDialog({
+        openPartnerPortalDialog({
           playerId: acc.playerId,
           sfxUi: () => {},
           sfxOk: () => {},
@@ -60,7 +60,7 @@ function AdvertiserPortalPage() {
   }, []);
 
   const goLogin = () => {
-    const next = encodeURIComponent("/advertiser");
+    const next = encodeURIComponent("/partner");
     window.location.href = `/login?next=${next}`;
   };
 
@@ -85,6 +85,14 @@ function AdvertiserPortalPage() {
             >
               {portalUrl}
             </a>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+            <Link
+              to="/banner"
+              className="rounded-lg border border-[#8cf] bg-[#102838] px-3 py-2 font-semibold text-[#9ef] underline"
+            >
+              ✂️ バナーエディタ直リンク
+            </Link>
           </div>
           <div className="mt-2 rounded-lg border border-[#345] bg-[#0a1520] px-3 py-2 text-[11px]">
             <div className="text-[#8ab]">サポート窓口</div>
@@ -155,7 +163,7 @@ function AdvertiserPortalPage() {
             <button
               type="button"
               onClick={() =>
-                openAdAdvertiserDialog({
+                openPartnerPortalDialog({
                   playerId,
                   sfxUi: () => {},
                   sfxOk: () => {},

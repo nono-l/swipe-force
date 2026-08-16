@@ -67,6 +67,27 @@ function firstNeed(dur: number): number {
   return Math.min(MAX_SEC, Math.max(FLOOR_SEC, Math.floor(dur) || MAX_SEC));
 }
 
+function unlockedNow(
+  durationSec: number,
+  watchSec: number,
+  already: Set<number>,
+): Milestone[] {
+  const ms = milestones(durationSec);
+  const first = ms[0]?.at || MAX_SEC;
+  const out = ms.filter((m) => watchSec >= m.at && !already.has(m.at));
+  const ladderLeft = ms.some((m) => !already.has(m.at));
+  if (ladderLeft) return out;
+  let last = 0;
+  for (const m of ms) last = Math.max(last, m.at);
+  for (const a of already) last = Math.max(last, a);
+  let at = last + first;
+  while (at <= watchSec) {
+    if (!already.has(at)) out.push({ at, reward: 1 });
+    at += first;
+  }
+  return out;
+}
+
 function milestones(durationSec: number): Milestone[] {
   const dur = Math.max(0, Math.floor(durationSec) || 0);
   const out: Milestone[] = [];
@@ -161,6 +182,13 @@ async function ensureTables(sql: Awaited<ReturnType<typeof getSql>>) {
   try {
     await sql.query(
       `ALTER TABLE ad_videos ADD COLUMN IF NOT EXISTS owner_player_id TEXT NOT NULL DEFAULT ''`,
+    );
+  } catch {
+    /* */
+  }
+  try {
+    await sql.query(
+      `ALTER TABLE ad_videos ADD COLUMN IF NOT EXISTS claim_once INTEGER NOT NULL DEFAULT 0`,
     );
   } catch {
     /* */
@@ -449,12 +477,15 @@ async function claimedMilestones(
   sql: Awaited<ReturnType<typeof getSql>>,
   playerId: string,
   videoId: string,
+  now = Date.now(),
+  allTime = false,
 ): Promise<Set<number>> {
+  const since = allTime ? "1970-01-01T00:00:00.000Z" : jstHourStartIso(now);
   const rows = await sql.query<{ milestone_sec: number; watch_sec: number }>(
     `SELECT COALESCE(milestone_sec, 0) AS milestone_sec, watch_sec
      FROM ad_watch_claims
-     WHERE player_id=$1 AND video_id=$2`,
-    [playerId, videoId],
+     WHERE player_id=$1 AND video_id=$2 AND claimed_at >= $3`,
+    [playerId, videoId, since],
   );
   const set = new Set<number>();
   for (const r of rows) {
@@ -468,12 +499,57 @@ async function claimedMilestones(
   return set;
 }
 
+type HistoryRow = {
+  claimedAt: string;
+  videoId: string;
+  label: string;
+  reward: number;
+  milestoneSec: number;
+};
+
+async function loadClaimHistory(
+  sql: Awaited<ReturnType<typeof getSql>>,
+  playerId: string,
+): Promise<HistoryRow[]> {
+  try {
+    const rows = await sql.query<{
+      claimed_at: string;
+      video_id: string;
+      reward: number;
+      milestone_sec: number;
+      watch_sec: number;
+      label: string | null;
+    }>(
+      `SELECT c.claimed_at, c.video_id,
+              COALESCE(c.reward, 1) AS reward,
+              COALESCE(c.milestone_sec, 0) AS milestone_sec,
+              COALESCE(c.watch_sec, 0) AS watch_sec,
+              COALESCE(NULLIF(v.label, ''), '') AS label
+       FROM ad_watch_claims c
+       LEFT JOIN ad_videos v ON v.video_id = c.video_id
+       WHERE c.player_id=$1
+       ORDER BY c.claimed_at DESC
+       LIMIT 40`,
+      [playerId],
+    );
+    return rows.map((r) => ({
+      claimedAt: String(r.claimed_at || ""),
+      videoId: String(r.video_id || ""),
+      label: String(r.label || r.video_id || "広告"),
+      reward: Math.max(1, Number(r.reward) || 1),
+      milestoneSec: Number(r.milestone_sec) || Number(r.watch_sec) || 0,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 function msUntilSlot(_oldest: string | null, used: number, now = Date.now()) {
   if (used < HOURLY_MAX) return 0;
   return msUntilNextJstHour(now);
 }
 
-export const Route = createFileRoute("/api/share/ad-watch")({
+export const Route = createFileRoute("/api/share/media-watch")({
   server: {
     handlers: {
       GET: async ({ request }) => {
@@ -495,6 +571,7 @@ export const Route = createFileRoute("/api/share/ad-watch")({
             [playerId],
           );
           const vmap = await loadVideoDurations(sql);
+          const history = await loadClaimHistory(sql, playerId);
           const dur = videoId ? durationOf(videoId, vmap) : 0;
           const ms = dur > 0 ? milestones(dur) : [];
           return Response.json({
@@ -520,6 +597,7 @@ export const Route = createFileRoute("/api/share/ad-watch")({
             coins: Number(bal[0]?.coins) || 0,
             videoId: videoId || undefined,
             configured: Object.keys(vmap).length,
+            history,
           });
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
@@ -620,8 +698,21 @@ export const Route = createFileRoute("/api/share/ad-watch")({
             });
           }
 
-          const already = await claimedMilestones(sql, playerId, videoId);
-          const unlocked = ms.filter((m) => watchSec >= m.at && !already.has(m.at));
+          const modeRow = await sql.query<{ claim_once: number }>(
+            `SELECT COALESCE(claim_once, 0)::int AS claim_once FROM ad_videos WHERE video_id=$1`,
+            [videoId],
+          );
+          const claimOnce = Number(modeRow[0]?.claim_once) !== 0;
+          const already = await claimedMilestones(
+            sql,
+            playerId,
+            videoId,
+            now,
+            claimOnce,
+          );
+          const unlocked = claimOnce
+            ? ms.filter((m) => watchSec >= m.at && !already.has(m.at))
+            : unlockedNow(dur, watchSec, already);
           if (!unlocked.length) {
             // still bill watch time
             await billWatchProgress(sql, playerId, videoId, watchSec, nowIso, {
@@ -706,6 +797,7 @@ export const Route = createFileRoute("/api/share/ad-watch")({
             hourCoins: nextUsed,
           });
           const nextMs = ms.find((m) => m.at > watchSec) || null;
+          const history = await loadClaimHistory(sql, playerId);
           return Response.json({
             ok: true,
             coins,
@@ -729,10 +821,11 @@ export const Route = createFileRoute("/api/share/ad-watch")({
             videoId,
             nextMilestone: nextMs?.at ?? null,
             nextReward: nextMs?.reward ?? null,
+            history,
           });
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
-          console.error("[ad-watch]", msg);
+          console.error("[media-watch]", msg);
           return Response.json({ ok: false, reason: "db", error: msg }, { status: 500 });
         }
       },

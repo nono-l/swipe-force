@@ -25,6 +25,8 @@ function trackKeyOk(k: string): string | null {
   if (/^(stage|boss|legacy):\d{1,3}$/.test(s)) return s;
   // profile self-intro links
   if (/^prof:[a-z0-9]{4,24}$/i.test(s)) return s;
+  // partner banner destinations
+  if (/^bnr:[a-z0-9_-]{3,28}$/i.test(s)) return s;
   return null;
 }
 

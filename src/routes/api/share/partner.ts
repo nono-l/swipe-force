@@ -11,6 +11,10 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { getSql } from "@/lib/db";
+import {
+  resolveYoutubeChannel,
+  sanitizeYoutubeChannelUrl,
+} from "@/lib/youtube-channel";
 
 
 const SUPER_ADMIN_PLAYER_ID = "uzwdbubkeggsdico0kgho";
@@ -104,6 +108,34 @@ async function ensure(sql: Awaited<ReturnType<typeof getSql>>) {
   try {
     await sql.query(
       `ALTER TABLE ad_videos ADD COLUMN IF NOT EXISTS owner_player_id TEXT NOT NULL DEFAULT ''`,
+    );
+  } catch {
+    /* */
+  }
+  try {
+    await sql.query(
+      `ALTER TABLE ad_videos ADD COLUMN IF NOT EXISTS claim_once INTEGER NOT NULL DEFAULT 0`,
+    );
+  } catch {
+    /* */
+  }
+  try {
+    await sql.query(
+      `ALTER TABLE ad_videos ADD COLUMN IF NOT EXISTS show_channel INTEGER NOT NULL DEFAULT 0`,
+    );
+  } catch {
+    /* */
+  }
+  try {
+    await sql.query(
+      `ALTER TABLE ad_videos ADD COLUMN IF NOT EXISTS channel_url TEXT NOT NULL DEFAULT ''`,
+    );
+  } catch {
+    /* */
+  }
+  try {
+    await sql.query(
+      `ALTER TABLE ad_videos ADD COLUMN IF NOT EXISTS channel_name TEXT NOT NULL DEFAULT ''`,
     );
   } catch {
     /* */
@@ -267,12 +299,20 @@ async function listAll(sql: Awaited<ReturnType<typeof getSql>>) {
     active: number;
     owner_player_id: string | null;
     owner_display_name: string | null;
+    claim_once: number | null;
+    show_channel: number | null;
+    channel_url: string | null;
+    channel_name: string | null;
     total_watch_sec: number | null;
     total_claims: number | null;
   }>(
     `SELECT v.video_id, v.label, v.duration_sec, v.max_display_hours, v.active,
             COALESCE(v.owner_player_id, '') AS owner_player_id,
             COALESCE(p.display_name, '') AS owner_display_name,
+            COALESCE(v.claim_once, 0) AS claim_once,
+            COALESCE(v.show_channel, 0) AS show_channel,
+            COALESCE(v.channel_url, '') AS channel_url,
+            COALESCE(v.channel_name, '') AS channel_name,
             COALESCE(s.total_watch_sec, 0) AS total_watch_sec,
             COALESCE(s.total_claims, 0) AS total_claims
      FROM ad_videos v
@@ -317,6 +357,10 @@ async function listAll(sql: Awaited<ReturnType<typeof getSql>>) {
       ownerKind: (ownerPlayerId ? "advertiser" : "platform") as
         | "advertiser"
         | "platform",
+      claimOnce: Number(r.claim_once) !== 0,
+      showChannel: Number(r.show_channel) !== 0,
+      channelUrl: String(r.channel_url || "").slice(0, 240),
+      channelName: String(r.channel_name || "").slice(0, 80),
     };
   });
 }
@@ -327,7 +371,7 @@ function assignedHours(videos: { maxDisplayHours: number; active: boolean }[]) {
     .reduce((s, v) => s + (Number(v.maxDisplayHours) || 0), 0);
 }
 
-export const Route = createFileRoute("/api/share/ad-advertiser")({
+export const Route = createFileRoute("/api/share/partner")({
   server: {
     handlers: {
       GET: async ({ request }) => {
@@ -355,7 +399,7 @@ export const Route = createFileRoute("/api/share/ad-advertiser")({
             isAdmin: admin,
             balance: bal,
             assignedHours: assigned,
-            freeHours: Math.max(0, bal.creditHours - assigned),
+            freeHours: Math.max(0, Math.max(bal.totalCredited, bal.creditHours) - assigned),
             isAdvertiser: bal.totalCredited > 0 || videos.length > 0,
             videos,
             allVideos: allVideos || undefined,
@@ -377,7 +421,11 @@ export const Route = createFileRoute("/api/share/ad-advertiser")({
             label?: string;
             durationSec?: number;
             maxDisplayHours?: number;
-            active?: boolean;
+            active?: boolean | number | string;
+            claimOnce?: boolean | number | string;
+            showChannel?: boolean | number | string;
+            channelUrl?: string;
+            channelName?: string;
           };
         };
         try {
@@ -416,7 +464,7 @@ export const Route = createFileRoute("/api/share/ad-advertiser")({
               videos,
               balance: bal,
               assignedHours: assigned,
-              freeHours: Math.max(0, bal.creditHours - assigned),
+              freeHours: Math.max(0, Math.max(bal.totalCredited, bal.creditHours) - assigned),
             });
           }
 
@@ -447,7 +495,24 @@ export const Route = createFileRoute("/api/share/ad-advertiser")({
             Math.min(100000, Number(raw.maxDisplayHours) || 1),
           );
           const active =
-            raw.active === false || raw.active === 0 ? false : true;
+            raw.active === false || raw.active === "0" || raw.active === 0 ? false : true;
+          const claimOnce =
+            raw.claimOnce === true ||
+            raw.claimOnce === 1 ||
+            raw.claimOnce === "1";
+          const showChannel =
+            raw.showChannel === true ||
+            raw.showChannel === 1 ||
+            raw.showChannel === "1";
+          let channelUrl = sanitizeYoutubeChannelUrl(raw.channelUrl);
+          let channelName = String(raw.channelName || "").trim().slice(0, 80);
+          if (showChannel && !channelUrl) {
+            const ch = await resolveYoutubeChannel(id);
+            if (ch) {
+              channelUrl = ch.url;
+              channelName = channelName || ch.name;
+            }
+          }
 
           // ownership check if exists
           const exist = await sql.query<{ owner_player_id: string }>(
@@ -468,35 +533,60 @@ export const Route = createFileRoute("/api/share/ad-advertiser")({
             );
           }
 
-          // budget: sum other owned videos + this one
+          // Assignment budget uses total prepaid hours (totalCredited), NOT remaining
+          // credit_sec — remaining only gates public delivery after watch consumption.
+          // Updating an existing ad (label/duration/active) must not fail just because
+          // credits were already spent watching.
           const mine = await listMine(sql, playerId);
           const others = mine
             .filter((v) => v.id !== id && v.active)
             .reduce((s, v) => s + v.maxDisplayHours, 0);
+          const isUpdate = mine.some((v) => v.id === id);
+          const assignBudget = Math.max(
+            bal.totalCredited,
+            bal.creditHours,
+            // if they already have videos, allow at least current assigned sum
+            mine.reduce((s, v) => s + (v.active ? v.maxDisplayHours : 0), 0),
+          );
           const need = others + (active ? maxDisplayHours : 0);
-          if (need > bal.creditHours + 1e-6) {
-            return Response.json(
-              {
-                ok: false,
-                reason: "budget",
-                message: `表示時間の予算不足（必要 ${need.toFixed(1)}h / 所持 ${bal.creditHours.toFixed(1)}h）`,
-                freeHours: Math.max(0, bal.creditHours - others),
-              },
-              { status: 400 },
-            );
+          if (need > assignBudget + 1e-6) {
+            // soft: allow pure metadata update on existing if max hours not increased
+            const prev = mine.find((v) => v.id === id);
+            const hoursOk =
+              isUpdate &&
+              prev &&
+              maxDisplayHours <= (prev.maxDisplayHours || 0) + 1e-6;
+            if (!hoursOk) {
+              return Response.json(
+                {
+                  ok: false,
+                  reason: "budget",
+                  message: `表示時間の予算不足（必要 ${need.toFixed(1)}h / 割当枠 ${assignBudget.toFixed(1)}h）`,
+                  freeHours: Math.max(0, assignBudget - others),
+                },
+                { status: 400 },
+              );
+            }
           }
 
           await sql.query(
             `INSERT INTO ad_videos
-               (video_id, label, duration_sec, max_display_hours, active, sort_order, created_at, updated_at, owner_player_id)
-             VALUES ($1,$2,$3,$4,$5,100,$6,$6,$7)
+               (video_id, label, duration_sec, max_display_hours, active, sort_order, created_at, updated_at, owner_player_id, claim_once, show_channel, channel_url, channel_name)
+             VALUES ($1,$2,$3,$4,$5,100,$6,$6,$7,$8,$9,$10,$11)
              ON CONFLICT (video_id) DO UPDATE SET
                label = EXCLUDED.label,
                duration_sec = EXCLUDED.duration_sec,
                max_display_hours = EXCLUDED.max_display_hours,
                active = EXCLUDED.active,
                updated_at = EXCLUDED.updated_at,
-               owner_player_id = EXCLUDED.owner_player_id`,
+               owner_player_id = EXCLUDED.owner_player_id,
+               claim_once = EXCLUDED.claim_once,
+               show_channel = EXCLUDED.show_channel,
+               channel_url = EXCLUDED.channel_url,
+               channel_name = EXCLUDED.channel_name
+             WHERE ad_videos.owner_player_id = EXCLUDED.owner_player_id
+                OR ad_videos.owner_player_id = ''
+                OR ad_videos.owner_player_id IS NULL`,
             [
               id,
               label,
@@ -505,8 +595,31 @@ export const Route = createFileRoute("/api/share/ad-advertiser")({
               active ? 1 : 0,
               now,
               playerId,
+              claimOnce ? 1 : 0,
+              showChannel ? 1 : 0,
+              showChannel ? channelUrl : "",
+              showChannel ? channelName : "",
             ],
           );
+
+          // verify row is owned (conflict with other owner would no-op update)
+          const check = await sql.query<{ owner_player_id: string }>(
+            `SELECT owner_player_id FROM ad_videos WHERE video_id=$1`,
+            [id],
+          );
+          if (
+            check[0] &&
+            String(check[0].owner_player_id || "") !== playerId
+          ) {
+            return Response.json(
+              {
+                ok: false,
+                reason: "taken",
+                message: "この動画は保存できませんでした",
+              },
+              { status: 403 },
+            );
+          }
 
           const videos = await listMine(sql, playerId);
           const assigned = assignedHours(videos);
@@ -516,11 +629,11 @@ export const Route = createFileRoute("/api/share/ad-advertiser")({
             videos,
             balance: bal,
             assignedHours: assigned,
-            freeHours: Math.max(0, bal.creditHours - assigned),
+            freeHours: Math.max(0, assignBudget - assigned),
           });
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
-          console.error("[ad-advertiser]", msg);
+          console.error("[partner]", msg);
           return Response.json({ ok: false, reason: "db", error: msg }, { status: 500 });
         }
       },

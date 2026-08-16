@@ -2,6 +2,8 @@
  * Fan-mail dialog to sharer (recovered yi DOM).
  */
 
+import { t as i18n } from "@/lib/i18n";
+
 export type FanmailDialogHandlers = {
   host: HTMLElement;
   sanitize: (raw: string) => { ok: true; text: string } | { ok: false; reason: string };
@@ -39,15 +41,15 @@ export function openFanmailDialog(h: FanmailDialogHandlers): boolean {
   ].join(";");
   e.innerHTML = `
         <div style="width:min(340px,100%);background:#0a1a14;border:2px solid #66ffcc;border-radius:12px;padding:16px 14px;color:#dff;box-shadow:0 8px 32px #000;">
-          <div style="font-size:15px;font-weight:700;color:#8ff;margin-bottom:4px;">✉ シェア主へメッセージ</div>
-          <div style="font-size:11px;color:#6a9;margin-bottom:10px;">ミッション全クリア特典 · <b>1回のみ</b> · 最大40文字 · 絵文字OK</div>
-          <textarea id="sf-mail-input" maxlength="80" rows="3" placeholder="ありがとう！楽しかった🎉"
+          <div style="font-size:15px;font-weight:700;color:#8ff;margin-bottom:4px;">${i18n("mail.fanTitle")}</div>
+          <div style="font-size:11px;color:#6a9;margin-bottom:10px;">${i18n("mail.fanLead")}</div>
+          <textarea id="sf-mail-input" maxlength="80" rows="3" placeholder="${i18n("mail.fanPh")}"
             style="width:100%;box-sizing:border-box;resize:none;border-radius:8px;border:1px solid #2a6;background:#03140e;color:#efe;padding:10px;font-size:16px;line-height:1.4;"></textarea>
           <div style="display:flex;gap:8px;margin-top:12px;">
             <button type="button" id="sf-mail-cancel"
-              style="flex:1;padding:12px;border-radius:8px;border:1px solid #456;background:#123;color:#9ab;font-size:14px;">キャンセル</button>
+              style="flex:1;padding:12px;border-radius:8px;border:1px solid #456;background:#123;color:#9ab;font-size:14px;">${i18n("common.cancel")}</button>
             <button type="button" id="sf-mail-send"
-              style="flex:1.2;padding:12px;border-radius:8px;border:1px solid #8fc;background:#1a4030;color:#cff;font-size:14px;font-weight:700;">送信</button>
+              style="flex:1.2;padding:12px;border-radius:8px;border:1px solid #8fc;background:#1a4030;color:#cff;font-size:14px;font-weight:700;">${i18n("mail.send")}</button>
           </div>
           <div id="sf-mail-status" style="margin-top:8px;min-height:1.2em;font-size:12px;color:#fc8;text-align:center;"></div>
         </div>`;
@@ -84,10 +86,10 @@ export function openFanmailDialog(h: FanmailDialogHandlers): boolean {
           return;
         }
         if (i) i.disabled = true;
-        if (r) r.textContent = "送信中…";
+        if (r) r.textContent = i18n("mail.sending");
         const n = await h.send(sanitized.text);
         if (n.ok) {
-          if (r) r.textContent = "送信しました！（再送不可）";
+          if (r) r.textContent = i18n("mail.sent");
           h.playOk?.();
           h.onSent();
           setTimeout(() => {
@@ -98,9 +100,9 @@ export function openFanmailDialog(h: FanmailDialogHandlers): boolean {
           if (r) {
             r.textContent =
               n.reason === "missions"
-                ? "ミッション未完了"
+                ? i18n("mail.incomplete")
                 : n.reason === "already"
-                  ? "すでに送信済みです"
+                  ? i18n("mail.already")
                   : h.reasonText(n.reason || "unsafe");
           }
           if (i) i.disabled = false;

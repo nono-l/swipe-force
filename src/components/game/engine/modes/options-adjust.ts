@@ -29,6 +29,7 @@ export type OptionAdjustResult =
   | { type: "navigate_weapons" }
   | { type: "back" }
   | { type: "title" }
+  | { type: "locale" }
   | {
       type: "applied";
       settings: SettingsLike;
@@ -51,6 +52,7 @@ export function applyOptionDelta(opts: {
   if (n.kind === "header") return { type: "noop" };
   if (n.kind === "back") return { type: "back" };
   if (n.kind === "title") return { type: "title" };
+  if (n.kind === "locale") return { type: "locale" };
   if (n.kind === "submenu") {
     if (n.key === "shot") return { type: "navigate_shot" };
     return { type: "navigate_weapons" };

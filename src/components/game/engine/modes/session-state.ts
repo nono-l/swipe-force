@@ -45,7 +45,7 @@ export function buildNewRunSeed(opts: {
     lives: 3,
     stage: 1,
     upgrades:
-      opts.difficulty === "easy"
+      opts.difficulty === "easy" || opts.difficulty === "tutorial"
         ? { ...opts.easyCarry }
         : { ...(opts.defaults || DEFAULT_UPGRADES) },
     shieldFrames: 0,

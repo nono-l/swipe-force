@@ -175,7 +175,7 @@ export function buildShareUrl(e, t) {
 
 export function formatShareProgress(e) {
     let t = Math.max(1, e.stage || 1),
-        n = e.difficulty === `normal` ? `NORMAL` : e.difficulty === `easy` ? `EASY` : ``,
+        n = e.difficulty === `normal` ? `NORMAL` : e.difficulty === `tutorial` ? `TUTORIAL` : e.difficulty === `easy` ? `EASY` : ``,
         r = typeof e.score == `number` && e.score > 0 ? ` SCORE ${String(e.score).padStart(7,`0`)}` : ``,
         i = e.context || `title`;
     return i === `gameover` ? [`🆘 助けて！ ${n} STAGE ${t} で撃沈${r}`, e.bossName ? `ボス「${e.bossName}」手前/戦いでやられました` : `進行: ${t}面目安`, `遊んでミッションクリアしてくれるとコンティニューできます`].join(`

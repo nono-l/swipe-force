@@ -36,6 +36,16 @@ export type ThemeArchiveEntry = {
  */
 export const THEME_ARCHIVES: readonly ThemeArchiveEntry[] = [
   {
+    id: "title_v1_chip",
+    title: "TITLE THEME (旧·チップ)",
+    source: "TITLE THEME",
+    usedFrom: "2026-08-01",
+    usedUntil: "2026-08-11",
+    archivedAt: "2026-08-11",
+    sampleStage: 8,
+    flavor: "title_v1",
+  },
+  {
     id: "abyss_v1_drone",
     title: "深海のバス (旧·低音ドローン)",
     source: "深海のバス",

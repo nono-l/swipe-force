@@ -76,12 +76,26 @@ import { syncProfileFromServer } from "@/lib/account";
 import { openPromoAdminDialog } from "@/lib/promo-admin-ui";
 import { claimPromoRemote } from "@/lib/promo-api";
 import {
+  drawStageMap,
+  getStageMap,
+  stageMapLabel,
+  warmAllStageMaps,
+} from "@/lib/stage-map";
+import {
   loadPromoUnlocks,
   hasSpecialWeaponAccess,
 } from "@/components/game/engine/modes/weapon-unlocks";
-import { openAdWatchDialog } from "@/lib/ad-watch-ui";
-import { openAdAdvertiserDialog } from "@/lib/ad-advertiser-ui";
+import { openMediaWatchDialog } from "@/lib/media-watch-ui";
+import { openHelpDialog, closeHelpDialog, openTutorialClearDialog } from "@/lib/help-ui";
+import {
+  mountTutorialDock,
+  unmountTutorialDock,
+  noteTutorialEvent,
+} from "@/lib/tutorial-dock";
+import { mountTitleBannerDom } from "@/lib/title-banner-dom";
+import { openPartnerPortalDialog } from "@/lib/partner-portal-ui";
 import { isPromoAdminPlayer, fetchStaffList } from "./modes/admin";
+import { cycleLocale, t } from "@/lib/i18n";
 import {
   addPlayTime,
   noteHelpAsked,
@@ -393,6 +407,7 @@ function SwipeForceEngine() {
             highScore = Number(localStorage.getItem(HI_SCORE_KEY) || `50000`) || 5e4,
             lives = 3, // lives
             stage = 1, // stage
+            mapScroll = 0, // xevious-style chip map scroll
             frame = 0,
             readyTimer = 0,
             spawnTimer = 0,
@@ -422,6 +437,9 @@ function SwipeForceEngine() {
             celebrate = 0,
             mutedFlag = !1,
             difficulty = `easy`,
+            tutorialRun = !1,
+            tutorialShopQueued = !1,
+            tutorialShopForced = !1,
             titleCursor = 0,
             titleSub = `root`, // title: root | diff | extra
             changelogScroll = 0,
@@ -692,6 +710,7 @@ function SwipeForceEngine() {
             s: 1 + e % 2,
             speed: .4 + e % 5 * .25
         });
+        try { warmAllStageMaps() } catch {}
         let swipeActive = !1,
             swipeX = player.x,
             swipeY = player.y,
@@ -708,16 +727,67 @@ function SwipeForceEngine() {
         }
 
         function layoutCanvas() {
-            let rect = hostEl.getBoundingClientRect(),
-                scale = Math.min(rect.width / PLAY_W, rect.height / PLAY_H),
-                dpr = Math.min(window.devicePixelRatio || 1, 2);
-            canvas.style.width = `${Math.floor(PLAY_W*scale)}px`, canvas.style.height = `${Math.floor(PLAY_H*scale)}px`;
-            let px = Math.max(1, Math.floor(scale * dpr));
-            canvas.width = PLAY_W * px, canvas.height = PLAY_H * px, ctx.setTransform(px, 0, 0, px, 0, 0), ctx.imageSmoothingEnabled = !1
+            let rect = hostEl.getBoundingClientRect();
+            let availW = Math.max(rect.width, window.innerWidth || 0, 160);
+            let availH = Math.max(rect.height, window.innerHeight || 0, 200);
+            let scale = Math.min(availW / PLAY_W, availH / PLAY_H);
+            if (!(scale > 0) || !isFinite(scale)) scale = 0.5;
+            scale = Math.max(0.35, scale);
+            canvas.style.width = `${Math.floor(PLAY_W * scale)}px`;
+            canvas.style.height = `${Math.floor(PLAY_H * scale)}px`;
+            canvas.style.display = `block`;
+            canvas.style.flexShrink = `0`;
+            let px = Math.max(1, Math.floor(scale * Math.min(window.devicePixelRatio || 1, 2)));
+            if (canvas.width !== PLAY_W * px || canvas.height !== PLAY_H * px) {
+                canvas.width = PLAY_W * px;
+                canvas.height = PLAY_H * px;
+                ctx.setTransform(px, 0, 0, px, 0, 0);
+                ctx.imageSmoothingEnabled = !1;
+            } else {
+                ctx.setTransform(px, 0, 0, px, 0, 0);
+            }
         }
         layoutCanvas();
         let resizeObserver = new ResizeObserver(layoutCanvas);
-        resizeObserver.observe(hostEl);
+        try { resizeObserver.observe(hostEl); } catch {}
+        window.addEventListener(`resize`, layoutCanvas);
+        window.addEventListener(`orientationchange`, layoutCanvas);
+        try { window.visualViewport && window.visualViewport.addEventListener(`resize`, layoutCanvas); } catch {}
+        window.addEventListener(`pageshow`, layoutCanvas);
+
+        // HTML banner in letterbox bottom-left (phone black margin)
+        let titleBannerDom = null;
+        try {
+            titleBannerDom = mountTitleBannerDom({
+                host: hostEl,
+                getPlayerId: () => playerId || ``,
+                getLinked: () => !!account.linked,
+                onNeedLink: () => { try { openAccount() } catch {} },
+                isVisible: () => mode === `attract`,
+                onOpenHelp: () => { try { tryOpenHelp(); } catch {} },
+                onOpen: (videoId) => {
+                    try {
+                        openMediaWatchDialog({
+                            playerId: playerId || ``,
+                            preferredVideoId: videoId,
+                            sfxUi: () => { try { sfx.ui() } catch {} },
+                            sfxOk: () => { try { sfx.buy() } catch {} },
+                            sfxFail: () => { try { sfx.buyFail() } catch {} },
+                            onCoins: (c) => {
+                                continueCoins = Math.max(0, c | 0);
+                                shareToast = t(`hud.watchOpen`, { n: continueCoins });
+                                shareToastLife = 100;
+                            },
+                        });
+                    } catch {
+                        try { tryOpenMediaWatch(); } catch {}
+                    }
+                },
+                sfxUi: () => { try { sfx.ui() } catch {} },
+            });
+        } catch (e) {
+            console.warn(`[title-banner]`, e);
+        }
 
         function specialUnlocks() {
             try { return loadPromoUnlocks() } catch { return [] }
@@ -780,7 +850,7 @@ function SwipeForceEngine() {
         }
 
         function syncEasyCarry() {
-            if (difficulty === `easy`) {
+            if (difficulty === `easy` || difficulty === `tutorial`) {
                 try {
                     localStorage.setItem(EASY_UP_KEY, serializeEasyCarry(upgrades))
                 } catch {}
@@ -842,7 +912,7 @@ function SwipeForceEngine() {
             let res = claimLoginBonus(bagStock, loginLastDate);
             if (!res.ok) {
                 if (!silent) {
-                    bagToast = `本日は受取済`, bagToastLife = 60, sfx.buyFail();
+                    bagToast = t(`bag.loginDone`), bagToastLife = 60, sfx.buyFail();
                 }
                 return !1
             }
@@ -865,14 +935,14 @@ function SwipeForceEngine() {
                 if (!res.ok) {
                     shareToast =
                         res.reason === `already`
-                            ? `プロモ済 ${code}`
+                            ? t(`bag.promoOk`, { code })
                             : res.reason === `expired`
-                              ? `期限切れ ${code}`
+                              ? t(`bag.promoExp`, { code })
                               : res.reason === `sold_out`
-                                ? `配布終了 ${code}`
+                                ? t(`bag.promoEnd`, { code })
                                 : res.reason === `network`
-                                  ? `プロモ通信エラー ${code}`
-                                  : `無効プロモ ${code}`;
+                                  ? t(`bag.promoNet`, { code })
+                                  : t(`bag.promoBad`, { code });
                     shareToastLife = 120;
                     if (res.reason === `already`) {
                         promoClaimed = [...new Set([...promoClaimed, code.toUpperCase()])];
@@ -944,7 +1014,7 @@ function SwipeForceEngine() {
         function openStageSelect() {
             let maxS = maxClearedForDiff();
             if (maxS < 1) {
-                bagToast = `クリア記録がありません`, bagToastLife = 70, sfx.buyFail();
+                bagToast = t(`bag.noClear`), bagToastLife = 70, sfx.buyFail();
                 return
             }
             stageSelectCursor = Math.max(0, Math.min(maxS - 1, (bagPending.startStage || 1) - 1));
@@ -962,7 +1032,7 @@ function SwipeForceEngine() {
                 return
             }
             if (row.kind !== `item` || row.action === `locked`) {
-                bagToast = row.lockedReason || `使用不可`, bagToastLife = 60, sfx.buyFail();
+                bagToast = row.lockedReason || t(`bag.noUse`), bagToastLife = 60, sfx.buyFail();
                 return
             }
             if (row.action === `use_stage`) {
@@ -971,13 +1041,13 @@ function SwipeForceEngine() {
             }
             if (row.action === `use_x5` || row.action === `use_x10`) {
                 if (bagPending.ptsMult > 1 || (bagInRunContext() && runPtsMult > 1)) {
-                    bagToast = `倍率は重複できません`, bagToastLife = 70, sfx.buyFail();
+                    bagToast = t(`bag.noDup`), bagToastLife = 70, sfx.buyFail();
                     return
                 }
                 let field = row.action === `use_x5` ? `ptsX5` : `ptsX10`;
                 let res = consumeBagStock(bagStock, field, 1);
                 if (!res.ok) {
-                    bagToast = `在庫なし`, bagToastLife = 50, sfx.buyFail();
+                    bagToast = t(`bag.noInv`), bagToastLife = 50, sfx.buyFail();
                     return
                 }
                 bagStock = res.bag, persistBag();
@@ -987,28 +1057,28 @@ function SwipeForceEngine() {
                         // refund stock if wrong difficulty mid-run
                         bagStock = addBagStock(bagStock, field, 1);
                         persistBag();
-                        bagToast = `NORMAL専用`, bagToastLife = 60, sfx.buyFail();
+                        bagToast = t(`bag.nrmNeed`), bagToastLife = 60, sfx.buyFail();
                         return
                     }
                     runPtsMult = mult;
-                    bagToast = `PTS×${mult} 発動!`, bagToastLife = 70, sfx.buy();
+                    bagToast = t(`bag.ptsGo`, { n: mult }), bagToastLife = 70, sfx.buy();
                     return
                 }
                 bagPending = {
                     ...bagPending,
                     ptsMult: mult
                 }, persistPending();
-                bagToast = `PTS×${mult} を次のNORMALにセット`, bagToastLife = 70, sfx.buy();
+                bagToast = t(`bag.ptsSet`, { n: mult }), bagToastLife = 70, sfx.buy();
                 return
             }
             if (row.action === `use_pack`) {
                 if (difficulty !== `normal`) {
-                    bagToast = `NORMAL専用`, bagToastLife = 60, sfx.buyFail();
+                    bagToast = t(`bag.nrmNeed`), bagToastLife = 60, sfx.buyFail();
                     return
                 }
                 let res = consumeBagStock(bagStock, `ptsPack`, 1);
                 if (!res.ok) {
-                    bagToast = `在庫なし`, bagToastLife = 50, sfx.buyFail();
+                    bagToast = t(`bag.noInv`), bagToastLife = 50, sfx.buyFail();
                     return
                 }
                 bagStock = res.bag, persistBag();
@@ -1028,7 +1098,7 @@ function SwipeForceEngine() {
             }
             let res = consumeBagStock(bagStock, `stageTicket`, 1);
             if (!res.ok) {
-                bagToast = `チケットがありません`, bagToastLife = 60, mode = `bag`, sfx.buyFail();
+                bagToast = t(`bag.noTicket`), bagToastLife = 60, mode = `bag`, sfx.buyFail();
                 return
             }
             bagStock = res.bag, persistBag();
@@ -1036,14 +1106,14 @@ function SwipeForceEngine() {
                 stage = row.stage;
                 shopPaused = !1;
                 startStage();
-                bagToast = `STAGE ${row.stage} スタート`, bagToastLife = 60, sfx.buy();
+                bagToast = t(`bag.stageStart`, { n: row.stage }), bagToastLife = 60, sfx.buy();
                 return
             }
             bagPending = {
                 ...bagPending,
                 startStage: row.stage
             }, persistPending();
-            bagToast = `開始 STAGE ${row.stage} セット`, bagToastLife = 70;
+            bagToast = t(`bag.stageSet`, { n: row.stage }), bagToastLife = 70;
             mode = `attract`, titleSub = `extra`, titleCursor = 3, sfx.buy()
         }
 
@@ -1068,7 +1138,7 @@ function SwipeForceEngine() {
                 linkedSpecial: false
             });
             if (!result.ok) {
-                shopToast = `PTS不足 / MAX`, shopToastLife = 60, sfx.buyFail();
+                shopToast = t(`hud.needPts`), shopToastLife = 60, sfx.buyFail();
                 return
             }
             pts = result.pts, lives = result.lives, shield = result.shieldFrames, upgrades = result.upgrades;
@@ -1083,6 +1153,7 @@ function SwipeForceEngine() {
             }
             if (e.id !== `life` && e.id !== `shield` && !e.stockable) syncEasyCarry();
             sfx.buy(), shopToast = result.message, shopToastLife = 50;
+            if (tutorialRun) noteTutorialEvent(`buy`);
             // celebrate after state applied (match original)
             if (tier2Unlocked() || tier3Unlocked() || (hasSpecial(`beam`) || hasSpecial(`flame`)) && (upgrades.beam > 0 || upgrades.flame > 0)) celebrate = 90
         }
@@ -1109,6 +1180,8 @@ function SwipeForceEngine() {
             kills = seed.kills, killsForBoss = seed.killTarget, bossActive = seed.bossActive, bossName = seed.bossName;
             spawnTimer = seed.spawnTimer, shotTimer = seed.shotCd, missileTimer = seed.missileCd, particleTimer = seed.particleCd, lockonTimer = seed.lockonCd;
             bullets.length = 0, enemies.length = 0, lockBeams.length = 0;
+            mapScroll = 0;
+            try { getStageMap(stage) } catch {}
             mode = seed.mode, readyTimer = seed.readyFrames, invuln = seed.invulnFrames;
             clearInput(), bgm.start(`play`, stage)
         }
@@ -1120,7 +1193,8 @@ function SwipeForceEngine() {
             mode = seed.mode, shopPaused = seed.paused, shopCursor = seed.cursor, shopToast = seed.toast, shopToastLife = seed.toastLife;
             swipeActive = !1, clearInput();
             if (seed.clearEntities) bullets.length = 0, enemies.length = 0, lockBeams.length = 0;
-            sfx.ui(), bgm.start(`attract`)
+            sfx.ui(), bgm.start(`attract`);
+            if (tutorialRun) noteTutorialEvent(`shop`);
         }
 
         function closeShop() {
@@ -1182,11 +1256,17 @@ function SwipeForceEngine() {
             clearInput();
             titleSub = `root`;
             titleCursor = 0;
+            tutorialRun = !1;
+            tutorialShopQueued = !1;
+            tutorialShopForced = !1;
+            if (difficulty === `tutorial`) difficulty = `easy`;
+            try { unmountTutorialDock(); } catch {}
+            try { closeHelpDialog(); } catch {}
             mode = `attract`;
             refreshCoins();
             bgm.start(`attract`);
             sfx.ui();
-            shareToast = `タイトルに戻りました`, shareToastLife = 70;
+            shareToast = t(`hud.titleBack`), shareToastLife = 70;
         }
 
         function nudgeOptionFromMenu(e) {
@@ -1218,6 +1298,11 @@ function SwipeForceEngine() {
             if (res.type === `noop`) return;
             if (res.type === `back`) { closeOptions(); return }
             if (res.type === `title`) { quitToTitle(); return }
+            if (res.type === `locale`) {
+                cycleLocale(e >= 0 ? 1 : -1);
+                sfx.ui();
+                return;
+            }
             if (res.type === `navigate_shot`) { optionsSub = `shot`, optionsCursor = 1, sfx.ui(); return }
             if (res.type === `navigate_weapons`) { optionsSub = `weapons`, optionsCursor = 1, sfx.ui(); return }
             if (res.type === `applied`) {
@@ -1267,6 +1352,21 @@ function SwipeForceEngine() {
             if (!out.boss) {
                 kills++;
                 try { noteKill(1); } catch {}
+                if (tutorialRun && kills >= 1) {
+                    noteTutorialEvent(`kills`);
+                    if (!tutorialShopForced) {
+                        tutorialShopForced = !0;
+                        tutorialShopQueued = !0;
+                        pts += 1000;
+                        floatTexts.push({
+                            x: player.x,
+                            y: player.y - 18,
+                            text: `+1000 PTS`,
+                            color: `#ffee66`,
+                            life: 70
+                        });
+                    }
+                }
             }
             if (out.boss) {
                 missionBossClear(), mode = `stageclear`, readyTimer = 120, sfx.stageClear(), bgm.stop();
@@ -1509,7 +1609,7 @@ function SwipeForceEngine() {
             });
             let ehp = enemyHpHud(flags.enemyHpMult);
             ehp && drawText(ehp, 52, 24, `#ff8866`, 7);
-            drawText(flags.diffLabel, 268, 24, flags.diffLabel === `ESY` ? `#88ff88` : `#ffaa66`, 6, `right`);
+            drawText(flags.diffLabel, 268, 24, flags.diffLabel === `TUT` ? `#88ffee` : flags.diffLabel === `ESY` ? `#88ff88` : `#ffaa66`, 6, `right`);
             for (let pipX of lifePipXs(lives)) fillRect(pipX, 388, 6, 6, `#44ff88`);
             let chips = buildHudBottomChips({
                 dodgeOnly: flags.dodgeOnly,
@@ -1545,15 +1645,15 @@ function SwipeForceEngine() {
                 let who = sharerProfile.hasProfile && sharerProfile.displayName
                     ? sharerProfile.displayName.slice(0, 12)
                     : `ID ${String(sharerId).slice(0, 8)}`;
-                drawText(`依頼主 ${who}`, e, 106, `#aaddff`, 7, `center`);
+                drawText(t(`hud.requester`, { who }), e, 106, `#aaddff`, 7, `center`);
             }
-            drawText(`4段階 × 各1枚 = 最大4 COIN`, e, 116, `#ffcc66`, 6, `center`);
+            drawText(t(`hud.missionMax`), e, 116, `#ffcc66`, 6, `center`);
             for (let row of buildTitleMissionRows(MISSION_DEFS, missionsDone, 126, 9)) {
                 drawText(row.line, 66, row.y, row.color, 7);
             }
             let foot = titleMissionFooter(allMissionsClear(), alreadySentFanmail());
             foot && drawText(foot, e, 164, alreadySentFanmail() ? `#88aa88` : `#ffff88`, 6, `center`);
-            drawText(`タップで依頼主プロフ`, e, 173, `#5588aa`, 6, `center`);
+            drawText(t(`hud.tapProfile`), e, 173, `#5588aa`, 6, `center`);
         }
 
         function titleMissionHit(x, y) {
@@ -1591,7 +1691,7 @@ function SwipeForceEngine() {
 
         function drawShop() {
             let e = shopCatalog(),
-                t = shopListWindow(e, 10);
+                winStart = shopListWindow(e, 10);
             fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#001400`), fillRect(54, 20, 212, 372, `#002200`), ctx.strokeStyle = `#00ff66`, ctx.strokeRect(54.5, 20.5, 211, 371), drawText(`POWER SHOP`, 62, 24, `#ffff00`, 11);
             let foot = shopFooterIndices(e.length),
                 n = shopCursor === foot.share,
@@ -1611,7 +1711,7 @@ function SwipeForceEngine() {
             for (let row of buildShopRows({
                 catalog: e,
                 cursor: shopCursor,
-                windowStart: t,
+                windowStart: winStart,
                 upgrades: upgrades,
                 lives: lives,
                 shieldFrames: shield,
@@ -1625,7 +1725,7 @@ function SwipeForceEngine() {
                 drawText(row.levelText, 148, row.y + 3, `#66ccaa`, 7);
                 drawText(row.costText, 260, row.y + 3, row.costColor, 8, `right`);
             }
-            t > 0 && drawText(`▲`, PLAY_W / 2, 60, `#00ff88`, 8, `center`), t + 10 < e.length && drawText(`▼`, PLAY_W / 2, 336, `#00ff88`, 8, `center`);
+            winStart > 0 && drawText(`▲`, PLAY_W / 2, 60, `#00ff88`, 8, `center`), winStart + 10 < e.length && drawText(`▼`, PLAY_W / 2, 336, `#00ff88`, 8, `center`);
             for (let entity of shopFooterButtonsExact({ catalogLen: e.length, cursor: shopCursor, pauseShop: !!shopPaused, shareSelected: n, optSelected: r })) {
                 fillRect(entity.x, entity.y, entity.w, entity.h, entity.fill);
                 ctx.strokeStyle = entity.stroke;
@@ -1635,7 +1735,7 @@ function SwipeForceEngine() {
                 entity.sub && drawText(entity.sub, entity.labelX, entity.subY, `#886644`, 6, `center`);
             }
             ctx.lineWidth = 1;
-            shopToastLife > 0 ? drawText(shopToast, PLAY_W / 2, 388, `#ffaa00`, 6, `center`) : drawText(shopPaused ? `進行中SHAREで助けを呼べます` : `上下スワイプ · 空欄タップで決定`, PLAY_W / 2, 388, `#335544`, 6, `center`)
+            shopToastLife > 0 ? drawText(shopToast, PLAY_W / 2, 388, `#ffaa00`, 6, `center`) : drawText(shopPaused ? t(`hud.shopHelpPause`) : t(`hud.shopHelp`), PLAY_W / 2, 388, `#335544`, 6, `center`)
         }
 
         function drawOptions() {
@@ -1675,7 +1775,7 @@ function SwipeForceEngine() {
             bagCursor = Math.max(0, Math.min(rows.length - 1, bagCursor));
             fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#140c00`), fillRect(54, 18, 212, 370, `#1a1200`), ctx.strokeStyle = `#ffcc66`, ctx.strokeRect(54.5, 18.5, 211, 369);
             drawText(`ITEM BAG`, PLAY_W / 2, 22, `#ffee88`, 11, `center`);
-            drawText(`ログイン/プロモ配布 · ショップ非売品`, PLAY_W / 2, 36, `#886644`, 7, `center`);
+            drawText(t(`bag.hint`), PLAY_W / 2, 36, `#886644`, 7, `center`);
             let win = listWindowStart(rows.length, bagCursor, 12);
             for (let i = 0; i < Math.min(12, rows.length); i++) {
                 let idx = i + win, row = rows[idx], y = 50 + i * 24, sel = idx === bagCursor;
@@ -1708,7 +1808,7 @@ function SwipeForceEngine() {
                 drawText(`×${row.stock}`, 256, y + 2, can ? `#ffff66` : `#554433`, 8, `right`);
                 drawText(can ? row.desc : (row.lockedReason || row.desc), 64, y + 12, can ? `#887744` : `#553322`, 6);
             }
-            bagToastLife > 0 ? drawText(bagToast, PLAY_W / 2, 386, `#ffaa00`, 6, `center`) : drawText(`上下=項目  空き=使用/受取`, PLAY_W / 2, 386, `#554422`, 6, `center`)
+            bagToastLife > 0 ? drawText(bagToast, PLAY_W / 2, 386, `#ffaa00`, 6, `center`) : drawText(t(`bag.foot`), PLAY_W / 2, 386, `#554422`, 6, `center`)
         }
 
         function drawStageSelect() {
@@ -1717,7 +1817,7 @@ function SwipeForceEngine() {
             stageSelectCursor = Math.max(0, Math.min(rows.length - 1, stageSelectCursor));
             fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#001018`), fillRect(54, 18, 212, 370, `#001a28`), ctx.strokeStyle = `#66ccff`, ctx.strokeRect(54.5, 18.5, 211, 369);
             drawText(`STAGE SELECT`, PLAY_W / 2, 22, `#88eeff`, 11, `center`);
-            drawText(`クリア済みまで · チケット消費`, PLAY_W / 2, 36, `#447788`, 7, `center`);
+            drawText(t(`bag.skipHint`), PLAY_W / 2, 36, `#447788`, 7, `center`);
             let win = listWindowStart(rows.length, stageSelectCursor, 12);
             for (let i = 0; i < Math.min(12, rows.length); i++) {
                 let idx = i + win, row = rows[idx], y = 52 + i * 24, sel = idx === stageSelectCursor;
@@ -1725,7 +1825,7 @@ function SwipeForceEngine() {
                 drawText(row.label, PLAY_W / 2, y + 2, sel ? `#fff` : `#88ccee`, 9, `center`);
                 drawText(row.sub, PLAY_W / 2, y + 12, `#446677`, 6, `center`);
             }
-            drawText(`空き=決定 · チケット×1消費`, PLAY_W / 2, 386, `#335566`, 6, `center`)
+            drawText(t(`bag.skipFoot`), PLAY_W / 2, 386, `#335566`, 6, `center`)
         }
 
         
@@ -1800,11 +1900,11 @@ function SwipeForceEngine() {
             ctx.strokeRect(68.5, 76.5, 183, 17);
             let coin = continueCoinLine(continueCoins);
             drawText(coin.text, e, 80, coin.color, 9, `center`);
-            sharerId ? drawTitleMissions(e) : drawText(`シェア先が1面ボス到達 → コインGET`, e, 96, `#558866`, 7, `center`);
+            sharerId ? drawTitleMissions(e) : drawText(t(`hud.shareHelp`), e, 96, `#558866`, 7, `center`);
             shareToastLife > 0 && drawText(shareToast, e, sharerId ? 148 : 110, `#ffaa00`, 7, `center`);
             drawText(titleSelectLabel(titleSub), e, PLAY_H * .385, `#ffff66`, 7, `center`);
             let adminMenu = !!(account.linked && isPromoAdminPlayer(playerId));
-            let t = titleMenuYs(titleSub, PLAY_H, { isPromoAdmin: adminMenu }),
+            let menuYs = titleMenuYs(titleSub, PLAY_H, { isPromoAdmin: adminMenu }),
                 n = easyCarryLevelOf(loadEasyCarryState()),
                 inboxLabels = titleInboxLabels({ canSendFanmail: canSendFanmail(), alreadySent: alreadySentFanmail(), inboxCount: inbox.length }),
                 r = buildTitleMenu(titleSub, {
@@ -1818,7 +1918,7 @@ function SwipeForceEngine() {
             // clamp cursor if menu shrank
             if (titleCursor >= r.length) titleCursor = Math.max(0, r.length - 1);
             for (let n = 0; n < r.length; n++) {
-                let i = t[n],
+                let i = menuYs[n],
                     a = titleCursor === n,
                     o = r[n].h,
                     cols = titleMenuRowColors(n, a, frame % 24 < 16);
@@ -1850,6 +1950,26 @@ function SwipeForceEngine() {
             }
             runStartedAt = performance.now(), firstBossFlagged = !1, reloadMissions(), missionBannerLife = 0, missionToast = ``, missionToastLife = 0, sfx.start(), startStage();
             try { noteRunStart(); window.__sfPlayAcc = 0; } catch (err) {}
+            if (tutorialRun) {
+                tutorialShopQueued = !1;
+                tutorialShopForced = !1;
+                mountTutorialDock({
+                    playerId,
+                    onGrant: (coins, ticket, balance) => {
+                        if (typeof balance === `number` && balance > 0) continueCoins = balance;
+                        else refreshCoins();
+                        if (ticket > 0) {
+                            bagStock = addBagStock(bagStock, `stageTicket`, ticket);
+                            persistBag();
+                        }
+                    },
+                    onToast: (text) => { shareToast = text, shareToastLife = 90 },
+                    sfxOk: () => { try { sfx.buy() } catch {} },
+                    sfxUi: () => { try { sfx.ui() } catch {} },
+                });
+            } else {
+                unmountTutorialDock();
+            }
         }
 
         
@@ -1890,11 +2010,13 @@ function SwipeForceEngine() {
             if (firstBossFlagged) return;
             let mid = firstBossMissionId(stage, firstBossFlagged);
             if (mid) firstBossFlagged = !0, reportMission(mid)
+            if (tutorialRun && stage === 1) noteTutorialEvent(`boss_reach`);
         }
 
         function missionBossClear() {
             let mid = bossClearMissionId(stage);
             mid && reportMission(mid)
+            if (tutorialRun && stage === 1) noteTutorialEvent(`boss_clear`);
         }
 
         
@@ -1992,12 +2114,18 @@ function SwipeForceEngine() {
             reloadInbox(), syncAccountCloud(), mode = `inbox`, inboxCursor = 0, inboxDetail = !1, sfx.ui()
         }
         async function doContinue() {
-            if (continueBusy || continueCoins <= 0) return;
+            if (continueBusy) return;
+            const free = tutorialRun || difficulty === `tutorial`;
+            if (!free && continueCoins <= 0) return;
             continueBusy = !0;
-            let e = await spendContinueCoin(playerId);
-            if (continueCoins = e.coins, continueBusy = !1, !e.ok) {
-                sfx.buyFail();
-                return
+            if (!free) {
+                let e = await spendContinueCoin(playerId);
+                if (continueCoins = e.coins, continueBusy = !1, !e.ok) {
+                    sfx.buyFail();
+                    return
+                }
+            } else {
+                continueBusy = !1;
             }
             let seed = buildContinueSeed({ currentShield: shield });
             lives = seed.lives, invuln = seed.invulnFrames, shield = seed.shieldFrames;
@@ -2012,7 +2140,7 @@ function SwipeForceEngine() {
             bossActive ? bgm.boss(bossForStage(stage).vibe, stage) : bgm.start(`play`, stage)
         }
 
-        function requireAccountLink(e = `この機能`) {
+        function requireAccountLink(e = t(`hud.featDefault`)) {
             let gate = requireLinked(!!account.linked, e);
             if (gate.ok) return !0;
             soundToast = gate.message, soundToastLife = 100, shareToast = soundToast, shareToastLife = 100, sfx.buyFail();
@@ -2023,7 +2151,7 @@ function SwipeForceEngine() {
         // ── sound test ──
         function openSoundTest() {
             if (!account.linked) {
-                shareToast = `SOUND TEST はアカウント連携特典です`, shareToastLife = 90, sfx.buyFail();
+                shareToast = t(`hud.soundLock`), shareToastLife = 90, sfx.buyFail();
                 return
             }
             bgm.unlock(), soundListMode = `menu`, soundCursor = 0, trackLabel = ``, mode = `soundtest`, bgm.start(`attract`), soundPlayMode = `title`, soundIndex = 0, trackLabel = `TITLE THEME`, fetchTrackVotes(`title`, playerId).then(e => {
@@ -2067,7 +2195,7 @@ function SwipeForceEngine() {
             ctx.strokeRect(lay.box.x + .5, lay.box.y + .5, lay.box.w - 1, lay.box.h - 1);
             fillRect(lay.catBadge.x, lay.catBadge.y, lay.catBadge.w, lay.catBadge.h, `#102820`);
             drawText(lay.catBadge.text, lay.catLabelX, lay.catLabelY, n.catColor, 6, `center`);
-            drawText(`この曲に対する評価・コメント`, lay.metaX, lay.metaY, `#668877`, 6);
+            drawText(t(`hud.thisTrack`), lay.metaX, lay.metaY, `#668877`, 6);
             // title without period crammed in
             drawText(n.short, 64, lay.titleY, `#ffeeaa`, lay.titleSize);
             if (lay.periodY != null && hasPeriod) {
@@ -2083,7 +2211,7 @@ function SwipeForceEngine() {
             })
         }
         async function voteTrack(e) {
-            if (!requireAccountLink(`曲の評価`)) return;
+            if (!requireAccountLink(t(`hud.featRate`))) return;
             ratings = await castTrackVote(currentTrackKey(), playerId, e), sfx.ui()
         }
         async function loadComments(e) {
@@ -2121,7 +2249,7 @@ function SwipeForceEngine() {
         }
 
         async function writeComment() {
-            if (!requireAccountLink(`コメント投稿`) || composing) return;
+            if (!requireAccountLink(t(`hud.featPost`)) || composing) return;
             openSoundCommentComposer({
                 trackKey: trackKey || currentTrackKey(),
                 trackCard: currentTrackCard(),
@@ -2171,17 +2299,17 @@ function SwipeForceEngine() {
                 let e = drawTrackCard(28, {
                     compact: !0
                 });
-                drawText(`コメント ${comments.length} 件  ·  この曲専用`, PLAY_W / 2, 28 + e + 4, `#668866`, 6, `center`);
-                let t = 28 + e + 14;
-                if (!comments.length) drawText(`まだコメントがありません`, PLAY_W / 2, 120, `#556666`, 8, `center`), drawText(`WRITE で最初の感想を`, PLAY_W / 2, 136, `#445555`, 7, `center`);
+                drawText(t(`hud.comments`, { n: comments.length }), PLAY_W / 2, 28 + e + 4, `#668866`, 6, `center`);
+                let listY = 28 + e + 14;
+                if (!comments.length) drawText(t(`hud.noComments`), PLAY_W / 2, 120, `#556666`, 8, `center`), drawText(t(`hud.writeFirst`), PLAY_W / 2, 136, `#445555`, 7, `center`);
                 else {
-                    let { rows } = buildCommentRows({ comments: comments, cursor: commentCursor, baseY: t });
+                    let { rows } = buildCommentRows({ comments: comments, cursor: commentCursor, baseY: listY });
                     for (let row of rows) {
                         row.selected && (fillRect(60, row.y - 1, 200, 20, `#003322`), ctx.strokeStyle = `#66ffaa`, ctx.strokeRect(60.5, row.y - .5, 199, 19));
                         drawText(row.text, 64, row.y + 4, row.selected ? `#ffffff` : `#99bbaa`, 7)
                     }
                 }
-                drawText(account.linked ? `👍 ${ratings.likes}   👎 ${ratings.dislikes}` : `評価・投稿はアカウント連携必須`, PLAY_W / 2, 348, account.linked ? `#88aa88` : `#aa8844`, 7, `center`);
+                drawText(account.linked ? `👍 ${ratings.likes}   👎 ${ratings.dislikes}` : t(`hud.rateNeedLong`), PLAY_W / 2, 348, account.linked ? `#88aa88` : `#aa8844`, 7, `center`);
                 for (let entity of commentsFooterButtons({ mine: ratings.mine })) {
                     fillRect(entity.x, entity.y, entity.w, entity.h, entity.fill);
                     ctx.strokeStyle = entity.stroke;
@@ -2191,14 +2319,14 @@ function SwipeForceEngine() {
                 soundToastLife > 0 && drawText(soundToast, PLAY_W / 2, 388, `#ffaa66`, 6, `center`);
                 return
             }
-            drawText(`SOUND TEST`, PLAY_W / 2, 18, `#88ffee`, 11, `center`), drawText(`LINK PERK · 全曲試聴`, PLAY_W / 2, 30, `#448866`, 6, `center`);
+            drawText(`SOUND TEST`, PLAY_W / 2, 18, `#88ffee`, 11, `center`), drawText(t(`hud.soundPerk`), PLAY_W / 2, 30, `#448866`, 6, `center`);
             let playing = !!(trackLabel && !trackLabel.startsWith(`—`)),
                 cardH = 0;
             if (playing) cardH = drawTrackCard(36, { compact: !1 });
             let top = soundTestListTop(playing, cardH);
-            if (playing && top.ratingY != null) drawText(`この曲の評価  👍${ratings.likes}  👎${ratings.dislikes}`, PLAY_W / 2, top.ratingY, `#88aa88`, 6, `center`);
-            else if (top.hintY != null) drawText(`曲を選ぶと、その曲の評価・コメントが対象になります`, PLAY_W / 2, top.hintY, `#556666`, 6, `center`);
-            let t = soundTestPageSize(playing),
+            if (playing && top.ratingY != null) drawText(t(`hud.thisRate`, { up: ratings.likes, dn: ratings.dislikes }), PLAY_W / 2, top.ratingY, `#88aa88`, 6, `center`);
+            else if (top.hintY != null) drawText(t(`hud.pickTrack`), PLAY_W / 2, top.hintY, `#556666`, 6, `center`);
+            let pageSize = soundTestPageSize(playing),
                 n = top.listTop;
             if (soundListMode === `menu`) {
                 let e = soundTestMenuRows();
@@ -2211,7 +2339,7 @@ function SwipeForceEngine() {
             } else {
                 let e = soundTestListRows(soundListMode);
                 soundCursor >= e.length && (soundCursor = e.length - 1);
-                let r = soundTestListWindow(e.length, soundCursor, t);
+                let r = soundTestListWindow(e.length, soundCursor, pageSize);
                 {
                     // header only when not overlapping the track card
                     if (!playing) {
@@ -2219,7 +2347,7 @@ function SwipeForceEngine() {
                         drawText(hdr.title, PLAY_W / 2, 52, hdr.color, 6, `center`);
                     }
                 }
-                for (let i = 0; i < Math.min(t, e.length); i++) {
+                for (let i = 0; i < Math.min(pageSize, e.length); i++) {
                     let t = i + r,
                         a = n + 2 + i * 17,
                         o = t === soundCursor;
@@ -2227,7 +2355,7 @@ function SwipeForceEngine() {
                     let s = e[t].action === `back`;
                     drawText(e[t].label, 66, a + 2, o ? `#ffffff` : s ? `#888` : `#88aacc`, 8), !s && soundPlayMode === soundListMode && soundIndex === e[t].n && drawText(`▶`, 256, a + 2, `#ffee66`, 7, `right`)
                 }
-                r > 0 && drawText(`▲`, PLAY_W / 2, n - 4, `#44aa88`, 7, `center`), r + t < e.length && drawText(`▼`, PLAY_W / 2, 360, `#44aa88`, 7, `center`)
+                r > 0 && drawText(`▲`, PLAY_W / 2, n - 4, `#44aa88`, 7, `center`), r + pageSize < e.length && drawText(`▼`, PLAY_W / 2, 360, `#44aa88`, 7, `center`)
             }
             if (trackLabel && !trackLabel.startsWith(`—`)) {
                 for (let entity of playingFooterButtons({ likes: ratings.likes, dislikes: ratings.dislikes, mine: ratings.mine })) {
@@ -2236,13 +2364,13 @@ function SwipeForceEngine() {
                     ctx.strokeRect(entity.x + .5, entity.y + .5, entity.w - 1, entity.h - 1);
                     drawText(entity.label, entity.labelX, entity.labelY, entity.labelColor, 7, `center`);
                 }
-                if (!account.linked) drawText(`評価・コメントは連携必須`, PLAY_W / 2, 350, `#aa8844`, 6, `center`);
+                if (!account.linked) drawText(t(`hud.rateNeed`), PLAY_W / 2, 350, `#aa8844`, 6, `center`);
                 else {
                     let e = currentTrackCard();
                     let idxPart = soundPlayMode === "title" ? "" : String(soundIndex);
                     drawText(`対象: ${e.cat}${idxPart} ${e.short.slice(0, 16)}`, PLAY_W / 2, 350, `#668866`, 5, `center`)
                 }
-            } else drawText(`上下スワイプ · タップ決定`, PLAY_W / 2, 366, `#335544`, 6, `center`);
+            } else drawText(t(`hud.swipe`), PLAY_W / 2, 366, `#335544`, 6, `center`);
             soundToastLife > 0 && drawText(soundToast, PLAY_W / 2, 388, `#ffaa66`, 6, `center`)
         }
 
@@ -2335,7 +2463,7 @@ function SwipeForceEngine() {
                     sfxOk: () => { try { sfx.buy() } catch {} },
                     sfxFail: () => { try { sfx.buyFail() } catch {} },
                     onDenied: () => {
-                        shareToast = `管理者のみ · プロモ管理`, shareToastLife = 90;
+                        shareToast = t(`hud.adminOnly`), shareToastLife = 90;
                         try { sfx.buyFail() } catch {}
                     },
                     onStaffChange: () => {
@@ -2345,28 +2473,58 @@ function SwipeForceEngine() {
             } catch {}
         }
 
-        function tryOpenAdWatch() {
+        function tryOpenHelp() {
             try {
-                openAdWatchDialog({
-                    playerId: playerId,
+                openHelpDialog({
+                    sfxUi: () => { try { sfx.ui() } catch {} },
+                    sfxOk: () => { try { sfx.buy() } catch {} },
+                    onStartTutorial: () => {
+                        tutorialRun = !0;
+                        difficulty = `tutorial`;
+                        startRun();
+                    },
+                });
+                if (!document.getElementById(`sf-help-root`)) {
+                    shareToast = t(`hud.dataFail`), shareToastLife = 80;
+                } else {
+                    try { sfx.ui() } catch {}
+                }
+            } catch (e) {
+                console.error(`[help]`, e);
+                shareToast = t(`hud.dataFail`), shareToastLife = 80;
+            }
+        }
+
+        function tryOpenMediaWatch() {
+            try {
+                openMediaWatchDialog({
+                    playerId: playerId || ``,
                     sfxUi: () => { try { sfx.ui() } catch {} },
                     sfxOk: () => { try { sfx.buy() } catch {} },
                     sfxFail: () => { try { sfx.buyFail() } catch {} },
                     onCoins: (c) => {
                         continueCoins = Math.max(0, c | 0);
-                        shareToast = `広告視聴 · COIN ×${continueCoins}`, shareToastLife = 100;
+                        shareToast = t(`hud.watchOpen`, { n: continueCoins }), shareToastLife = 100;
                     },
                 });
-            } catch {
-                shareToast = `広告視聴を開けません`, shareToastLife = 80;
+                // confirm DOM mount (silent fail was hard to debug on touch)
+                if (!document.getElementById(`sf-media-watch-root`)) {
+                    shareToast = t(`hud.watchFail`), shareToastLife = 90;
+                    try { sfx.buyFail() } catch {}
+                } else {
+                    try { sfx.ui() } catch {}
+                }
+            } catch (e) {
+                console.error(`[media-watch]`, e);
+                shareToast = t(`hud.watchFail`), shareToastLife = 80;
                 try { sfx.buyFail() } catch {}
             }
         }
 
-        function tryOpenAdAdvertiser() {
+        function tryOpenPartnerPortal() {
             try {
                 if (!account.linked) {
-                    shareToast = `ADVERTISER はアカウント連携特典です`, shareToastLife = 90;
+                    shareToast = t(`hud.partnerLock`), shareToastLife = 90;
                     try { sfx.buyFail() } catch {}
                     return;
                 }
@@ -2375,16 +2533,23 @@ function SwipeForceEngine() {
                     try { sfx.buyFail() } catch {}
                     return;
                 }
-                openAdAdvertiserDialog({
+                // remove stuck portal if any
+                try { document.getElementById(`sf-partner-root`)?.remove() } catch {}
+                openPartnerPortalDialog({
                     playerId: playerId,
                     sfxUi: () => { try { sfx.ui() } catch {} },
                     sfxOk: () => { try { sfx.buy() } catch {} },
                     sfxFail: () => { try { sfx.buyFail() } catch {} },
                 });
-                try { sfx.ui() } catch {}
+                if (!document.getElementById(`sf-partner-root`)) {
+                    shareToast = t(`hud.partnerFail`), shareToastLife = 90;
+                    try { sfx.buyFail() } catch {}
+                } else {
+                    try { sfx.ui() } catch {}
+                }
             } catch (e) {
-                console.error("[advertiser]", e);
-                shareToast = `広告主ポータルを開けません`, shareToastLife = 90;
+                console.error("[partner]", e);
+                shareToast = t(`hud.partnerFail`), shareToastLife = 90;
                 try { sfx.buyFail() } catch {}
             }
         }
@@ -2431,32 +2596,42 @@ function SwipeForceEngine() {
             if (a.type === `side_options`) { openOptions(`attract`); return }
             if (a.type === `side_extra`) { titleSub = `extra`, titleCursor = 0, sfx.ui(); return }
             if (a.type === `sound_test`) { openSoundTest(); return }
-            if (a.type === `profile`) { try { window.__sfOpenProfile?.() } catch {} return }
-            if (a.type === `stats`) { try { window.__sfOpenStats?.() } catch {} return }
+            if (a.type === `profile`) {
+                if (typeof window.__sfOpenProfile === `function`) window.__sfOpenProfile();
+                else { shareToast = t(`hud.profileFail`), shareToastLife = 80; try { sfx.buyFail() } catch {} }
+                return
+            }
+            if (a.type === `stats`) {
+                if (typeof window.__sfOpenStats === `function`) window.__sfOpenStats();
+                else { shareToast = t(`hud.dataFail`), shareToastLife = 80; try { sfx.buyFail() } catch {} }
+                return
+            }
             if (a.type === `open_bag`) { openBag(`attract`); return }
-            if (a.type === `open_ad_watch`) { tryOpenAdWatch(); return }
-            if (a.type === `open_ad_advertiser`) { tryOpenAdAdvertiser(); return }
+            // VIEW BOOST / ADVERTISER: always open (1-tap from EXTRA; do not fall through to noop)
+            if (a.type === `open_media_watch`) { tryOpenMediaWatch(); return }
+            if (a.type === `open_partner`) { tryOpenPartnerPortal(); return }
             if (a.type === `open_promo_admin`) {
                 tryOpenPromoAdmin();
                 return
             }
             if (a.type === `back_root`) { titleSub = `root`, titleCursor = a.cursor, sfx.ui(); return }
-            if (a.type === `start_easy`) { difficulty = `easy`, startRun(); return }
-            if (a.type === `start_normal`) { difficulty = `normal`, startRun(); return }
+            if (a.type === `start_easy`) { tutorialRun = !1, unmountTutorialDock(), difficulty = `easy`, startRun(); return }
+            if (a.type === `start_normal`) { tutorialRun = !1, unmountTutorialDock(), difficulty = `normal`, startRun(); return }
             if (a.type === `open_diff`) { titleSub = `diff`, titleCursor = a.preferNormal ? 1 : 0, sfx.ui(); return }
             if (a.type === `share`) { shareProgress(); return }
             if (a.type === `inbox`) { sharerId && canSendFanmail() ? openFanmail() : openInbox(); return }
             if (a.type === `options`) { openOptions(`attract`); return }
             if (a.type === `open_extra`) { titleSub = `extra`, titleCursor = 0, sfx.ui(); return }
             if (a.type === `changelog`) { openChangelog(); return }
-            if (a.type === `noop`) {
-                // first tap on a menu row: move cursor + select SE
+            if (a.type === `noop` || a.type === `noop_ui`) {
+                // first tap on a menu row (root): move cursor + select SE
                 if (res.cursor != null) {
                     try { sfx.select() } catch { try { sfx.ui() } catch {} }
                 }
                 return
             }
-            sfx.ui()
+            // successful open: soft UI blip (actions play their own SFX)
+            try { sfx.ui() } catch {}
         }
 
         
@@ -2486,10 +2661,28 @@ function SwipeForceEngine() {
             tickParticles(fxParticles);
 
             let mtick = tickMode({ mode: mode, readyFrames: readyTimer, frame: frame });
+            if (tutorialShopQueued && tutorialRun && mode === `playing`) {
+                tutorialShopQueued = !1;
+                openShop(!0);
+                return;
+            }
             if (mtick.type === `menu_idle`) return;
             if (mtick.type === `stageclear_to_shop`) {
                 readyTimer = mtick.readyLeft;
                 if (mtick.openShop) {
+                    if (tutorialRun && stage === 1) {
+                        noteTutorialEvent(`boss_clear`);
+                        try { unmountTutorialDock(); } catch {}
+                        try {
+                            openTutorialClearDialog({
+                                sfxUi: () => { try { sfx.ui() } catch {} },
+                                onClose: () => { quitToTitle(); },
+                            });
+                        } catch {
+                            quitToTitle();
+                        }
+                        return;
+                    }
                     if (settings.autoShop !== !1) openShop(!1);
                     else stage++, startStage();
                 }
@@ -2518,10 +2711,21 @@ function SwipeForceEngine() {
                     let t = swipeFollowFactor(upgrades.speed, settings.sense, e);
                     player.x += (swipeX - player.x) * t, player.y += (swipeY - player.y) * t
                 }
+                if (tutorialRun && (ka.x !== 0 || ka.y !== 0 || swipeActive || (settings.vstick && vstickActive))) {
+                    noteTutorialEvent(`move`);
+                }
             }
             {
                 let pos = clampPlayerPos(player.x, player.y);
                 player.x = pos.x, player.y = pos.y
+            }
+            // map chip scroll (play / ready / boss intro)
+            if (mode === `playing` || mode === `ready` || mode === `bossintro`) {
+                try {
+                    let mdef = getStageMap(stage);
+                    let spd = mdef.scrollSpeed * (mode === `bossintro` ? 0.45 : 1);
+                    mapScroll += spd * Math.max(0.5, Math.min(2, e || 1));
+                } catch {}
             }
             if (invuln > 0 && invuln--, mode === `playing`) {
                 {
@@ -2615,9 +2819,9 @@ function SwipeForceEngine() {
             ctx.fillStyle = `#000`, ctx.fillRect(0, 0, PLAY_W, PLAY_H);
             let shakeOff = screenShakeOffset(shake),
                 e = shakeOff.x,
-                t = shakeOff.y;
+                sy = shakeOff.y;
             let route = drawRoute(mode);
-            if (ctx.save(), ctx.translate(e, t), fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#000`), route === `attract`) drawAttract();
+            if (ctx.save(), ctx.translate(e, sy), fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#000`), route === `attract`) drawAttract();
             else if (route === `changelog`) drawChangelog();
             else if (route === `soundtest`) drawSoundTest();
             else if (route === `shop`) drawShop();
@@ -2625,6 +2829,12 @@ function SwipeForceEngine() {
             else if (route === `bag`) drawBag();
             else if (route === `stageselect`) drawStageSelect();
             else {
+                // terrain chip map under stars
+                try {
+                    drawStageMap(ctx, stage, mapScroll, RAIL_W, 0, FIELD_INNER_W, PLAY_H);
+                } catch {
+                    fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#001400`);
+                }
                 for (let e of stars) fillRect(e.x, e.y, e.s, e.s, starColor(e.s));
                 if (fieldDrawsEntities(mode)) {
                     for (let e of lockBeams) ctx.strokeStyle = e.color, ctx.globalAlpha = lockonAlpha(e.life), ctx.lineWidth = 1 + upgrades.lockon * .4, ctx.beginPath(), ctx.moveTo(player.x, player.y - 6), ctx.lineTo(e.tx, e.ty), ctx.stroke(), ctx.strokeRect(e.tx - 6, e.ty - 6, 12, 12), ctx.globalAlpha = 1;
@@ -2652,15 +2862,15 @@ function SwipeForceEngine() {
                     }
                 }
                 if (mode === `gameover`) {
-                    let gameOverView = buildGameOverView({ score: score, coins: continueCoins, frame: frame });
+                    let gameOverView = buildGameOverView({ score: score, coins: continueCoins, frame: frame, tutorial: !!(tutorialRun || difficulty === `tutorial`) });
                     drawText(`GAME OVER`, PLAY_W / 2, PLAY_H / 2 - 48, `#ff2244`, 18, `center`);
                     drawText(gameOverView.scoreText, PLAY_W / 2, PLAY_H / 2 - 24, `#00ff88`, 12, `center`);
                     drawText(gameOverView.coinText, PLAY_W / 2, PLAY_H / 2 - 6, gameOverView.coinColor, 10, `center`);
-                    drawText(`制限時間なし · 広告視聴 / シェアでコイン`, PLAY_W / 2, 210, `#668866`, 7, `center`);
+                    drawText(t(`hud.goHint`), PLAY_W / 2, 210, `#668866`, 7, `center`);
                     fillRect(72, 228, 176, 30, gameOverView.continue.fill), ctx.strokeStyle = gameOverView.continue.stroke, ctx.strokeRect(72.5, 228.5, 175, 29);
                     drawText(gameOverView.continue.label, PLAY_W / 2, 237, gameOverView.continue.labelColor, 9, `center`);
                     fillRect(72, 264, 176, 28, `#221100`), ctx.strokeStyle = gameOverView.shareStroke, ctx.strokeRect(72.5, 264.5, 175, 27);
-                    drawText(`𝕏 SHARE してコインGET`, PLAY_W / 2, 272, `#ffcc66`, 9, `center`);
+                    drawText(t(`hud.goShare`), PLAY_W / 2, 272, `#ffcc66`, 9, `center`);
                     fillRect(88, 298, 144, 22, `#001100`), ctx.strokeStyle = `#335533`, ctx.strokeRect(88.5, 298.5, 143, 21);
                     drawText(`→ TITLE`, PLAY_W / 2, 303, `#668866`, 8, `center`)
                 }
@@ -2678,10 +2888,10 @@ function SwipeForceEngine() {
                 if (mode === `inbox`) {
                     fillRect(56, 24, 208, 360, `#001018`), ctx.strokeStyle = `#66ccff`, ctx.strokeRect(56.5, 24.5, 207, 359);
                     drawText(`INBOX`, PLAY_W / 2, 32, `#88eeff`, 12, `center`);
-                    drawText(`消すまで残る · ミッションMSGのみお礼可`, PLAY_W / 2, 46, `#446688`, 7, `center`);
+                    drawText(t(`hud.inboxHint`), PLAY_W / 2, 46, `#446688`, 7, `center`);
                     if (!inbox.length) {
-                        drawText(`メッセージはありません`, PLAY_W / 2, PLAY_H * .45, `#668888`, 8, `center`);
-                        drawText(`TAP=戻る`, PLAY_W / 2, 372, `#556666`, 7, `center`);
+                        drawText(t(`hud.inboxEmpty`), PLAY_W / 2, PLAY_H * .45, `#668888`, 8, `center`);
+                        drawText(t(`hud.inboxTap`), PLAY_W / 2, 372, `#556666`, 7, `center`);
                     } else if (inboxDetail) {
                         let e = inbox[inboxCursor];
                         if (!e) inboxDetail = !1;
@@ -2699,9 +2909,9 @@ function SwipeForceEngine() {
                                 drawText(rafId.thanksLabel, PLAY_W / 2, PLAY_H * .55 + 8, `#889988`, 8, `center`);
                             }
                             fillRect(72, PLAY_H * .68, 176, 26, `#220011`), ctx.strokeStyle = `#ff6688`, ctx.strokeRect(72.5, PLAY_H * .68 + .5, 175, 25);
-                            drawText(`🗑 削除する`, PLAY_W / 2, PLAY_H * .68 + 7, `#ff99aa`, 9, `center`);
+                            drawText(t(`hud.inboxDel`), PLAY_W / 2, PLAY_H * .68 + 7, `#ff99aa`, 9, `center`);
                             fillRect(88, PLAY_H * .8, 144, 22, `#001820`), ctx.strokeStyle = `#446666`, ctx.strokeRect(88.5, PLAY_H * .8 + .5, 143, 21);
-                            drawText(`◀ 一覧へ`, PLAY_W / 2, PLAY_H * .8 + 5, `#88aaaa`, 8, `center`);
+                            drawText(t(`hud.inboxBack`), PLAY_W / 2, PLAY_H * .8 + 5, `#88aaaa`, 8, `center`);
                         }
                     } else {
                         let { rows } = buildInboxListRows({
@@ -2716,7 +2926,7 @@ function SwipeForceEngine() {
                             drawText(row.status, 258, row.y + 12, row.statusColor, 7, `right`);
                             drawText(row.sourceTag, 66, row.y + 26, `#445566`, 6);
                         }
-                        drawText(`選択TAP→詳細  下端=戻る`, PLAY_W / 2, 372, `#556666`, 7, `center`);
+                        drawText(t(`hud.inboxList`), PLAY_W / 2, 372, `#556666`, 7, `center`);
                     }
                 }
                 fieldShowsHud(mode) && drawPlayHud()
@@ -2730,8 +2940,13 @@ function SwipeForceEngine() {
 
         function frameLoop(e) {
             if (!running) return;
-            let t = (e - lastFrameMs) / 1e3;
-            lastFrameMs = e, t > .05 && (t = .05), tickGame(t), drawFrame(), rafId = requestAnimationFrame(frameLoop)
+            try {
+                let t = (e - lastFrameMs) / 1e3;
+                lastFrameMs = e, t > .05 && (t = .05), tickGame(t), drawFrame();
+            } catch (err) {
+                console.error(`[swipe-force] frame`, err);
+            }
+            rafId = requestAnimationFrame(frameLoop)
         }
         rafId = requestAnimationFrame(frameLoop);
 
@@ -2886,7 +3101,7 @@ function SwipeForceEngine() {
                 act.key === `shot` ? (optionsSub = `shot`, optionsCursor = 1) : (optionsSub = `weapons`, optionsCursor = 1), sfx.ui();
                 return
             }
-            if (act.type === `toggle` || act.type === `adjust`) {
+            if (act.type === `toggle` || act.type === `adjust` || act.type === `locale`) {
                 nudgeOption(1);
                 return
             }
@@ -2975,9 +3190,11 @@ function SwipeForceEngine() {
             if (route.type === `mode` && route.mode === `gameover`) {
                 let hit = gameOverHit(n.x, n.y, RAIL_W, FIELD_RIGHT);
                 if (hit === `side_share` || hit === `share`) { shareProgress(), refreshCoins(); return }
-                if (hit === `side_title` || hit === `title`) { mode = `attract`, refreshCoins(), bgm.start(`attract`), sfx.ui(); return }
+                if (hit === `side_title` || hit === `title`) { quitToTitle(); return }
                 if (hit === `continue`) {
-                    continueCoins > 0 ? doContinue() : (sfx.buyFail(), tryOpenAdWatch(), shareToast = `コイン不足 · 広告視聴でGET`, shareToastLife = 100);
+                    tutorialRun || difficulty === `tutorial` || continueCoins > 0
+                        ? doContinue()
+                        : (sfx.buyFail(), tryOpenMediaWatch(), shareToast = t(`hud.noCoin`), shareToastLife = 100);
                     return
                 }
                 return
@@ -3201,13 +3418,13 @@ function SwipeForceEngine() {
                             else if (titleCursor === 1) (typeof window.__sfOpenProfile === `function` ? window.__sfOpenProfile() : 0);
                             else if (titleCursor === 2) (typeof window.__sfOpenStats === `function` ? window.__sfOpenStats() : 0);
                             else if (titleCursor === 3) openBag(`attract`);
-                            else if (titleCursor === 4) tryOpenAdWatch();
-                            else if (titleCursor === 5) tryOpenAdAdvertiser();
+                            else if (titleCursor === 4) tryOpenMediaWatch();
+                            else if (titleCursor === 5) tryOpenPartnerPortal();
                             else if (adminMenu && titleCursor === 6) tryOpenPromoAdmin();
                             else titleSub = `root`, titleCursor = 4, sfx.ui();
                         } else if (titleSub === `diff`) {
-                            if (titleCursor === 0) difficulty = `easy`, startRun();
-                            else if (titleCursor === 1) difficulty = `normal`, startRun();
+                            if (titleCursor === 0) tutorialRun = !1, unmountTutorialDock(), difficulty = `easy`, startRun();
+                            else if (titleCursor === 1) tutorialRun = !1, unmountTutorialDock(), difficulty = `normal`, startRun();
                             else titleSub = `root`, titleCursor = 0, sfx.ui();
                         } else if (titleCursor === 0) titleSub = `diff`, titleCursor = difficulty === `normal` ? 1 : 0, sfx.ui();
                         else if (titleCursor === 1) shareProgress();
@@ -3249,11 +3466,11 @@ function SwipeForceEngine() {
                 }
                 if (mode === `gameover`) {
                     if (act.type === `gameover_continue_or_share`) {
-                        continueCoins > 0 ? doContinue() : tryOpenAdWatch();
+                        continueCoins > 0 || tutorialRun || difficulty === `tutorial` ? doContinue() : tryOpenMediaWatch();
                         return
                     }
                     if (act.type === `gameover_share`) { shareProgress(); return }
-                    if (act.type === `gameover_title`) { mode = `attract`, refreshCoins(), bgm.start(`attract`); return }
+                    if (act.type === `gameover_title`) { quitToTitle(); return }
                 }
                 if (act.type === `pause_shop`) {
                     e.preventDefault(), openShop(!0);
@@ -3367,7 +3584,7 @@ function SwipeForceEngine() {
             openInbox: () => openInbox(),
             share: () => shareProgress()
         }, bgm.start(`attract`), () => {
-            running = !1, cancelAnimationFrame(rafId), resizeObserver.disconnect(), canvas.removeEventListener(`touchstart`, onTouchStart), canvas.removeEventListener(`touchmove`, onTouchMove), canvas.removeEventListener(`touchend`, onTouchEnd), canvas.removeEventListener(`mousedown`, onMouseDown), window.removeEventListener(`mousemove`, onMouseMove), window.removeEventListener(`mouseup`, onMouseUp), window.removeEventListener(`keydown`, onKeyDown), window.removeEventListener(`keyup`, onKeyUp), bgm.stop()
+            running = !1; try { titleBannerDom && titleBannerDom.destroy() } catch {}; cancelAnimationFrame(rafId), resizeObserver.disconnect(), window.removeEventListener(`resize`, layoutCanvas), window.removeEventListener(`orientationchange`, layoutCanvas), window.removeEventListener(`pageshow`, layoutCanvas); try { window.visualViewport && window.visualViewport.removeEventListener(`resize`, layoutCanvas); } catch {}; canvas.removeEventListener(`touchstart`, onTouchStart), canvas.removeEventListener(`touchmove`, onTouchMove), canvas.removeEventListener(`touchend`, onTouchEnd), canvas.removeEventListener(`mousedown`, onMouseDown), window.removeEventListener(`mousemove`, onMouseMove), window.removeEventListener(`mouseup`, onMouseUp), window.removeEventListener(`keydown`, onKeyDown), window.removeEventListener(`keyup`, onKeyUp), bgm.stop()
         }
     }, []), (0, jsxRuntime.jsx)(`div`, {
         ref: hostRef,
@@ -3377,7 +3594,15 @@ function SwipeForceEngine() {
         },
         children: (0, jsxRuntime.jsx)(`canvas`, {
             ref: canvasRef,
-            className: `max-h-full max-w-full`
+            width: PLAY_W,
+            height: PLAY_H,
+            className: `block max-h-full max-w-full shrink-0`,
+            style: {
+                aspectRatio: `${PLAY_W} / ${PLAY_H}`,
+                width: `min(100vw, calc(100dvh * ${PLAY_W} / ${PLAY_H}))`,
+                height: `auto`,
+                background: `#001100`,
+            }
         })
     })
 }

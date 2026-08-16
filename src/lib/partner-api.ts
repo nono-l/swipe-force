@@ -26,6 +26,10 @@ export type AdvertiserVideo = {
   ownerPlayerId?: string;
   ownerDisplayName?: string;
   ownerKind?: "platform" | "advertiser";
+  claimOnce?: boolean;
+  showChannel?: boolean;
+  channelUrl?: string;
+  channelName?: string;
 };
 
 export type AdvertiserStatus = {
@@ -49,7 +53,7 @@ export async function fetchAdvertiserStatus(
     const q = new URLSearchParams({ playerId });
     if (opts?.all) q.set("all", "1");
     const res = await fetch(
-      `/api/share/ad-advertiser?${q.toString()}`,
+      `/api/share/partner?${q.toString()}`,
       { credentials: "same-origin" },
     );
     const data = (await res.json().catch(() => ({}))) as AdvertiserStatus & {
@@ -98,7 +102,7 @@ export async function redeemPrepaidCode(
   code: string,
 ): Promise<{ ok: boolean; credited?: number; reason?: string; balance?: { creditHours: number } }> {
   try {
-    const res = await fetch("/api/share/ad-prepaid", {
+    const res = await fetch("/api/share/partner-credit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
@@ -129,10 +133,14 @@ export async function saveAdvertiserVideo(
     durationSec: number;
     maxDisplayHours: number;
     active: boolean;
+    claimOnce?: boolean;
+    showChannel?: boolean;
+    channelUrl?: string;
+    channelName?: string;
   },
 ): Promise<{ ok: boolean; reason?: string; message?: string; videos?: AdvertiserVideo[]; freeHours?: number }> {
   try {
-    const res = await fetch("/api/share/ad-advertiser", {
+    const res = await fetch("/api/share/partner", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
@@ -167,7 +175,7 @@ export async function deleteAdvertiserVideo(
   videoId: string,
 ): Promise<{ ok: boolean; reason?: string; videos?: AdvertiserVideo[] }> {
   try {
-    const res = await fetch("/api/share/ad-advertiser", {
+    const res = await fetch("/api/share/partner", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
@@ -192,7 +200,7 @@ export async function fetchPrepaidAdmin(playerId: string): Promise<{
 }> {
   try {
     const res = await fetch(
-      `/api/share/ad-prepaid?admin=1&playerId=${encodeURIComponent(playerId)}`,
+      `/api/share/partner-credit?admin=1&playerId=${encodeURIComponent(playerId)}`,
       { credentials: "same-origin" },
     );
     const data = (await res.json().catch(() => ({}))) as {
@@ -218,7 +226,7 @@ export async function createPrepaidCode(
   },
 ): Promise<{ ok: boolean; code?: string; reason?: string }> {
   try {
-    const res = await fetch("/api/share/ad-prepaid", {
+    const res = await fetch("/api/share/partner-credit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
@@ -241,7 +249,7 @@ export async function disablePrepaidCode(
   code: string,
 ): Promise<{ ok: boolean; reason?: string }> {
   try {
-    const res = await fetch("/api/share/ad-prepaid", {
+    const res = await fetch("/api/share/partner-credit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",

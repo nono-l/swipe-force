@@ -3,6 +3,8 @@
  * Recovered game calls these with local unlock/level accessors — behavior frozen.
  */
 
+import { getLocaleNative, t } from "@/lib/i18n";
+
 export type OptionRow =
   | { kind: "header"; label: string }
   | { kind: "vol"; key: "master" | "bgm" | "sfx"; label: string }
@@ -11,18 +13,17 @@ export type OptionRow =
   | { kind: "submenu"; key: "weapons" | "shot"; label: string }
   | { kind: "weapon"; key: string; label: string }
   | { kind: "title"; label: string }
+  | { kind: "locale"; label: string }
   | { kind: "back"; label: string };
 
 export type OptionsSubmenu = "main" | "weapons" | "shot" | string;
 
-/** Shot subtree keys shown when upgraded */
 export const SHOT_DETAIL_KEYS: { key: string; label: string }[] = [
   { key: "rate", label: "RATE" },
   { key: "power", label: "POWER" },
   { key: "option", label: "OPTION" },
 ];
 
-/** Advanced arms listed under WEAPON LOADOUT */
 export const LOADOUT_WEAPON_KEYS: { key: string; label: string }[] = [
   { key: "lockon", label: "LOCK-ON" },
   { key: "missile", label: "MISSILE" },
@@ -34,7 +35,6 @@ export const LOADOUT_WEAPON_KEYS: { key: string; label: string }[] = [
   { key: "flame", label: "FLAME" },
 ];
 
-/** Arms counted for “N ON” summary */
 export const LOADOUT_COUNT_KEYS = [
   "shot",
   "option",
@@ -48,21 +48,15 @@ export const LOADOUT_COUNT_KEYS = [
   "flame",
 ] as const;
 
-/** Shot summary keys for SHOT submenu label */
 export const SHOT_SUMMARY_KEYS = ["shot", "rate", "power", "option"] as const;
 
-/**
- * Build option list for the current submenu.
- * @param submenu z in recovered game: main | weapons | shot
- * @param isUnlocked getLocalVotes(key) — true if upgrade level > 0 (unlocked in shop)
- */
 export function buildOptionRows(
   submenu: OptionsSubmenu,
   isUnlocked: (key: string) => boolean,
 ): OptionRow[] {
   if (submenu === "shot") {
     const rows: OptionRow[] = [
-      { kind: "header", label: "— SHOT 強化 · 左右=強度 —" },
+      { kind: "header", label: t("options.shotHeader") },
       { kind: "weapon", key: "shot", label: "MAIN SHOT" },
     ];
     for (const item of SHOT_DETAIL_KEYS) {
@@ -70,13 +64,13 @@ export function buildOptionRows(
         rows.push({ kind: "weapon", key: item.key, label: item.label });
       }
     }
-    rows.push({ kind: "back", label: "◀ LOADOUTへ" });
+    rows.push({ kind: "back", label: t("options.backLoadout") });
     return rows;
   }
 
   if (submenu === "weapons") {
     const rows: OptionRow[] = [
-      { kind: "header", label: "— 解放武装 · SHOTは詳細へ —" },
+      { kind: "header", label: t("options.wepHeader") },
       { kind: "submenu", key: "shot", label: "SHOT" },
     ];
     for (const item of LOADOUT_WEAPON_KEYS) {
@@ -84,11 +78,10 @@ export function buildOptionRows(
         rows.push({ kind: "weapon", key: item.key, label: item.label });
       }
     }
-    rows.push({ kind: "back", label: "◀ オプションへ" });
+    rows.push({ kind: "back", label: t("options.backOptions") });
     return rows;
   }
 
-  // main
   return [
     { kind: "vol", key: "master", label: "MASTER VOL" },
     { kind: "vol", key: "bgm", label: "BGM VOL" },
@@ -99,24 +92,22 @@ export function buildOptionRows(
     { kind: "toggle", key: "vstick", label: "V-STICK" },
     { kind: "toggle", key: "autoShop", label: "AUTO SHOP" },
     { kind: "sense", label: "MOVE SENSE" },
+    { kind: "locale", label: t("options.language") },
     { kind: "submenu", key: "weapons", label: "WEAPON LOADOUT" },
-    { kind: "title", label: "タイトルへ戻る" },
-    { kind: "back", label: "BACK" },
+    { kind: "title", label: t("options.toTitle") },
+    { kind: "back", label: t("options.back") },
   ];
 }
 
-/** Volume meter: ■■■□□ 3 */
 export function formatVolumeBar(level: number): string {
-  const t = Math.max(0, Math.min(10, level | 0));
-  return "■".repeat(t) + "□".repeat(10 - t) + ` ${t}`;
+  const n = Math.max(0, Math.min(10, level | 0));
+  return "■".repeat(n) + "□".repeat(10 - n) + ` ${n}`;
 }
 
-/** WEAPON LOADOUT summary: "3 ON" / "DODGE" */
 export function formatLoadoutSummary(enabledCount: number): string {
   return enabledCount === 0 ? "DODGE" : `${enabledCount} ON`;
 }
 
-/** SHOT submenu summary hasVisitedUrl weapons list */
 export function formatShotSubSummary(opts: {
   shotOn: boolean;
   optionOn: boolean;
@@ -127,19 +118,13 @@ export function formatShotSubSummary(opts: {
 }
 
 export type OptionValueState = {
-  /** K options object: master/bgm/sfx numbers, toggles, sense, wepLv… */
   options: Record<string, unknown>;
-  /** effective armed level q(key) */
   armedLevel: (key: string) => number;
-  /** max unlocked saveVotesStore(key) */
   maxLevel: (key: string) => number;
-  /** loadout summary text for weapons submenu */
   loadoutSummary: string;
-  /** shot submenu summary */
   shotSummary: string;
 };
 
-/** Right-hand value text for a row (recovered `xr`) */
 export function formatOptionValue(
   row: OptionRow,
   state: OptionValueState,
@@ -155,13 +140,14 @@ export function formatOptionValue(
     const sense = Number(state.options.sense ?? 1);
     return `◀ ${sense.toFixed(1)}x ▶`;
   }
+  if (row.kind === "locale") return `◀ ${getLocaleNative()} ▶`;
   if (row.kind === "submenu") {
     return row.key === "shot" ? state.shotSummary : `${state.loadoutSummary} ▶`;
   }
   if (row.kind === "weapon") {
-    const t = state.armedLevel(row.key);
+    const lv = state.armedLevel(row.key);
     const n = state.maxLevel(row.key);
-    return t <= 0 ? "◀ OFF ▶" : `◀ Lv${t}/${n} ▶`;
+    return lv <= 0 ? "◀ OFF ▶" : `◀ Lv${lv}/${n} ▶`;
   }
   if (row.kind === "back") return "◀";
   if (row.kind === "title") return "▶";

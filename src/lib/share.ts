@@ -1,6 +1,7 @@
 /** Client helpers for share-referral continue coins + missions. */
 
 import { sanitizeFanMessage } from "@/lib/sanitize-message";
+import { t } from "@/lib/i18n";
 
 export const PLAYER_KEY = "swipe_force_player_v1";
 export const COIN_KEY = "swipe_force_coins_v1";
@@ -256,29 +257,33 @@ function progressHelpLine(p: ShareProgress): string {
 
   if (ctx === "gameover") {
     return [
-      `🆘 助けて！ ${diff} STAGE ${st} で撃沈${sc}`,
-      p.bossName ? `ボス「${p.bossName}」手前/戦いでやられました` : `進行: ${st}面目安`,
-      "遊んでミッションクリアしてくれるとコンティニューできます",
+      t("share.goHelp", { diff, st, sc }),
+      p.bossName ? t("share.goBoss", { name: p.bossName }) : t("share.goProg", { st }),
+      t("share.goHint"),
     ].join("\n");
   }
   if (ctx === "boss") {
     return [
-      `⚔️ ボス戦中！ ${diff} STAGE ${st}${p.bossName ? `「${p.bossName}」` : ""}${sc}`,
-      "応援プレイ（ミッション）でシェア主にコインが入ります",
+      t("share.bossHelp", {
+        diff,
+        st,
+        boss: p.bossName ? `「${p.bossName}」` : "",
+        sc,
+      }),
+      t("share.bossHint"),
     ].join("\n");
   }
   if (ctx === "playing" || ctx === "ready" || ctx === "shop") {
     return [
-      `🚀 進行中 ${diff} STAGE ${st}${sc}`,
-      `いま ${st}面あたりで助けを求めてます`,
-      "M1=1面ボス到達 / M2~4=2~4面ボス撃破 → コイン1枚ずつ",
+      t("share.playHelp", { diff, st, sc }),
+      t("share.playWhere", { st }),
+      t("share.playM"),
     ].join("\n");
   }
-  // title / default
   return [
-    `📣 一緒に遊んで助けて！（${diff || "SWIPE FORCE"}）`,
-    "ミッションクリアでシェア主にコンティニューコイン🎁",
-    "M1:1面ボス到達 / M2~4:各面ボス撃破（各1枚）",
+    t("share.titleHelp", { diff: diff || "SWIPE FORCE" }),
+    t("share.titleHint"),
+    t("share.titleM"),
   ].join("\n");
 }
 

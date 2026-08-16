@@ -64,6 +64,7 @@ export const Route = createFileRoute("/api/share/youtube-meta")({
           const data = (await res.json()) as {
             title?: string;
             author_name?: string;
+            author_url?: string;
             thumbnail_url?: string;
           };
           const title = String(data.title || "").trim().slice(0, 80);
@@ -72,6 +73,7 @@ export const Route = createFileRoute("/api/share/youtube-meta")({
             id,
             title: title || null,
             author: data.author_name ? String(data.author_name).slice(0, 80) : null,
+            authorUrl: data.author_url ? String(data.author_url).slice(0, 240) : null,
             thumbnail: data.thumbnail_url
               ? String(data.thumbnail_url).slice(0, 300)
               : null,

@@ -45,7 +45,7 @@ export type HudFlags = {
   dodgeOnly: boolean;
   shotOff: boolean;
   controlLabel: "STICK" | "SWIPE";
-  diffLabel: "ESY" | "NRM";
+  diffLabel: "ESY" | "NRM" | "TUT";
   enemyHpMult: number;
 };
 
@@ -60,7 +60,12 @@ export function buildHudFlags(opts: {
     dodgeOnly: opts.weaponsEnabledCount === 0,
     shotOff: !opts.shotArmed,
     controlLabel: opts.vstick ? "STICK" : "SWIPE",
-    diffLabel: opts.difficulty === "easy" ? "ESY" : "NRM",
+    diffLabel:
+      opts.difficulty === "tutorial"
+        ? "TUT"
+        : opts.difficulty === "easy"
+          ? "ESY"
+          : "NRM",
     enemyHpMult: opts.enemyHpMult,
   };
 }

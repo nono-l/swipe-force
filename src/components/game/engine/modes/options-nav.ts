@@ -24,6 +24,7 @@ export type OptionsActivate =
   | { type: "title" }
   | { type: "submenu"; key: string }
   | { type: "toggle" }
+  | { type: "locale" }
   | { type: "confirm_slider"; label: string }
   | { type: "adjust" }
   | { type: "noop" };
@@ -34,6 +35,7 @@ export function optionsActivate(row: OptRow | undefined): OptionsActivate {
   if (row.kind === "title") return { type: "title" };
   if (row.kind === "submenu") return { type: "submenu", key: row.key || "" };
   if (row.kind === "toggle") return { type: "toggle" };
+  if (row.kind === "locale") return { type: "locale" };
   if (row.kind === "vol" || row.kind === "sense" || row.kind === "weapon") {
     return { type: "confirm_slider", label: row.label || "" };
   }

@@ -2,6 +2,8 @@
  * Options screen title / row colors (recovered ii pure bits).
  */
 
+import { t } from "@/lib/i18n";
+
 export function optionsScreenTitle(submenu: string): {
   title: string;
   subtitle: string;
@@ -10,23 +12,23 @@ export function optionsScreenTitle(submenu: string): {
 } {
   if (submenu === "shot") {
     return {
-      title: "SHOT TUNING",
-      subtitle: "MAIN / RATE / POWER / OPTION を個別調整",
+      title: t("options.shotTitle"),
+      subtitle: t("options.shotSub"),
       border: "#66ffaa",
       titleColor: "#88ffcc",
     };
   }
   if (submenu === "weapons") {
     return {
-      title: "WEAPON LOADOUT",
-      subtitle: "SHOTを開くと強化を個別ON/OFF",
+      title: t("options.wepTitle"),
+      subtitle: t("options.wepSub"),
       border: "#66ffaa",
       titleColor: "#88ffcc",
     };
   }
   return {
-    title: "OPTIONS",
-    subtitle: "音量・操作 · AUTO SHOP=ボス後ショップ",
+    title: t("options.title"),
+    subtitle: t("options.subtitle"),
     border: "#00ccff",
     titleColor: "#66eeff",
   };
@@ -55,6 +57,12 @@ export function optionsRowColors(opts: {
     return {
       label: o ? "#ffcc88" : "#cc8844",
       value: o ? "#ffaa44" : "#886633",
+    };
+  }
+  if (opts.kind === "locale") {
+    return {
+      label: o ? "#ddeeff" : "#88aacc",
+      value: o ? "#aaccff" : "#6688aa",
     };
   }
   return {

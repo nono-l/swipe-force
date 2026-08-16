@@ -1,4 +1,4 @@
-import { advertiserPortalUrl, openAdvertiserPortal } from "@/lib/ad-portal-url";
+import { partnerPortalUrl, openPartnerPortal } from "@/lib/partner-portal-url";
 /**
  * Dedicated Ad management UI (admin only).
  * - Register YouTube IDs
@@ -10,12 +10,50 @@ import { advertiserPortalUrl, openAdvertiserPortal } from "@/lib/ad-portal-url";
 import {
   deleteAdminAdVideo,
   fetchAdminAdVideos,
-  saveAdminAdVideo,
+  saveMediaCatalogVideo,
   type AdminAdVideo,
-} from "@/lib/ad-videos-api";
-import { maxCoinsForVideo, parseYouTubeVideoId } from "@/components/game/engine/modes/ad-watch";
+} from "@/lib/media-catalog-api";
+import { maxCoinsForVideo, parseYouTubeVideoId } from "@/components/game/engine/modes/media-watch";
 import { fetchYouTubeDurationSec, fetchYouTubeTitle } from "@/lib/youtube-duration";
 import { isPromoAdminPlayer } from "@/components/game/engine/modes/admin";
+import { t } from "@/lib/i18n";
+
+function isFlagOn(v: unknown): boolean {
+  return v === true || v === 1 || v === "1" || v === "true";
+}
+
+function paintChannelToggle(root: ParentNode, prefix: string, on: boolean) {
+  const hid = root.querySelector(`#${prefix}`) as HTMLInputElement | null;
+  if (hid) hid.value = on ? "1" : "0";
+  const off = root.querySelector(`#${prefix}-off`) as HTMLButtonElement | null;
+  const onBtn = root.querySelector(`#${prefix}-on`) as HTMLButtonElement | null;
+  if (off) {
+    off.style.background = on ? "#152018" : "#3a2020";
+    off.style.borderColor = on ? "#345" : "#a66";
+    off.style.color = on ? "#89a" : "#fcc";
+    off.style.fontWeight = on ? "600" : "800";
+  }
+  if (onBtn) {
+    onBtn.style.background = on ? "#1a4030" : "#152018";
+    onBtn.style.borderColor = on ? "#6a4" : "#345";
+    onBtn.style.color = on ? "#cfc" : "#89a";
+    onBtn.style.fontWeight = on ? "800" : "600";
+  }
+}
+
+function channelToggleHtml(prefix: string, on: boolean): string {
+  return `
+    <div style="grid-column:1/-1;background:#0a1520;border:1px solid #345;border-radius:10px;padding:10px">
+      <div style="font-size:12px;font-weight:800;color:#cfe">${t("mediaAd.showCh")}</div>
+      <div style="font-size:10px;color:#8ab;margin:4px 0 8px;line-height:1.4">${t("mediaAd.showChHint")}</div>
+      <div style="display:flex;gap:8px">
+        <button type="button" id="${prefix}-off" style="flex:1;padding:12px 8px;border-radius:8px;border:2px solid ${on ? "#345" : "#a66"};background:${on ? "#152018" : "#3a2020"};color:${on ? "#89a" : "#fcc"};font-weight:${on ? 600 : 800};cursor:pointer">${t("mediaAd.chOff")}</button>
+        <button type="button" id="${prefix}-on" style="flex:1;padding:12px 8px;border-radius:8px;border:2px solid ${on ? "#6a4" : "#345"};background:${on ? "#1a4030" : "#152018"};color:${on ? "#cfc" : "#89a"};font-weight:${on ? 800 : 600};cursor:pointer">${t("mediaAd.chOn")}</button>
+      </div>
+      <input type="hidden" id="${prefix}" value="${on ? "1" : "0"}" />
+      <div style="font-size:10px;margin-top:8px;color:${on ? "#9e8" : "#889"}">${on ? t("mediaAd.chNowOn") : t("mediaAd.chNowOff")}</div>
+    </div>`;
+}
 
 export type AdAdminDialogOpts = {
   playerId?: string | null;
@@ -35,12 +73,12 @@ function esc(s: string): string {
 
 function formatHours(sec: number): string {
   const s = Math.max(0, Math.floor(sec));
-  if (s < 60) return `${s}秒`;
+  if (s < 60) return t("mediaAd.sec", { n: s });
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m}分${s % 60 ? `${s % 60}秒` : ""}`;
+  if (m < 60) return s % 60 ? t("mediaAd.minSec", { m, s: s % 60 }) : t("mediaAd.min", { m });
   const h = Math.floor(m / 60);
   const rm = m % 60;
-  return rm ? `${h}時間${rm}分` : `${h}時間`;
+  return rm ? t("mediaAd.hourMin", { h, m: rm }) : t("mediaAd.hour", { h });
 }
 
 function inputStyle(extra = "") {
@@ -83,15 +121,15 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
-export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
-  if (document.getElementById("sf-ad-admin")) return;
+export function openMediaAdminDialog(opts: AdAdminDialogOpts): void {
+  if (document.getElementById("sf-media-admin")) return;
   if (!isPromoAdminPlayer(opts.playerId)) {
     opts.onDenied?.();
     return;
   }
 
   const root = document.createElement("div");
-  root.id = "sf-ad-admin";
+  root.id = "sf-media-admin";
   root.style.cssText =
     "position:fixed;inset:0;z-index:99995;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:12px;font-family:system-ui,sans-serif";
 
@@ -106,17 +144,22 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
   let flash = "";
   let busy = false;
   let editId = "";
+  let formShowCh = false;
 
   const close = () => root.remove();
 
   const reload = async () => {
     const r = await fetchAdminAdVideos(String(opts.playerId || ""));
     if (!r.ok) {
-      flash = `読込失敗 (${r.reason || "error"})`;
+      flash = t("mediaAd.loadFail", { r: r.reason || "error" });
       opts.sfxFail?.();
       return;
     }
-    videos = r.videos;
+    videos = (r.videos || []).map((v) => ({
+      ...v,
+      showChannel: isFlagOn(v.showChannel),
+      claimOnce: isFlagOn(v.claimOnce),
+    }));
   };
 
   const render = () => {
@@ -125,67 +168,71 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div>
-          <div style="font-size:15px;font-weight:800;color:#9ef">📺 広告管理</div>
-          <div style="font-size:10px;color:#8ab;margin-top:2px">全広告表示（運営＋全広告主） · 尺 · 上限 · 実績</div>
+          <div style="font-size:15px;font-weight:800;color:#9ef">${t("mediaAd.title")}</div>
+          <div style="font-size:10px;color:#8ab;margin-top:2px">${t("mediaAd.lead")}</div>
           <div style="font-size:10px;margin-top:6px;line-height:1.45">
-            <button type="button" id="sf-aa-portal" style="margin-right:6px;padding:4px 10px;border-radius:6px;border:1px solid #8cf;background:#102838;color:#cef;font-size:11px;font-weight:700;cursor:pointer">📣 ポータルを開く</button>
-            <button type="button" id="sf-aa-portal-copy" style="padding:3px 8px;border-radius:6px;border:1px solid #456;background:#122028;color:#bcd;font-size:10px;cursor:pointer">URLコピー</button>
-            <a id="sf-aa-portal-url" href="/advertiser" target="_blank" rel="noopener" title="クリックで開く / 長押しでコピー" style="display:block;font-size:9px;color:#8cf;margin-top:4px;word-break:break-all;user-select:all;cursor:pointer;padding:4px 6px;border:1px dashed #356;border-radius:6px;background:#041018;text-decoration:none"></a>
+            <button type="button" id="sf-ma-portal" style="margin-right:6px;padding:4px 10px;border-radius:6px;border:1px solid #8cf;background:#102838;color:#cef;font-size:11px;font-weight:700;cursor:pointer">${t("mediaAd.openPortal")}</button>
+            <button type="button" id="sf-ma-portal-copy" style="padding:3px 8px;border-radius:6px;border:1px solid #456;background:#122028;color:#bcd;font-size:10px;cursor:pointer">${t("mediaAd.copyUrl")}</button>
+            <a id="sf-ma-portal-url" href="/partner" target="_blank" rel="noopener" title="クリックで開く / 長押しでコピー" style="display:block;font-size:9px;color:#8cf;margin-top:4px;word-break:break-all;user-select:all;cursor:pointer;padding:4px 6px;border:1px dashed #356;border-radius:6px;background:#041018;text-decoration:none"></a>
           </div>
         </div>
-        <button type="button" id="sf-aa-x" style="border:0;background:transparent;color:#9ab;font-size:22px;cursor:pointer;line-height:1">×</button>
+        <button type="button" id="sf-ma-x" style="border:0;background:transparent;color:#9ab;font-size:22px;cursor:pointer;line-height:1">×</button>
       </div>
 
       <div style="background:#0a1820;border:1px solid #264;border-radius:10px;padding:10px;margin-bottom:12px">
-        <div style="font-size:11px;font-weight:700;color:#9ec;margin-bottom:8px">${editId ? "編集" : "新規登録"}</div>
+        <div style="font-size:11px;font-weight:700;color:#9ec;margin-bottom:8px">${editId ? t("mediaAd.edit") : t("mediaAd.create")}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
           <div style="grid-column:1/-1">
-            <label style="font-size:10px;color:#8ab">YouTube URL または 動画ID</label>
-            <input id="sf-aa-id" ${editId ? "readonly" : ""} value="${esc(editing?.id || "")}" placeholder="https://www.youtube.com/watch?v=… / live / youtu.be/…" style="${inputStyle(editId ? "opacity:.7" : "")}" />
-            <div id="sf-aa-id-parsed" style="font-size:10px;color:#8ab;margin-top:4px"></div>
+            <label style="font-size:10px;color:#8ab">${t("mediaAd.yt")}</label>
+            <input id="sf-ma-id" ${editId ? "readonly" : ""} value="${esc(editing?.id || "")}" placeholder="https://www.youtube.com/watch?v=… / live / youtu.be/…" style="${inputStyle(editId ? "opacity:.7" : "")}" />
+            <div id="sf-ma-id-parsed" style="font-size:10px;color:#8ab;margin-top:4px"></div>
           </div>
           <div style="grid-column:1/-1">
-            <label style="font-size:10px;color:#8ab">ラベル</label>
-            <input id="sf-aa-label" value="${esc(editing?.label || "")}" placeholder="空なら動画タイトルを自動" style="${inputStyle()}" />
+            <label style="font-size:10px;color:#8ab">${t("mediaAd.label")}</label>
+            <input id="sf-ma-label" value="${esc(editing?.label || "")}" placeholder="${t("mediaAd.labelPh")}" style="${inputStyle()}" />
           </div>
           <div>
-            <label style="font-size:10px;color:#8ab">動画の長さ（秒）· 自動取得可</label>
+            <label style="font-size:10px;color:#8ab">${t("mediaAd.dur")}</label>
             <div style="display:flex;gap:6px">
-              <input id="sf-aa-dur" type="number" min="10" max="86400" value="${editing?.durationSec ?? ""}" placeholder="自動" style="${inputStyle()}" />
-              <button type="button" id="sf-aa-dur-fetch" style="${btnStyle("ghost")};white-space:nowrap;flex-shrink:0">尺を取得</button>
+              <input id="sf-ma-dur" type="number" min="10" max="86400" value="${editing?.durationSec ?? ""}" placeholder="自動" style="${inputStyle()}" />
+              <button type="button" id="sf-ma-dur-fetch" style="${btnStyle("ghost")};white-space:nowrap;flex-shrink:0">${t("mediaAd.fetchDur")}</button>
             </div>
-            <div id="sf-aa-dur-status" style="font-size:9px;color:#678;margin-top:3px">URL/ID 確定後に自動取得します</div>
+            <div id="sf-ma-dur-status" style="font-size:9px;color:#678;margin-top:3px">${t("mediaAd.durHint")}</div>
           </div>
           <div>
-            <label style="font-size:10px;color:#8ab">合計表示上限（時間）</label>
-            <input id="sf-aa-maxh" type="number" min="0" max="100000" step="0.1" value="${editing?.maxDisplayHours ?? 0}" style="${inputStyle()}" />
-            <div style="font-size:9px;color:#678;margin-top:2px">0 = 無制限 · 全プレイヤー合算の視聴時間</div>
+            <label style="font-size:10px;color:#8ab">${t("mediaAd.hours")}</label>
+            <input id="sf-ma-maxh" type="number" min="0" max="100000" step="0.1" value="${editing?.maxDisplayHours ?? 0}" style="${inputStyle()}" />
+            <div style="font-size:9px;color:#678;margin-top:2px">${t("mediaAd.hoursHint")}</div>
           </div>
-          <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px">
+          <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#cde;cursor:pointer">
-              <input type="checkbox" id="sf-aa-active" ${editing ? (editing.active && !editing.exhausted ? "checked" : editing.active ? "checked" : "") : "checked"} />
-              配信中（ON）
+              <input type="checkbox" id="sf-ma-active" ${editing ? (editing.active && !editing.exhausted ? "checked" : editing.active ? "checked" : "") : "checked"} />
+              ${t("mediaAd.liveOn")}
+            </label>
+            <label style="display:inline-flex;align-items:flex-start;gap:6px;font-size:12px;color:#cde;cursor:pointer;line-height:1.35">
+              <input type="checkbox" id="sf-ma-once" ${editing?.claimOnce ? "checked" : ""} style="margin-top:2px" />
+              <span>${t("mediaAd.once")}<span style="display:block;font-size:10px;color:#8ab">${t("mediaAd.onceHint")}</span></span>
             </label>
           </div>
+          ${channelToggleHtml("sf-ma-ch", formShowCh)}
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button type="button" id="sf-aa-save" style="flex:1;${btnStyle("primary")}" ${busy ? "disabled" : ""}>${busy ? "保存中…" : editId ? "更新する" : "追加する"}</button>
-          ${editId ? `<button type="button" id="sf-aa-cancel" style="${btnStyle("ghost")}">新規に戻る</button>` : ""}
+          <button type="button" id="sf-ma-save" style="flex:1;${btnStyle("primary")}" ${busy ? "disabled" : ""}>${busy ? t("mediaAd.saving") : editId ? t("mediaAd.update") : t("mediaAd.add")}</button>
+          ${editId ? `<button type="button" id="sf-ma-cancel" style="${btnStyle("ghost")}">${t("mediaAd.backNew")}</button>` : ""}
         </div>
         ${flash ? `<div style="margin-top:8px;font-size:11px;color:#fc8">${esc(flash)}</div>` : ""}
       </div>
 
-      <div style="font-size:11px;font-weight:700;color:#fec;margin-bottom:6px">登録動画 (${videos.length})</div>
-      <div id="sf-aa-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div style="font-size:11px;font-weight:700;color:#fec;margin-bottom:6px">${t("mediaAd.list", { n: videos.length })}</div>
+      <div id="sf-ma-list" style="display:flex;flex-direction:column;gap:8px"></div>
       <div style="font-size:9px;color:#567;margin-top:12px;line-height:1.4">
-        ※ 表示上限に達した動画は自動でプレイヤーに出なくなります。<br/>
-        ※ 再生秒数はコイン受取時に加算（同一プレイヤーの重複分は差し引き）。
+        ${t("mediaAd.note")}
       </div>
     `;
 
-    const list = card.querySelector("#sf-aa-list")!;
+    const list = card.querySelector("#sf-ma-list")!;
     if (!videos.length) {
-      list.innerHTML = `<div style="font-size:11px;color:#789;padding:12px;text-align:center;border:1px dashed #345;border-radius:8px">まだ動画がありません</div>`;
+      list.innerHTML = `<div style="font-size:11px;color:#789;padding:12px;text-align:center;border:1px dashed #345;border-radius:8px">${t("mediaAd.empty")}</div>`;
     } else {
       for (const v of videos) {
         const row = document.createElement("div");
@@ -193,14 +240,14 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
           "background:#0a1520;border:1px solid #234;border-radius:10px;padding:10px";
         const budget =
           v.maxDisplayHours > 0
-            ? `${formatHours(v.totalWatchSec)} / ${v.maxDisplayHours}時間`
-            : `${formatHours(v.totalWatchSec)} / 無制限`;
+            ? `${formatHours(v.totalWatchSec)} / ${t("mediaAd.hour", { h: v.maxDisplayHours })}`
+            : `${formatHours(v.totalWatchSec)} / ${t("mediaAd.unlimited")}`;
         const rem =
           v.remainingDisplaySec == null
-            ? "残 ∞"
+            ? t("mediaAd.remainInf")
             : v.exhausted
-              ? "上限到達"
-              : `残 ${formatHours(v.remainingDisplaySec)}`;
+              ? t("mediaAd.cap")
+              : t("mediaAd.remain", { h: formatHours(v.remainingDisplaySec) });
         const pct =
           v.maxDisplayHours > 0
             ? Math.min(
@@ -214,28 +261,30 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
         row.innerHTML = `
           <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
             <div style="min-width:0">
-              <div style="font-size:12px;font-weight:800;color:${v.exhausted ? "#a86" : v.active ? "#cfe" : "#889"}">${esc(v.label)} ${v.exhausted ? "· 停止" : v.active ? "" : "· OFF"}</div>
+              <div style="font-size:12px;font-weight:800;color:${v.exhausted ? "#a86" : v.active ? "#cfe" : "#889"}">${esc(v.label)} ${v.exhausted ? t("mediaAd.stopped") : v.active ? "" : t("mediaAd.off")}</div>
               <div style="font-size:10px;color:#789;margin-top:2px;word-break:break-all">${esc(v.id)}</div>
               <div style="font-size:10px;margin-top:4px;line-height:1.35">
                 ${
                   v.ownerKind === "advertiser" && v.ownerPlayerId
-                    ? `<span style="color:#fe8">広告主</span> ${
+                    ? `<span style="color:#fe8">${t("mediaAd.partner")}</span> ${
                         (v.ownerDisplayName || "").trim()
                           ? `<b style="color:#cfe">${esc(v.ownerDisplayName || "")}</b> <span style="color:#567;font-size:9px">${esc(v.ownerPlayerId)}</span>`
                           : `<span style="color:#9ab;word-break:break-all">${esc(v.ownerPlayerId)}</span>`
                       }`
-                    : `<span style="color:#6a8">運営登録</span>`
+                    : `<span style="color:#6a8">${t("mediaAd.staff")}</span>`
                 }
               </div>
             </div>
             <div style="display:flex;gap:4px;flex-shrink:0">
-              <button type="button" data-edit="${esc(v.id)}" style="${btnStyle("ghost")}">編集</button>
-              <button type="button" data-del="${esc(v.id)}" style="${btnStyle("danger")}">削除</button>
+              <button type="button" data-edit="${esc(v.id)}" style="${btnStyle("ghost")}">${t("mediaAd.edit")}</button>
+              <button type="button" data-del="${esc(v.id)}" style="${btnStyle("danger")}">${t("mediaAd.del")}</button>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin-top:8px;font-size:10px;color:#9ab">
-            <div>尺 <b style="color:#cde">${v.durationSec}秒</b></div>
-            <div>最後まで <b style="color:#fe8">${maxCoinsForVideo(v.durationSec)}枚</b></div>
+            <div>${t("mediaAd.len", { n: v.durationSec })}</div>
+            <div>${t("mediaAd.coins", { n: maxCoinsForVideo(v.durationSec) })}</div>
+            <div>受取 <b style="color:#cde">${v.claimOnce ? "一人1回" : "何度でも"}</b></div>
+            <div>CLEARリンク <b style="color:${isFlagOn(v.showChannel) ? "#9e8" : "#a86"}">${isFlagOn(v.showChannel) ? t("mediaAd.chOn") : t("mediaAd.chOff")}</b></div>
             <div>受取実績 <b style="color:#cde">${v.totalClaims}</b> 回</div>
             <div style="grid-column:1/-1">累計再生 <b style="color:#fe8">${formatHours(v.totalWatchSec)}</b> <span style="color:#678">(${v.totalWatchSec}秒)</span></div>
             <div style="grid-column:1/-1">表示予算 ${esc(budget)} · <b style="color:${v.exhausted ? "#f86" : "#8c8"}">${esc(rem)}</b></div>
@@ -289,10 +338,10 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
     }
 
 
-    const idInput = card.querySelector("#sf-aa-id") as HTMLInputElement | null;
-    const parsedEl = card.querySelector("#sf-aa-id-parsed") as HTMLElement | null;
-    const durInput = card.querySelector("#sf-aa-dur") as HTMLInputElement | null;
-    const durStatus = card.querySelector("#sf-aa-dur-status") as HTMLElement | null;
+    const idInput = card.querySelector("#sf-ma-id") as HTMLInputElement | null;
+    const parsedEl = card.querySelector("#sf-ma-id-parsed") as HTMLElement | null;
+    const durInput = card.querySelector("#sf-ma-dur") as HTMLInputElement | null;
+    const durStatus = card.querySelector("#sf-ma-dur-status") as HTMLElement | null;
     let lastFetchedId = "";
     let fetchGen = 0;
 
@@ -303,7 +352,7 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
       }
     };
 
-    const labelInput = card.querySelector("#sf-aa-label") as HTMLInputElement | null;
+    const labelInput = card.querySelector("#sf-ma-label") as HTMLInputElement | null;
     let lastAutoLabelFor = "";
     const autoFetchDuration = async (vid: string, force = false) => {
       if (!vid || vid.length < 6) return;
@@ -369,7 +418,7 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
     idInput?.addEventListener("paste", () => setTimeout(updateParsed, 0));
     updateParsed();
 
-    card.querySelector("#sf-aa-dur-fetch")?.addEventListener("click", () => {
+    card.querySelector("#sf-ma-dur-fetch")?.addEventListener("click", () => {
       opts.sfxUi?.();
       const raw = idInput?.value || editId || "";
       const vid = parseYouTubeVideoId(raw) || editId;
@@ -385,49 +434,67 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
       setDurStatus(`登録済み: ${editing.durationSec}秒 · 「尺を取得」で再取得可`, "#8ab");
     }
 
-    const portalUrl = advertiserPortalUrl();
-    const urlEl = card.querySelector("#sf-aa-portal-url") as HTMLAnchorElement | null;
+    const portalUrl = partnerPortalUrl();
+    const urlEl = card.querySelector("#sf-ma-portal-url") as HTMLAnchorElement | null;
     if (urlEl) {
       urlEl.href = portalUrl;
       urlEl.textContent = portalUrl;
     }
-    card.querySelector("#sf-aa-portal")?.addEventListener("click", () => {
+    card.querySelector("#sf-ma-portal")?.addEventListener("click", () => {
       opts.sfxUi?.();
-      openAdvertiserPortal();
+      openPartnerPortal();
     });
-    card.querySelector("#sf-aa-portal-copy")?.addEventListener("click", async () => {
+    card.querySelector("#sf-ma-portal-copy")?.addEventListener("click", async () => {
       const ok = await copyText(portalUrl);
       flash = ok ? `ポータルURLをコピーしました` : `コピー失敗: ${portalUrl}`;
       if (ok) opts.sfxOk?.();
       else opts.sfxFail?.();
       render();
     });
-    card.querySelector("#sf-aa-x")?.addEventListener("click", () => {
+    card.querySelector("#sf-ma-x")?.addEventListener("click", () => {
       opts.sfxUi?.();
       close();
     });
-    card.querySelector("#sf-aa-cancel")?.addEventListener("click", () => {
+    card.querySelector("#sf-ma-cancel")?.addEventListener("click", () => {
       editId = "";
+      formShowCh = false;
       flash = "";
       render();
     });
-    card.querySelector("#sf-aa-save")?.addEventListener("click", async () => {
+    card.querySelector("#sf-ma-ch-off")?.addEventListener("click", () => {
+      formShowCh = false;
+      paintChannelToggle(card, "sf-ma-ch", false);
+      opts.sfxUi?.();
+    });
+    card.querySelector("#sf-ma-ch-on")?.addEventListener("click", () => {
+      formShowCh = true;
+      paintChannelToggle(card, "sf-ma-ch", true);
+      opts.sfxUi?.();
+    });
+    card.querySelector("#sf-ma-save")?.addEventListener("click", async () => {
       if (busy) return;
       const idRaw =
-        (card.querySelector("#sf-aa-id") as HTMLInputElement)?.value || "";
+        (card.querySelector("#sf-ma-id") as HTMLInputElement)?.value || "";
       const id = parseYouTubeVideoId(idRaw);
       let label =
-        (card.querySelector("#sf-aa-label") as HTMLInputElement)?.value?.trim() ||
+        (card.querySelector("#sf-ma-label") as HTMLInputElement)?.value?.trim() ||
         id;
       let durationSec = Number(
-        (card.querySelector("#sf-aa-dur") as HTMLInputElement)?.value || 0,
+        (card.querySelector("#sf-ma-dur") as HTMLInputElement)?.value || 0,
       );
       const maxDisplayHours = Number(
-        (card.querySelector("#sf-aa-maxh") as HTMLInputElement)?.value || 0,
+        (card.querySelector("#sf-ma-maxh") as HTMLInputElement)?.value || 0,
       );
       const active = !!(
-        card.querySelector("#sf-aa-active") as HTMLInputElement
+        card.querySelector("#sf-ma-active") as HTMLInputElement
       )?.checked;
+      const claimOnce = !!(
+        card.querySelector("#sf-ma-once") as HTMLInputElement
+      )?.checked;
+      const showChannel =
+        formShowCh ||
+        (card.querySelector("#sf-ma-ch") as HTMLInputElement)?.value === "1";
+      formShowCh = showChannel;
       if (id.length < 6) {
         flash = "URL / ID から動画IDを解析できませんでした";
         opts.sfxFail?.();
@@ -438,10 +505,10 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
       flash = "";
       render();
       // restore form values after re-render
-      const idEl = card.querySelector("#sf-aa-id") as HTMLInputElement | null;
-      const labEl = card.querySelector("#sf-aa-label") as HTMLInputElement | null;
-      const durEl = card.querySelector("#sf-aa-dur") as HTMLInputElement | null;
-      const maxEl = card.querySelector("#sf-aa-maxh") as HTMLInputElement | null;
+      const idEl = card.querySelector("#sf-ma-id") as HTMLInputElement | null;
+      const labEl = card.querySelector("#sf-ma-label") as HTMLInputElement | null;
+      const durEl = card.querySelector("#sf-ma-dur") as HTMLInputElement | null;
+      const maxEl = card.querySelector("#sf-ma-maxh") as HTMLInputElement | null;
       if (idEl && !editId) idEl.value = idRaw;
       if (labEl) labEl.value = label;
       if (durEl && durationSec) durEl.value = String(durationSec);
@@ -465,12 +532,14 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
         const title = await fetchYouTubeTitle(id);
         if (title) label = title.slice(0, 40);
       }
-      const res = await saveAdminAdVideo(String(opts.playerId || ""), {
+      const res = await saveMediaCatalogVideo(String(opts.playerId || ""), {
         id,
         label: label || id, // title may fill below
         durationSec,
         maxDisplayHours,
         active,
+        claimOnce,
+        showChannel,
         sortOrder: editing?.sortOrder ?? videos.length,
       });
       busy = false;
@@ -480,9 +549,14 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
         render();
         return;
       }
-      videos = res.videos;
-      editId = "";
-      flash = `保存しました · ${id}`;
+      videos = res.videos.map((v) => ({
+        ...v,
+        showChannel: isFlagOn(v.showChannel),
+        claimOnce: isFlagOn(v.claimOnce),
+      }));
+      editId = id;
+      formShowCh = showChannel;
+      flash = `保存しました · チャンネル ${showChannel ? "出す" : "出さない"}`;
       opts.sfxOk?.();
       render();
     });
@@ -490,7 +564,11 @@ export function openAdAdminDialog(opts: AdAdminDialogOpts): void {
     list.querySelectorAll("[data-edit]").forEach((btn) => {
       btn.addEventListener("click", () => {
         editId = (btn as HTMLElement).getAttribute("data-edit") || "";
-        flash = "";
+        const row = videos.find((v) => v.id === editId);
+        formShowCh = isFlagOn(row?.showChannel);
+        flash = editId
+          ? `編集 · チャンネル ${formShowCh ? "出す" : "出さない"}`
+          : "";
         opts.sfxUi?.();
         render();
       });

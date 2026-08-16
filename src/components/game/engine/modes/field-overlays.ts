@@ -38,21 +38,40 @@ export function stageBannerOverlay(
   if (!ban) return null;
   const cx = fieldW / 2;
   if (ban.kind === "ready") {
+    const biomes = [
+      "GRASSLAND",
+      "DESERT",
+      "COAST",
+      "GRID CITY",
+      "TUNDRA",
+      "MAGMA",
+      "NEON CORE",
+      "VOID EDGE",
+    ] as const;
+    const bi = (((Math.max(1, ban.stage | 0) - 1) % 64) >> 3) as number;
     return {
       rects: [],
       texts: [
         {
           text: `STAGE ${ban.stage}`,
           x: cx,
-          y: fieldH / 2 - 10,
+          y: fieldH / 2 - 18,
           color: "#00ffaa",
           size: 16,
           align: "center",
         },
         {
+          text: biomes[bi] ?? "FIELD",
+          x: cx,
+          y: fieldH / 2 + 2,
+          color: "#88ccaa",
+          size: 8,
+          align: "center",
+        },
+        {
           text: "GET READY",
           x: cx,
-          y: 212,
+          y: 220,
           color: "#ffffff",
           size: 10,
           align: "center",

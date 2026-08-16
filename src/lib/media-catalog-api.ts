@@ -7,7 +7,7 @@ import {
   loadCachedAdVideos,
   setAdWatchVideos,
   type AdVideo,
-} from "@/components/game/engine/modes/ad-watch";
+} from "@/components/game/engine/modes/media-watch";
 
 export type AdminAdViewer = {
   playerId: string;
@@ -28,16 +28,20 @@ export type AdminAdVideo = AdVideo & {
   ownerPlayerId?: string;
   ownerDisplayName?: string;
   ownerKind?: "platform" | "advertiser";
+  claimOnce?: boolean;
+  showChannel?: boolean;
+  channelUrl?: string;
+  channelName?: string;
   viewers?: AdminAdViewer[];
   viewerCount?: number;
 };
 
-export async function fetchAdVideos(): Promise<{
+export async function fetchMediaCatalog(): Promise<{
   ok: boolean;
   videos: AdVideo[];
 }> {
   try {
-    const res = await fetch("/api/share/ad-videos", {
+    const res = await fetch("/api/share/media-catalog", {
       credentials: "same-origin",
     });
     const data = (await res.json().catch(() => ({}))) as {
@@ -63,7 +67,7 @@ export async function fetchAdminAdVideos(playerId: string): Promise<{
 }> {
   try {
     const res = await fetch(
-      `/api/share/ad-videos?admin=1&playerId=${encodeURIComponent(playerId)}`,
+      `/api/share/media-catalog?admin=1&playerId=${encodeURIComponent(playerId)}`,
       { credentials: "same-origin" },
     );
     const data = (await res.json().catch(() => ({}))) as {
@@ -80,7 +84,7 @@ export async function fetchAdminAdVideos(playerId: string): Promise<{
   }
 }
 
-export async function saveAdminAdVideo(
+export async function saveMediaCatalogVideo(
   playerId: string,
   video: {
     id: string;
@@ -89,10 +93,14 @@ export async function saveAdminAdVideo(
     maxDisplayHours: number;
     active: boolean;
     sortOrder?: number;
+    claimOnce?: boolean;
+    showChannel?: boolean;
+    channelUrl?: string;
+    channelName?: string;
   },
 ): Promise<{ ok: boolean; videos: AdminAdVideo[]; reason?: string }> {
   try {
-    const res = await fetch("/api/share/ad-videos", {
+    const res = await fetch("/api/share/media-catalog", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
@@ -115,6 +123,10 @@ export async function saveAdminAdVideo(
           id: v.id,
           label: v.label,
           durationSec: v.durationSec,
+          showChannel: v.showChannel,
+          channelUrl: v.channelUrl,
+          channelName: v.channelName,
+          claimOnce: v.claimOnce,
         })),
     );
     return { ok: true, videos };
@@ -128,7 +140,7 @@ export async function deleteAdminAdVideo(
   videoId: string,
 ): Promise<{ ok: boolean; videos: AdminAdVideo[]; reason?: string }> {
   try {
-    const res = await fetch("/api/share/ad-videos", {
+    const res = await fetch("/api/share/media-catalog", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
@@ -150,6 +162,10 @@ export async function deleteAdminAdVideo(
           id: v.id,
           label: v.label,
           durationSec: v.durationSec,
+          showChannel: v.showChannel,
+          channelUrl: v.channelUrl,
+          channelName: v.channelName,
+          claimOnce: v.claimOnce,
         })),
     );
     return { ok: true, videos };
@@ -158,7 +174,7 @@ export async function deleteAdminAdVideo(
   }
 }
 
-/** @deprecated text config API — use saveAdminAdVideo */
+/** @deprecated text config API — use saveMediaCatalogVideo */
 export async function saveAdVideosConfig(
   playerId: string,
   configText: string,
@@ -197,7 +213,7 @@ export async function saveAdVideosConfig(
     });
   }
   try {
-    const res = await fetch("/api/share/ad-videos", {
+    const res = await fetch("/api/share/media-catalog", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",

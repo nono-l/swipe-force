@@ -4,7 +4,7 @@
  * Title via oEmbed (server proxy + noembed fallback).
  */
 
-import { parseYouTubeVideoId } from "@/components/game/engine/modes/ad-watch";
+import { parseYouTubeVideoId } from "@/components/game/engine/modes/media-watch";
 
 type YtPlayer = {
   getDuration: () => number;

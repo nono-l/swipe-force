@@ -9,6 +9,8 @@
  * - Real-time cap: 4 coins / rolling hour
  */
 
+import { t } from "@/lib/i18n";
+
 export const AD_WATCH_MAX_SEC = 60;
 export const AD_WATCH_FLOOR_SEC = 10;
 export const AD_WATCH_LONG_START_SEC = 5 * 60;
@@ -33,6 +35,12 @@ export type AdVideo = {
   /** Advertiser-owned (credit-consuming) ads get much higher show priority */
   paid?: boolean;
   ownerPlayerId?: string;
+  /** true = 一人1回（はしごのみ）。false = 同じ動画から何度でも */
+  claimOnce?: boolean;
+  /** CLEAR画面にチャンネルリンクを出す（デフォルトOFF） */
+  showChannel?: boolean;
+  channelUrl?: string;
+  channelName?: string;
 };
 
 export type WatchMilestone = {
@@ -68,10 +76,24 @@ function sanitizeVideo(v: Partial<AdVideo> | null | undefined): AdVideo | null {
     if (Number.isFinite(p)) createdAtMs = p;
   }
   const ownerPlayerId = String(v?.ownerPlayerId || "").slice(0, 32);
+  const extra = v as {
+    paid?: unknown;
+    claimOnce?: unknown;
+    showChannel?: unknown;
+    channelUrl?: unknown;
+    channelName?: unknown;
+  };
   const paid =
-    v?.paid === true ||
-    v?.paid === 1 ||
+    extra.paid === true ||
+    extra.paid === 1 ||
+    extra.paid === "1" ||
     (!!ownerPlayerId && ownerPlayerId.length >= 4);
+  const showChannel =
+    extra.showChannel === true ||
+    extra.showChannel === 1 ||
+    extra.showChannel === "1";
+  const channelUrl = String(extra.channelUrl || "").trim().slice(0, 240);
+  const channelName = String(extra.channelName || "").trim().slice(0, 80);
   return {
     id,
     label,
@@ -81,6 +103,10 @@ function sanitizeVideo(v: Partial<AdVideo> | null | undefined): AdVideo | null {
     createdAtMs: createdAtMs || undefined,
     paid,
     ownerPlayerId: ownerPlayerId || undefined,
+    claimOnce: extra.claimOnce === true || extra.claimOnce === 1 || extra.claimOnce === "1",
+    showChannel: showChannel && !!channelUrl,
+    channelUrl: showChannel ? channelUrl || undefined : undefined,
+    channelName: showChannel ? channelName || undefined : undefined,
   };
 }
 
@@ -227,7 +253,34 @@ export function maxCoinsForVideo(durationSec: number): number {
   return watchMilestoneDefs(durationSec).reduce((s, m) => s + m.reward, 0);
 }
 
-/** Unclaimed coins remaining on this video's ladder. */
+/** Next +1 after this hour's ladder is done (same video, repeat). */
+export function nextRepeatAt(
+  durationSec: number,
+  claimedAts: ReadonlySet<number>,
+): number {
+  const defs = watchMilestoneDefs(durationSec);
+  const first = defs[0]?.at || AD_WATCH_MAX_SEC;
+  let last = defs[defs.length - 1]?.at || first;
+  for (const at of claimedAts) {
+    if (at > last) last = at;
+  }
+  return last + first;
+}
+
+export function nextPayableDef(
+  durationSec: number,
+  claimedAts: ReadonlySet<number>,
+  opts?: { once?: boolean },
+): WatchMilestone | null {
+  const defs = watchMilestoneDefs(durationSec);
+  for (const m of defs) {
+    if (!claimedAts.has(m.at)) return m;
+  }
+  if (opts?.once) return null;
+  const at = nextRepeatAt(durationSec, claimedAts);
+  return { at, reward: 1, label: `+1@${formatSec(at)}` };
+}
+
 export function unclaimedCoinsForVideo(
   durationSec: number,
   claimedAts: ReadonlySet<number>,
@@ -244,7 +297,7 @@ export function unclaimedCoinsForVideo(
 export function fullWatchRewardLabel(durationSec: number): string {
   const n = maxCoinsForVideo(durationSec);
   if (n <= 0) return "この動画ではコインは貰えません";
-  return `この動画を最後まで見ると コンティニューコイン${n}枚貰えます`;
+  return t("watch.fullWatch", { n });
 }
 
 export function watchMilestones(durationSec: number): number[] {
@@ -435,10 +488,37 @@ export function pickAdVideoBiased(seed = Date.now()): AdVideo | null {
   return ranked[0]!.v;
 }
 
-export function youtubeEmbedUrl(videoId: string): string {
+/** Desktop (mouse + hover) can autoplay with sound after a click. Mobile needs mute. */
+export function preferUnmutedAdAutoplay(): boolean {
+  if (typeof window === "undefined" || typeof navigator === "undefined") {
+    return false;
+  }
+  const ua = navigator.userAgent || "";
+  if (/iPhone|iPad|iPod|Android/i.test(ua)) return false;
+  if (/Macintosh/i.test(ua) && (navigator.maxTouchPoints || 0) > 1) {
+    return false;
+  }
+  const coarse = window.matchMedia?.("(pointer: coarse)")?.matches;
+  const fineHover = window.matchMedia?.(
+    "(hover: hover) and (pointer: fine)",
+  )?.matches;
+  if (coarse && !fineHover) return false;
+  return true;
+}
+
+export function youtubeEmbedUrl(
+  videoId: string,
+  opts?: { mute?: boolean; autoplay?: boolean },
+): string {
   const id = parseYouTubeVideoId(videoId);
+  const muted = !!opts?.mute;
+  // Muted start: autoplay is reliable. Unmuted: only request autoplay where
+  // the browser will allow sound (desktop / saved unmuted default).
+  const autoplay =
+    opts?.autoplay != null ? !!opts.autoplay : muted || preferUnmutedAdAutoplay();
   const params = new URLSearchParams({
-    autoplay: "1",
+    autoplay: autoplay ? "1" : "0",
+    mute: muted ? "1" : "0",
     controls: "0",
     disablekb: "1",
     fs: "0",
@@ -450,7 +530,7 @@ export function youtubeEmbedUrl(videoId: string): string {
     enablejsapi: "1",
     origin: typeof window !== "undefined" ? window.location.origin : "",
   });
-  return `https://www.youtube-nocookie.com/embed/${id}?${params.toString()}`;
+  return `https://www.youtube.com/embed/${id}?${params.toString()}`;
 }
 
 export function adWatchRemaining(

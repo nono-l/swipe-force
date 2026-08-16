@@ -4,7 +4,7 @@ import { GROK_PROVIDERS, authEnabled, signIn } from "@/lib/auth/client";
 export const Route = createFileRoute("/login")({ component: Login });
 
 function Login() {
-  // Support ?next=/advertiser for post-link return
+  // Support ?next=/partner for post-link return
   const next =
     typeof window !== "undefined"
       ? new URLSearchParams(window.location.search).get("next") || "/"

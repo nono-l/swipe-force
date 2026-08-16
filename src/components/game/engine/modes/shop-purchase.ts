@@ -86,7 +86,9 @@ export function applyShopPurchase(
       ? ` 在庫${(input.bagStock || 0) + 1}`
       : "";
   const message =
-    input.difficulty === "easy" && !input.item.consumable
+    input.difficulty === "tutorial"
+      ? `${input.item.name} GET! (TUTORIAL)`
+      : input.difficulty === "easy" && !input.item.consumable
       ? `${input.item.name} GET! (EASY引継ぎ)`
       : `${input.item.name} GET!${stockNote}`;
 

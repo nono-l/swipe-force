@@ -7,6 +7,10 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { getSql } from "@/lib/db";
+import {
+  resolveYoutubeChannel,
+  sanitizeYoutubeChannelUrl,
+} from "@/lib/youtube-channel";
 
 const SUPER_ADMIN_PLAYER_ID = "uzwdbubkeggsdico0kgho";
 
@@ -104,6 +108,10 @@ export type AdVideoRow = {
   ownerPlayerId: string;
   ownerDisplayName: string;
   ownerKind: "platform" | "advertiser";
+  claimOnce?: boolean;
+  showChannel?: boolean;
+  channelUrl?: string;
+  channelName?: string;
   viewers?: AdVideoViewer[];
   viewerCount?: number;
 };
@@ -125,6 +133,34 @@ async function ensure(sql: Awaited<ReturnType<typeof getSql>>) {
   try {
     await sql.query(
       `ALTER TABLE ad_videos ADD COLUMN IF NOT EXISTS owner_player_id TEXT NOT NULL DEFAULT ''`,
+    );
+  } catch {
+    /* */
+  }
+  try {
+    await sql.query(
+      `ALTER TABLE ad_videos ADD COLUMN IF NOT EXISTS claim_once INTEGER NOT NULL DEFAULT 0`,
+    );
+  } catch {
+    /* */
+  }
+  try {
+    await sql.query(
+      `ALTER TABLE ad_videos ADD COLUMN IF NOT EXISTS show_channel INTEGER NOT NULL DEFAULT 0`,
+    );
+  } catch {
+    /* */
+  }
+  try {
+    await sql.query(
+      `ALTER TABLE ad_videos ADD COLUMN IF NOT EXISTS channel_url TEXT NOT NULL DEFAULT ''`,
+    );
+  } catch {
+    /* */
+  }
+  try {
+    await sql.query(
+      `ALTER TABLE ad_videos ADD COLUMN IF NOT EXISTS channel_name TEXT NOT NULL DEFAULT ''`,
     );
   } catch {
     /* */
@@ -265,6 +301,10 @@ async function listVideos(
     created_at: string | null;
     owner_player_id: string | null;
     owner_display_name: string | null;
+    claim_once: number | null;
+    show_channel: number | null;
+    channel_url: string | null;
+    channel_name: string | null;
     total_watch_sec: number | null;
     total_claims: number | null;
   }>(
@@ -272,6 +312,10 @@ async function listVideos(
             COALESCE(v.created_at, '') AS created_at,
             COALESCE(v.owner_player_id, '') AS owner_player_id,
             COALESCE(op.display_name, '') AS owner_display_name,
+            COALESCE(v.claim_once, 0) AS claim_once,
+            COALESCE(v.show_channel, 0) AS show_channel,
+            COALESCE(v.channel_url, '') AS channel_url,
+            COALESCE(v.channel_name, '') AS channel_name,
             COALESCE(s.total_watch_sec, 0) AS total_watch_sec,
             COALESCE(s.total_claims, 0) AS total_claims
      FROM ad_videos v
@@ -335,7 +379,7 @@ async function listVideos(
         viewersByVideo.set(k, list.slice(0, 200));
       }
     } catch (e) {
-      console.warn("[ad-videos] viewers query", e);
+      console.warn("[media-catalog] viewers query", e);
       viewersByVideo = new Map();
     }
   }
@@ -371,6 +415,10 @@ async function listVideos(
       ownerPlayerId,
       ownerDisplayName,
       ownerKind: ownerPlayerId ? "advertiser" : "platform",
+      claimOnce: Number(r.claim_once) !== 0,
+      showChannel: Number(r.show_channel) !== 0,
+      channelUrl: String(r.channel_url || "").slice(0, 240),
+      channelName: String(r.channel_name || "").slice(0, 80),
       viewers,
       viewerCount: viewers ? viewers.length : undefined,
     };
@@ -384,6 +432,10 @@ function sanitizeInput(v: Record<string, unknown>): {
   maxDisplayHours: number;
   active: boolean;
   sortOrder: number;
+  claimOnce: boolean;
+  showChannel: boolean;
+  channelUrl: string;
+  channelName: string;
 } | null {
   const id = normalizeVideoId(v.id ?? v.videoId);
   if (id.length < 6) return null;
@@ -401,6 +453,12 @@ function sanitizeInput(v: Record<string, unknown>): {
     active:
       v.active === false || v.active === 0 || v.active === "0" ? false : true,
     sortOrder: Math.max(0, Math.floor(Number(v.sortOrder) || 0)),
+    claimOnce:
+      v.claimOnce === true || v.claimOnce === 1 || v.claimOnce === "1",
+    showChannel:
+      v.showChannel === true || v.showChannel === 1 || v.showChannel === "1",
+    channelUrl: sanitizeYoutubeChannelUrl(v.channelUrl),
+    channelName: String(v.channelName || "").trim().slice(0, 80),
   };
 }
 
@@ -430,7 +488,7 @@ async function advertiserCreditMap(
   return map;
 }
 
-export const Route = createFileRoute("/api/share/ad-videos")({
+export const Route = createFileRoute("/api/share/media-catalog")({
   server: {
     handlers: {
       GET: async ({ request }) => {
@@ -480,6 +538,10 @@ export const Route = createFileRoute("/api/share/ad-videos")({
               createdAtMs: v.createdAt ? Date.parse(v.createdAt) || 0 : 0,
               paid: v.ownerKind === "advertiser" && !!v.ownerPlayerId,
               ownerPlayerId: v.ownerPlayerId || undefined,
+              claimOnce: !!v.claimOnce,
+              showChannel: !!v.showChannel,
+              channelUrl: v.showChannel ? v.channelUrl || "" : "",
+              channelName: v.showChannel ? v.channelName || "" : "",
             })),
             pickHint: "paid_first_then_new_or_short",
             count: videos.length,
@@ -544,10 +606,17 @@ export const Route = createFileRoute("/api/share/ad-videos")({
             for (const raw of body.videos) {
               const v = sanitizeInput(raw || {});
               if (!v) continue;
+              if (v.showChannel && !v.channelUrl) {
+                const ch = await resolveYoutubeChannel(v.id);
+                if (ch) {
+                  v.channelUrl = ch.url;
+                  v.channelName = v.channelName || ch.name;
+                }
+              }
               await sql.query(
                 `INSERT INTO ad_videos
-                   (video_id, label, duration_sec, max_display_hours, active, sort_order, created_at, updated_at)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$7)`,
+                   (video_id, label, duration_sec, max_display_hours, active, sort_order, created_at, updated_at, claim_once, show_channel, channel_url, channel_name)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$7,$8,$9,$10,$11)`,
                 [
                   v.id,
                   v.label,
@@ -556,6 +625,10 @@ export const Route = createFileRoute("/api/share/ad-videos")({
                   v.active ? 1 : 0,
                   v.sortOrder || order,
                   now,
+                  v.claimOnce ? 1 : 0,
+                  v.showChannel ? 1 : 0,
+                  v.showChannel ? v.channelUrl : "",
+                  v.showChannel ? v.channelName : "",
                 ],
               );
               order += 1;
@@ -574,17 +647,28 @@ export const Route = createFileRoute("/api/share/ad-videos")({
               { status: 400 },
             );
           }
+          if (v.showChannel && !v.channelUrl) {
+            const ch = await resolveYoutubeChannel(v.id);
+            if (ch) {
+              v.channelUrl = ch.url;
+              v.channelName = v.channelName || ch.name;
+            }
+          }
           await sql.query(
             `INSERT INTO ad_videos
-               (video_id, label, duration_sec, max_display_hours, active, sort_order, created_at, updated_at)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$7)
+               (video_id, label, duration_sec, max_display_hours, active, sort_order, created_at, updated_at, claim_once, show_channel, channel_url, channel_name)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$7,$8,$9,$10,$11)
              ON CONFLICT (video_id) DO UPDATE SET
                label = EXCLUDED.label,
                duration_sec = EXCLUDED.duration_sec,
                max_display_hours = EXCLUDED.max_display_hours,
                active = EXCLUDED.active,
                sort_order = EXCLUDED.sort_order,
-               updated_at = EXCLUDED.updated_at`,
+               updated_at = EXCLUDED.updated_at,
+               claim_once = EXCLUDED.claim_once,
+               show_channel = EXCLUDED.show_channel,
+               channel_url = EXCLUDED.channel_url,
+               channel_name = EXCLUDED.channel_name`,
             [
               v.id,
               v.label,
@@ -593,6 +677,10 @@ export const Route = createFileRoute("/api/share/ad-videos")({
               v.active ? 1 : 0,
               v.sortOrder,
               now,
+              v.claimOnce ? 1 : 0,
+              v.showChannel ? 1 : 0,
+              v.showChannel ? v.channelUrl : "",
+              v.showChannel ? v.channelName : "",
             ],
           );
           const videos = await listVideos(sql, {
@@ -607,7 +695,7 @@ export const Route = createFileRoute("/api/share/ad-videos")({
           });
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
-          console.error("[ad-videos]", msg);
+          console.error("[media-catalog]", msg);
           return Response.json(
             { ok: false, reason: "db", error: msg },
             { status: 500 },

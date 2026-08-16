@@ -3,6 +3,8 @@
  * Drawing / network stay in recovered-game.
  */
 
+import { t } from "@/lib/i18n";
+
 export type SoundTestMode = "title" | "stage" | "boss" | "legacy" | "archive" | string;
 
 export type SoundTestLabels = {
@@ -98,10 +100,10 @@ export function buildTrackCard(opts: {
 
 export function commentKindLabel(
   kind: string | undefined,
-): "アレンジ" | "演奏してみた" | "感想" {
-  if (kind === "arrange") return "アレンジ";
-  if (kind === "cover") return "演奏してみた";
-  return "感想";
+): string {
+  if (kind === "arrange") return t("sound.kindArrange");
+  if (kind === "cover") return t("sound.kindCover");
+  return t("sound.kindNote");
 }
 
 export function commentKindEmoji(kind: string | undefined): string {
@@ -112,10 +114,10 @@ export function commentKindEmoji(kind: string | undefined): string {
 
 /** Menu rows for sound-test root list */
 export const SOUND_TEST_MENU = [
-  { id: "title" as const, title: "♪ TITLE", sub: "タイトル曲" },
-  { id: "stage" as const, title: "♪ STAGE 01-64", sub: "ステージBGM" },
-  { id: "boss" as const, title: "♪ BOSS 01-64", sub: "ボス曲（物語）" },
-  { id: "legacy" as const, title: "♪ LEGACY BOSS", sub: "旧ボス曲チップ" },
-  { id: "archive" as const, title: "♪ ARCHIVES", sub: "入れ替え前の旧曲" },
-  { id: "back" as const, title: "◀ BACK", sub: "タイトルへ" },
+  { id: "title" as const, title: "♪ TITLE", sub: "title theme" },
+  { id: "stage" as const, title: "♪ STAGE 01-64", sub: "stage BGM" },
+  { id: "boss" as const, title: "♪ BOSS 01-64", sub: "boss themes" },
+  { id: "legacy" as const, title: "♪ LEGACY BOSS", sub: "legacy chiptune" },
+  { id: "archive" as const, title: "♪ ARCHIVES", sub: "pre-swap backups" },
+  { id: "back" as const, title: "◀ BACK", sub: "back" },
 ];

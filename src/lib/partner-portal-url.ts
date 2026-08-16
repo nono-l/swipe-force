@@ -1,21 +1,21 @@
-/** Canonical advertiser portal URL helpers */
+/** Canonical partner portal URL helpers */
 
-export function advertiserPortalPath(): string {
-  return "/advertiser";
+export function partnerPortalPath(): string {
+  return "/partner";
 }
 
-export function advertiserPortalUrl(): string {
+export function partnerPortalUrl(): string {
   if (typeof location !== "undefined" && location.origin) {
-    return `${location.origin}${advertiserPortalPath()}`;
+    return `${location.origin}${partnerPortalPath()}`;
   }
-  return advertiserPortalPath();
+  return partnerPortalPath();
 }
 
 /** Open portal in a new tab (fallback to same tab). Returns true if navigated. */
-export function openAdvertiserPortal(opts?: {
+export function openPartnerPortal(opts?: {
   sameTab?: boolean;
 }): boolean {
-  const url = advertiserPortalUrl();
+  const url = partnerPortalUrl();
   try {
     if (opts?.sameTab) {
       window.location.assign(url);

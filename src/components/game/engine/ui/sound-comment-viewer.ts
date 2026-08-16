@@ -5,6 +5,7 @@
  */
 import { commentKindLabel } from "../modes/sound-test-meta";
 import { recordUrlVisit, fetchUrlReports, hasVisitedUrl, postUrlReport, URL_REPORT_TYPES } from "../meta/sound_social";
+import { t as i18n } from "@/lib/i18n";
 
 export type SoundComment = {
   id?: string;
@@ -36,7 +37,7 @@ export function openSoundCommentViewer(e: SoundComment, opts: SoundCommentViewer
             i.style.cssText = `width:min(390px,96vw);background:linear-gradient(180deg,#0c1c16,#081410);border:2px solid #44ffaa;border-radius:12px;padding:14px;color:#dff;margin:auto;box-shadow:0 12px 40px rgba(0,0,0,.55)`;
             let a = opts.trackCard,
                 o = document.createElement(`div`);
-            o.style.cssText = `background:#041810;border:1px solid #3a6;border-radius:8px;padding:8px 10px;margin-bottom:10px`, o.innerHTML = `<div style="font-size:10px;color:#8fd;font-weight:700">対象トラック</div>
+            o.style.cssText = `background:#041810;border:1px solid #3a6;border-radius:8px;padding:8px 10px;margin-bottom:10px`, o.innerHTML = `<div style="font-size:10px;color:#8fd;font-weight:700">${i18n("comment.target")}</div>
         <div style="font-size:11px;color:#fc8">${a.cat}${opts.mode === `title`?``:` `+String(opts.modeIndex).padStart(2,`0`)} · ${a.key}</div>
         <div style="font-size:13px;color:#ffe;font-weight:700;word-break:break-all">${a.title.replace(/[<>&]/g,``)}</div>`, i.appendChild(o);
             let s = document.createElement(`div`);
@@ -68,13 +69,13 @@ export function openSoundCommentViewer(e: SoundComment, opts: SoundCommentViewer
                             },
                             u = !!(a.visited || hasVisitedUrl(n, e)),
                             d = document.createElement(`div`);
-                        d.style.cssText = `font-size:13px;font-weight:800;color:#8ef;margin-bottom:4px`, d.textContent = `① クッション · 評価を見る`, o.appendChild(d);
+                        d.textContent = i18n("cushion.step1"), o.appendChild(d);
                         let f = document.createElement(`div`);
                         f.style.cssText = `font-size:10px;color:#fc8;background:#1a1208;border:1px solid #643;border-radius:6px;padding:6px 8px;margin-bottom:8px;word-break:break-all`, f.textContent = `曲: ${opts.trackCard.line}`, o.appendChild(f);
                         let p = document.createElement(`div`);
                         p.style.cssText = `font-size:11px;color:#8ab;margin-bottom:10px;word-break:break-all`, p.textContent = `リンク先: ${i}`, o.appendChild(p);
                         let m = document.createElement(`div`);
-                        m.style.cssText = `display:inline-block;padding:3px 8px;border-radius:999px;font-size:10px;margin-bottom:10px;border:1px solid ${u?`#4a6`:`#864`};background:${u?`#0f2a18`:`#2a1810`};color:${u?`#cfc`:`#fc8`}`, m.textContent = u ? `✓ 開封済み · 評価できます` : `未開封 · 飛んだ人だけ評価可`, o.appendChild(m);
+                        m.textContent = u ? i18n("cushion.opened") : i18n("cushion.locked"), o.appendChild(m);
                         let h = document.createElement(`div`);
                         h.style.cssText = `display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:12px;padding:10px;background:#061018;border-radius:10px;border:1px solid #234`;
                         let g = !1;
@@ -87,11 +88,11 @@ export function openSoundCommentViewer(e: SoundComment, opts: SoundCommentViewer
                         }
                         if (!g) {
                             let e = document.createElement(`span`);
-                            e.style.cssText = `font-size:11px;color:#678`, e.textContent = `まだ評価がありません`, h.appendChild(e)
+                            e.textContent = i18n("cushion.rateEmpty"), h.appendChild(e)
                         }
                         o.appendChild(h);
                         let _ = document.createElement(`div`);
-                        _.style.cssText = `font-size:11px;font-weight:700;color:#9bc;margin-bottom:6px`, _.textContent = `定型評価`, o.appendChild(_);
+                        _.textContent = i18n("cushion.canned"), o.appendChild(_);
                         let v = document.createElement(`div`);
                         v.style.cssText = `display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px`;
                         for (let i of URL_REPORT_TYPES) {
@@ -117,12 +118,12 @@ export function openSoundCommentViewer(e: SoundComment, opts: SoundCommentViewer
                         }
                         if (o.appendChild(v), !u) {
                             let e = document.createElement(`div`);
-                            e.style.cssText = `font-size:10px;color:#a86;margin-bottom:10px;line-height:1.4;padding:8px;background:#1a1008;border-radius:8px;border:1px solid #643`, e.textContent = `🔒 2段目のクッションから実際にリンクを開いた人だけが評価できます（スパム防止）`, o.appendChild(e)
+                            e.textContent = i18n("cushion.lockHint"), o.appendChild(e)
                         }
                         let bgmSetMaster = document.createElement(`div`);
                         bgmSetMaster.style.cssText = `display:flex;flex-direction:column;gap:8px;margin-top:6px`;
                         let y = document.createElement(`button`);
-                        y.type = `button`, y.textContent = `② 本当に開く（クッション2）→`, y.style.cssText = `padding:12px;border-radius:10px;border:1px solid #4af;background:linear-gradient(180deg,#1a4060,#102838);color:#dff;font-weight:800;font-size:13px;cursor:pointer`, y.onclick = () => {
+                        y.type = `button`, y.textContent = i18n("cushion.open2"), y.style.cssText = `padding:12px;border-radius:10px;border:1px solid #4af;background:linear-gradient(180deg,#1a4060,#102838);color:#dff;font-weight:800;font-size:13px;cursor:pointer`, y.onclick = () => {
                             opts.redraw(), l()
                         };
                         let bgmSetMuted = document.createElement(`button`);
@@ -131,9 +132,9 @@ export function openSoundCommentViewer(e: SoundComment, opts: SoundCommentViewer
                     l = () => {
                         o.innerHTML = ``;
                         let i = document.createElement(`div`);
-                        i.style.cssText = `font-size:13px;font-weight:800;color:#fc8;margin-bottom:6px`, i.textContent = `② クッション · 外部サイトへ`, o.appendChild(i);
+                        i.textContent = i18n("cushion.step2"), o.appendChild(i);
                         let a = document.createElement(`div`);
-                        a.style.cssText = `font-size:11px;line-height:1.5;color:#cba;background:#1a1208;border:1px solid #864;border-radius:8px;padding:10px;margin-bottom:10px`, a.textContent = `ここから先は外部サイトです。内容・安全は保証されません。問題のあるリンクは戻って評価してください。`, o.appendChild(a);
+                        a.textContent = i18n("cushion.warn"), o.appendChild(a);
                         let s = document.createElement(`div`);
                         s.style.cssText = `font-size:11px;word-break:break-all;color:#8cf;background:#061018;border-radius:8px;padding:10px;margin-bottom:12px;border:1px solid #246`, s.textContent = e, o.appendChild(s);
                         let l = document.createElement(`button`);
@@ -142,11 +143,11 @@ export function openSoundCommentViewer(e: SoundComment, opts: SoundCommentViewer
                                 if (!opts.linked) {
                                     opts.playError();
                                     let e = document.createElement(`div`);
-                                    e.textContent = `外部リンクを開くにはアカウント連携が必要です`, e.style.cssText = `font-size:11px;color:#fc8;margin:8px 0`, l.insertAdjacentElement(`beforebegin`, e);
+                                    e.textContent = i18n("cushion.needLink"), e.style.cssText = `font-size:11px;color:#fc8;margin:8px 0`, l.insertAdjacentElement(`beforebegin`, e);
                                     return
                                 }
                                 if (!await recordUrlVisit(n, e, opts.playerId)) {
-                                    opts.playError(), l.textContent = `連携してから開く`;
+                                    opts.playError(), l.textContent = i18n("cushion.openAfter");
                                     return
                                 }
                                 t[e] = {
@@ -159,7 +160,7 @@ export function openSoundCommentViewer(e: SoundComment, opts: SoundCommentViewer
                             })()
                         };
                         let u = document.createElement(`button`);
-                        u.type = `button`, u.textContent = `← 評価画面に戻る`, u.style.cssText = `width:100%;padding:10px;border-radius:10px;border:1px solid #456;background:#1a2428;color:#bcd;cursor:pointer`, u.onclick = () => {
+                        u.type = `button`, u.textContent = i18n("cushion.backRate"), u.style.cssText = `width:100%;padding:10px;border-radius:10px;border:1px solid #456;background:#1a2428;color:#bcd;cursor:pointer`, u.onclick = () => {
                             opts.redraw(), c()
                         }, o.appendChild(l), o.appendChild(u)
                     };
@@ -169,7 +170,7 @@ export function openSoundCommentViewer(e: SoundComment, opts: SoundCommentViewer
             }
             if (e.urls && e.urls.length) {
                 let t = document.createElement(`div`);
-                t.style.cssText = `font-size:11px;font-weight:700;color:#8fd;margin:4px 0 8px;letter-spacing:.04em`, t.textContent = `LINKS  ·  2段クッション経由`, i.appendChild(t);
+                t.textContent = i18n("cushion.links"), i.appendChild(t);
                 let r = document.createElement(`div`);
                 r.style.cssText = `display:flex;flex-direction:column;gap:10px`, i.appendChild(r);
                 let a = {},
@@ -193,12 +194,12 @@ export function openSoundCommentViewer(e: SoundComment, opts: SoundCommentViewer
                             }
                             if (!e) {
                                 let e = document.createElement(`span`);
-                                e.textContent = `評価なし`, e.style.cssText = `font-size:10px;color:#567`, i.appendChild(e)
+                                e.textContent = i18n("cushion.noRate"), e.style.cssText = `font-size:10px;color:#567`, i.appendChild(e)
                             }
                         }
                         if (o) {
                             let e = !!(r.visited || hasVisitedUrl(n, t));
-                            o.textContent = e ? `開封済` : `未開封`, o.style.background = e ? `#0f2a18` : `#2a1810`, o.style.color = e ? `#cfc` : `#fc8`, o.style.borderColor = e ? `#3a6` : `#864`
+                            o.textContent = e ? i18n("cushion.openedBadge") : i18n("cushion.unopened"), o.style.background = e ? `#0f2a18` : `#2a1810`, o.style.color = e ? `#cfc` : `#fc8`, o.style.borderColor = e ? `#3a6` : `#864`
                         }
                     };
                 for (let t = 0; t < e.urls.length; t++) {
@@ -220,9 +221,9 @@ export function openSoundCommentViewer(e: SoundComment, opts: SoundCommentViewer
                     let p = document.createElement(`div`);
                     p.className = `stc-chips`, p.style.cssText = `display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;min-height:18px`, u.appendChild(f), u.appendChild(p);
                     let m = document.createElement(`span`);
-                    m.className = `stc-lock`, m.style.cssText = `flex-shrink:0;padding:3px 7px;border-radius:999px;font-size:9px;border:1px solid #864;background:#2a1810;color:#fc8`, m.textContent = `未開封`, c.appendChild(l), c.appendChild(u), c.appendChild(m), s.appendChild(c);
+                    m.textContent = i18n("cushion.unopened"), c.appendChild(l), c.appendChild(u), c.appendChild(m), s.appendChild(c);
                     let h = document.createElement(`button`);
-                    h.type = `button`, h.textContent = `クッションを開く（評価 → 移動）`, h.style.cssText = `margin-top:8px;width:100%;padding:9px;border-radius:8px;border:1px solid #4af;background:#123040;color:#cef;font-size:11px;font-weight:700;cursor:pointer`, h.onclick = () => {
+                    h.type = `button`, h.textContent = i18n("cushion.openCushion"), h.style.cssText = `margin-top:8px;width:100%;padding:9px;border-radius:8px;border:1px solid #4af;background:#123040;color:#cef;font-size:11px;font-weight:700;cursor:pointer`, h.onclick = () => {
                         opts.redraw(), d(n, a, () => o(s, n))
                     }, s.appendChild(h), r.appendChild(s), o(s, n)
                 }

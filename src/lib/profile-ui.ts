@@ -15,12 +15,11 @@ import {
 import {
   URL_REPORT_LABELS,
   fetchUrlReports,
-  postUrlReport,
-  markUrlVisited,
   hasLocalUrlVisit,
   type UrlReportSummary,
-  type UrlReportId,
 } from "@/lib/sound-comments";
+import { t } from "@/lib/i18n";
+import { openUrlCushion } from "@/lib/url-cushion";
 import { buildStatusLines, formatPlayTime, readStats } from "@/lib/player-stats";
 
 function esc(s: string) {
@@ -35,127 +34,6 @@ function esc(s: string) {
     .replace(/>/g, gt)
     .replace(/"/g, quot)
     .replace(/'/g, apos);
-}
-
-function openUrlCushion(opts: {
-  trackKey: string;
-  url: string;
-  contextLabel: string;
-  reportState: Record<string, UrlReportSummary>;
-  playerId: string;
-  linked: boolean;
-  onNeedLink?: () => void;
-}) {
-  const { trackKey, url, contextLabel, reportState, playerId, linked } = opts;
-  let host = "link";
-  try {
-    host = new URL(url).hostname;
-  } catch {
-    /* */
-  }
-  const layer = document.createElement("div");
-  layer.style.cssText =
-    "position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:12px;font-family:system-ui,sans-serif";
-  const card = document.createElement("div");
-  card.style.cssText =
-    "width:min(360px,94vw);background:#0a1418;border:2px solid #6cf;border-radius:14px;padding:16px;color:#eef";
-  layer.appendChild(card);
-  document.body.appendChild(layer);
-  const close = () => layer.remove();
-
-  const step1 = () => {
-    card.innerHTML = "";
-    const sum = reportState[url] || {
-      counts: Object.fromEntries(URL_REPORT_LABELS.map((x) => [x.id, 0])),
-      mine: null,
-      visited: hasLocalUrlVisit(trackKey, url),
-    };
-    const visited = !!(sum.visited || hasLocalUrlVisit(trackKey, url));
-    card.innerHTML = `<div style="font-size:13px;font-weight:800;color:#8ef;margin-bottom:4px">① クッション · 評価</div>
-      <div style="font-size:10px;color:#fc8;background:#1a1208;border:1px solid #643;border-radius:6px;padding:6px;margin-bottom:8px">${esc(contextLabel)}</div>
-      <div style="font-size:11px;color:#8ab;margin-bottom:8px;word-break:break-all">リンク先: ${esc(host)}</div>
-      <div style="font-size:10px;margin-bottom:10px;color:${visited ? "#cfc" : "#fc8"}">${visited ? "✓ 開封済み" : "未開封 · 飛んだ人だけ評価可"}</div>
-      <div id="sf-cu-chips" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:10px;padding:8px;background:#061018;border-radius:8px"></div>
-      <div style="font-size:11px;font-weight:700;color:#9bc;margin-bottom:6px">定型評価</div>
-      <div id="sf-cu-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px"></div>
-      <button type="button" id="sf-cu-go" style="width:100%;padding:12px;border-radius:10px;border:1px solid #4af;background:#1a4060;color:#dff;font-weight:800;margin-bottom:8px">② 本当に開く →</button>
-      <button type="button" id="sf-cu-x" style="width:100%;padding:10px;border-radius:10px;border:1px solid #456;background:#1a2428;color:#bcd">閉じる</button>`;
-    const chips = card.querySelector("#sf-cu-chips")!;
-    let any = false;
-    for (const meta of URL_REPORT_LABELS) {
-      const n = sum.counts[meta.id] || 0;
-      if (!n) continue;
-      any = true;
-      const sp = document.createElement("span");
-      sp.textContent = `${meta.emoji} ${meta.label} ${n}`;
-      sp.style.cssText =
-        "padding:4px 8px;border-radius:999px;font-size:11px;border:1px solid #456;background:#0a1512";
-      chips.appendChild(sp);
-    }
-    if (!any) {
-      chips.textContent = "まだ評価がありません";
-      (chips as HTMLElement).style.color = "#678";
-      (chips as HTMLElement).style.fontSize = "11px";
-    }
-    const grid = card.querySelector("#sf-cu-grid")!;
-    for (const meta of URL_REPORT_LABELS) {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.disabled = !visited;
-      b.textContent = `${meta.emoji} ${meta.label}`;
-      b.style.cssText = `padding:10px;border-radius:8px;border:1px solid ${sum.mine === meta.id ? "#8f8" : "#456"};background:${visited ? "#122" : "#111"};color:${visited ? "#eef" : "#666"};cursor:${visited ? "pointer" : "not-allowed"};opacity:${visited ? 1 : 0.55}`;
-      b.onclick = () => {
-        if (!visited || !linked) {
-          opts.onNeedLink?.();
-          return;
-        }
-        void postUrlReport(trackKey, url, playerId, meta.id as UrlReportId).then(
-          (r) => {
-            if (r.ok) {
-              reportState[url] = r;
-              step1();
-            }
-          },
-        );
-      };
-      grid.appendChild(b);
-    }
-    card.querySelector("#sf-cu-go")!.addEventListener("click", () => step2());
-    card.querySelector("#sf-cu-x")!.addEventListener("click", close);
-  };
-
-  const step2 = () => {
-    card.innerHTML = `<div style="font-size:13px;font-weight:800;color:#fc8;margin-bottom:8px">② 外部サイトへ</div>
-      <div style="font-size:11px;color:#cba;background:#1a1208;border:1px solid #864;border-radius:8px;padding:10px;margin-bottom:10px">外部サイトです。安全は保証されません。</div>
-      <div style="font-size:11px;word-break:break-all;color:#8cf;background:#061018;border-radius:8px;padding:10px;margin-bottom:12px">${esc(url)}</div>
-      <button type="button" id="sf-cu-open" style="width:100%;padding:14px;border-radius:10px;border:1px solid #4f8;background:#1a6040;color:#fff;font-weight:800;margin-bottom:8px">サイトを開く</button>
-      <button type="button" id="sf-cu-back" style="width:100%;padding:10px;border-radius:10px;border:1px solid #456;background:#1a2428;color:#bcd">← 戻る</button>`;
-    card.querySelector("#sf-cu-open")!.addEventListener("click", () => {
-      void (async () => {
-        if (!linked) {
-          opts.onNeedLink?.();
-          return;
-        }
-        const ok = await markUrlVisited(trackKey, url, playerId);
-        if (!ok) return;
-        reportState[url] = {
-          ...(reportState[url] || {
-            counts: Object.fromEntries(URL_REPORT_LABELS.map((x) => [x.id, 0])),
-            mine: null,
-          }),
-          visited: true,
-        };
-        window.open(url, "_blank", "noopener,noreferrer");
-        step1();
-      })();
-    });
-    card.querySelector("#sf-cu-back")!.addEventListener("click", step1);
-  };
-
-  step1();
-  layer.addEventListener("click", (ev) => {
-    if (ev.target === layer) close();
-  });
 }
 
 export function fillLinkedBio(
@@ -255,18 +133,18 @@ export function openProfileDialog(opts: {
         <div style="font-size:14px;font-weight:700;color:#8ff">プロフィール</div>
         <button type="button" id="sf-pr-x" style="border:0;background:transparent;color:#9ab;font-size:18px;cursor:pointer">×</button>
       </div>
-      <div style="font-size:11px;color:#6a9;line-height:1.4;margin-bottom:10px">連携特典。サーバーに保存 · ドメインをまたいで同期。助けに来た相手に表示。</div>
-      <div id="sf-pr-sync" style="font-size:10px;color:#8a7;margin-bottom:8px">同期中…</div>
-      <label style="font-size:11px;color:#9ab">表示名（必須 · 16）</label>
+      <div style="font-size:11px;color:#6a9;line-height:1.4;margin-bottom:10px">${t("profile.lead")}</div>
+      <div id="sf-pr-sync" style="font-size:10px;color:#8a7;margin-bottom:8px">${t("profile.syncing")}</div>
+      <label style="font-size:11px;color:#9ab">${t("profile.name")}</label>
       <input id="sf-pr-name" maxlength="16" value="${esc(local.displayName)}" placeholder="パイロット名"
         style="width:100%;box-sizing:border-box;margin:4px 0 10px;padding:9px;border-radius:8px;border:1px solid #2a6;background:#001a10;color:#efe;font-size:14px" />
-      <label style="font-size:11px;color:#9ab">シェア文テンプレ（任意 · 40）</label>
-      <div style="font-size:10px;color:#678;margin:2px 0 4px">Xシェア本文に載る短い一文</div>
+      <label style="font-size:11px;color:#9ab">${t("profile.share")}</label>
+      <div style="font-size:10px;color:#678;margin:2px 0 4px">${t("profile.shareHint")}</div>
       <input id="sf-pr-share" maxlength="40" value="${esc(local.shareBlurb)}" placeholder="例: 4面ボス詰み助けて"
         style="width:100%;box-sizing:border-box;margin:0 0 4px;padding:9px;border-radius:8px;border:1px solid #2a6;background:#001a10;color:#efe" />
       <div id="sf-pr-sc" style="font-size:10px;color:#678;text-align:right;margin-bottom:10px">0 / 40</div>
-      <label style="font-size:11px;color:#9ab">自己紹介（任意 · 5000）</label>
-      <div style="font-size:10px;color:#678;margin:2px 0 4px">https URLは自動リンク · # & = クエリOK · クッション経由</div>
+      <label style="font-size:11px;color:#9ab">${t("profile.bio")}</label>
+      <div style="font-size:10px;color:#678;margin:2px 0 4px">${t("profile.bioHint")}</div>
       <textarea id="sf-pr-bio" maxlength="5000" rows="6" placeholder="例: 関東勢です&#10;https://x.com/you?s=20&t=abc#hi"
         style="width:100%;box-sizing:border-box;margin:4px 0 6px;padding:9px;border-radius:8px;border:1px solid #2a6;background:#001a10;color:#efe;resize:vertical;min-height:90px">${esc(local.bio)}</textarea>
       <div id="sf-pr-bc" style="font-size:10px;color:#678;text-align:right;margin-bottom:8px">0 / 5000</div>

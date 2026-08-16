@@ -2,6 +2,8 @@
  * Power shop chrome: header chips, footer buttons, tier banner (pure).
  */
 
+import { t } from "@/lib/i18n";
+
 export type ShopChip = {
   x: number;
   y: number;
@@ -174,13 +176,13 @@ export function shopTierHint(opts: {
 }): { text: string; color: string } {
   let text: string;
   if (!opts.tier2) {
-    text = "基本強化を全MAX → TIER2兵器解放";
+    text = t("shop.t1");
   } else if (!opts.tier3) {
-    text = "上級兵器を全MAX → TIER3解放";
+    text = t("shop.t2");
   } else if (opts.linked) {
-    text = "最終強化解放済み · OPT/FLAME可";
+    text = t("shop.t3linked");
   } else {
-    text = "最終強化解放済み · 連携/プロモでOPT/FLAME";
+    text = t("shop.t3guest");
   }
   const color =
     opts.celebrate && opts.frame % 10 < 5 ? "#ff66ff" : "#66aa66";
@@ -192,9 +194,10 @@ export function shopStatusLine(opts: {
   tier: number;
   difficulty: string;
 }): { text: string; color: string } {
+  const tut = opts.difficulty === "tutorial";
   const esy = opts.difficulty !== "normal";
   return {
-    text: `PTS ${opts.pts}  ·  T${opts.tier}  ·  ${esy ? "ESY SAVE" : "NRM"}`,
-    color: esy ? "#ffff66" : "#ffaa66",
+    text: `PTS ${opts.pts}  ·  T${opts.tier}  ·  ${tut ? "TUT FREE" : esy ? "ESY SAVE" : "NRM"}`,
+    color: tut ? "#88ffee" : esy ? "#ffff66" : "#ffaa66",
   };
 }

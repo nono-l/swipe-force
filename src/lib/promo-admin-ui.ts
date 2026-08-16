@@ -22,6 +22,7 @@ import {
   SUPER_ADMIN_PLAYER_ID,
   type StaffEntry,
 } from "@/components/game/engine/modes/admin";
+import { t, onLocaleChange } from "@/lib/i18n";
 import {
   deleteAdminPromo,
   fetchAdminPromos,
@@ -34,8 +35,8 @@ import {
   isPromoExpired,
   isPromoSoldOut,
 } from "@/lib/promo-server";
-import { openAdAdminDialog } from "@/lib/ad-admin-ui";
-import { advertiserPortalUrl, openAdvertiserPortal } from "@/lib/ad-portal-url";
+import { openMediaAdminDialog } from "@/lib/media-admin-ui";
+import { partnerPortalUrl, openPartnerPortal } from "@/lib/partner-portal-url";
 
 function esc(s: string) {
   const amp = ["&", "a", "m", "p", ";"].join("");
@@ -133,7 +134,7 @@ export function openPromoAdminDialog(opts: {
     let editCode = "";
     let flash = "";
     let staff: StaffEntry[] = [
-      { playerId: SUPER_ADMIN_PLAYER_ID, label: "固定管理者", fixed: true },
+      { playerId: SUPER_ADMIN_PLAYER_ID, label: t("admin.fixedAdmin"), fixed: true },
     ];
     let staffBusy = false;
     let promoBusy = false;
@@ -260,8 +261,8 @@ export function openPromoAdminDialog(opts: {
       } else {
         flash =
           res.reason === "auth" || res.reason === "forbidden"
-            ? "管理者ログインが必要です（DB未接続の可能性）"
-            : `プロモ読込失敗: ${res.reason || "error"}`;
+            ? t("admin.needLogin")
+            : t("admin.loadFail", { r: res.reason || "error" });
       }
     }
 
@@ -271,17 +272,17 @@ export function openPromoAdminDialog(opts: {
       return `
       ${flash ? `<div style="font-size:11px;margin-bottom:8px;padding:8px;border-radius:8px;background:#1a2010;border:1px solid #664;color:#fec">${esc(flash)}</div>` : ""}
       <div style="font-size:10px;color:#8a7;margin-bottom:8px;line-height:1.4">
-        カスタムコードは<strong style="color:#fc8">サーバーDB</strong>に保存。受取はプレイヤー×コードで1回。<br/>
-        総使用回数 <strong style="color:#8ef">${totalClaims}</strong>
-        ${promoLoaded ? "" : " · 読み込み中…"}
-        ${promoBusy ? " · 通信中…" : ""}
+        ${t("admin.lead")}<br/>
+        ${t("admin.uses", { n: totalClaims })}
+        ${promoLoaded ? "" : ` · ${t("admin.loading")}`}
+        ${promoBusy ? ` · ${t("admin.busy")}` : ""}
       </div>
       <div style="background:#0a141c;border:1px solid #345;border-radius:10px;padding:10px;margin-bottom:12px">
-        <div style="font-size:11px;font-weight:700;color:#9cf;margin-bottom:8px">${editCode ? `編集: ${esc(editCode)}` : "新規コード"}</div>
-        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">コード (A-Z0-9)</label>
+        <div style="font-size:11px;font-weight:700;color:#9cf;margin-bottom:8px">${editCode ? t("admin.editCode", { code: esc(editCode) }) : t("admin.newCode")}</div>
+        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">${t("admin.code")}</label>
         <input id="sf-pa-code" maxlength="24" placeholder="SUMMER2026" style="${inputStyle("margin-bottom:8px;text-transform:uppercase")}" />
-        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">表示名</label>
-        <input id="sf-pa-label" maxlength="40" placeholder="夏キャンペーン" style="${inputStyle("margin-bottom:8px")}" />
+        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">${t("admin.label")}</label>
+        <input id="sf-pa-label" maxlength="40" placeholder="${t("admin.labelPh")}" style="${inputStyle("margin-bottom:8px")}" />
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
           <div>
             <label style="font-size:10px;color:#8ab">TICKET</label>
@@ -301,34 +302,34 @@ export function openPromoAdminDialog(opts: {
           </div>
         </div>
         <div style="background:#0a1810;border:1px solid #264;border-radius:8px;padding:8px;margin-bottom:10px">
-          <div style="font-size:10px;font-weight:700;color:#9ec;margin-bottom:6px">特別武器アンロック（grant.unlocks 文字列）</div>
+          <div style="font-size:10px;font-weight:700;color:#9ec;margin-bottom:6px">${t("admin.unlocks")}</div>
           <label style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#cfe;margin-right:14px;cursor:pointer">
             <input type="checkbox" id="sf-pa-u-beam" /> OPT-LASER (beam)
           </label>
           <label style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#cfe;cursor:pointer">
             <input type="checkbox" id="sf-pa-u-flame" /> FLAME (flame)
           </label>
-          <div style="font-size:9px;color:#678;margin-top:6px;line-height:1.35">DBは grant_json の1フィールドのみ。例: "beam,flame"</div>
+          <div style="font-size:9px;color:#678;margin-top:6px;line-height:1.35">${t("admin.unlockHint")}</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
           <div>
-            <label style="font-size:10px;color:#8ab">期限 (空=なし)</label>
+            <label style="font-size:10px;color:#8ab">${t("admin.expires")}</label>
             <input id="sf-pa-exp" type="date" style="${inputStyle()}" />
           </div>
           <div>
-            <label style="font-size:10px;color:#8ab">使用上限 (0=無制限)</label>
+            <label style="font-size:10px;color:#8ab">${t("admin.maxUse")}</label>
             <input id="sf-pa-max" type="number" min="0" max="1000000" value="0" style="${inputStyle()}" />
           </div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button type="button" id="sf-pa-save" style="flex:1;${btnStyle("primary")}" ${promoBusy ? "disabled" : ""}>${editCode ? "更新(DB)" : "追加(DB)"}</button>
-          <button type="button" id="sf-pa-clear" style="${btnStyle("ghost")}">クリア</button>
-          <button type="button" id="sf-pa-reload" style="${btnStyle("ok")}">再読込</button>
+          <button type="button" id="sf-pa-save" style="flex:1;${btnStyle("primary")}" ${promoBusy ? "disabled" : ""}>${editCode ? t("admin.updDb") : t("admin.addDb")}</button>
+          <button type="button" id="sf-pa-clear" style="${btnStyle("ghost")}">${t("admin.clear")}</button>
+          <button type="button" id="sf-pa-reload" style="${btnStyle("ok")}">${t("admin.reload")}</button>
         </div>
       </div>
-      <div style="font-size:11px;font-weight:700;color:#fec;margin-bottom:6px">カスタム DB (${customs.length})</div>
+      <div style="font-size:11px;font-weight:700;color:#fec;margin-bottom:6px">${t("admin.customDb", { n: customs.length })}</div>
       <div id="sf-pa-custom" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
-      <div style="font-size:11px;font-weight:700;color:#8ab;margin-bottom:6px">ビルトイン (${builtins.length})</div>
+      <div style="font-size:11px;font-weight:700;color:#8ab;margin-bottom:6px">${t("admin.builtin", { n: builtins.length })}</div>
       <div id="sf-pa-built" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
       `;
     }
@@ -337,18 +338,17 @@ export function openPromoAdminDialog(opts: {
       return `
       ${flash ? `<div style="font-size:11px;margin-bottom:8px;padding:8px;border-radius:8px;background:#1a2010;border:1px solid #664;color:#fec">${esc(flash)}</div>` : ""}
       <div style="font-size:10px;color:#8a7;margin-bottom:10px;line-height:1.45">
-        固定管理者 <code style="color:#fc8">${esc(SUPER_ADMIN_PLAYER_ID)}</code> は削除不可。<br/>
-        追加管理者は連携済みプレイヤーIDを指定して任命します。
+        ${t("admin.staffLead", { id: esc(SUPER_ADMIN_PLAYER_ID) })}
       </div>
       <div style="background:#0a141c;border:1px solid #345;border-radius:10px;padding:10px;margin-bottom:12px">
-        <div style="font-size:11px;font-weight:700;color:#9cf;margin-bottom:8px">管理者を任命</div>
-        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">プレイヤーID</label>
+        <div style="font-size:11px;font-weight:700;color:#9cf;margin-bottom:8px">${t("admin.appoint")}</div>
+        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">${t("admin.playerId")}</label>
         <input id="sf-st-id" maxlength="32" placeholder="uxxxxxxxxxxxx" style="${inputStyle("margin-bottom:8px")}" />
-        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">表示名（任意）</label>
-        <input id="sf-st-label" maxlength="40" placeholder="運営A" style="${inputStyle("margin-bottom:10px")}" />
-        <button type="button" id="sf-st-add" style="width:100%;${btnStyle("primary")}" ${staffBusy ? "disabled" : ""}>任命する</button>
+        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">${t("admin.nameOpt")}</label>
+        <input id="sf-st-label" maxlength="40" placeholder="${t("admin.namePh")}" style="${inputStyle("margin-bottom:10px")}" />
+        <button type="button" id="sf-st-add" style="width:100%;${btnStyle("primary")}" ${staffBusy ? "disabled" : ""}>${t("admin.appointBtn")}</button>
       </div>
-      <div style="font-size:11px;font-weight:700;color:#fec;margin-bottom:6px">スタッフ一覧 (${staff.length})</div>
+      <div style="font-size:11px;font-weight:700;color:#fec;margin-bottom:6px">${t("admin.staffList", { n: staff.length })}</div>
       <div id="sf-st-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
       `;
     }
@@ -356,26 +356,23 @@ export function openPromoAdminDialog(opts: {
     function renderAdsBody(): string {
       return `
       <div style="font-size:12px;color:#9bc;line-height:1.5;margin-bottom:12px">
-        YouTube 広告の登録・表示上限・再生秒数の確認は<br/>
-        <b style="color:#fe8">広告管理画面</b> で行います。
+        ${t("admin.adsLead")}
       </div>
-      <button type="button" id="sf-open-ad-admin" style="width:100%;padding:12px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-weight:800;cursor:pointer">
-        📺 広告管理を開く
+      <button type="button" id="sf-open-media-admin" style="width:100%;padding:12px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-weight:800;cursor:pointer">
+        ${t("admin.openAds")}
       </button>
       <div style="display:flex;gap:8px;margin-top:8px">
         <button type="button" id="sf-open-ad-portal"
            style="flex:1;box-sizing:border-box;padding:12px;border-radius:8px;border:1px solid #8cf;background:#102030;color:#cef;font-weight:800;cursor:pointer;text-align:center">
-          📣 ポータルを開く
+          ${t("admin.openPortal")}
         </button>
-        <button type="button" id="sf-ad-portal-copy" style="flex-shrink:0;padding:12px 14px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-weight:800;cursor:pointer;font-size:12px">
-          URLコピー
+        <button type="button" id="sf-portal-copy" style="flex-shrink:0;padding:12px 14px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-weight:800;cursor:pointer;font-size:12px">
+          ${t("admin.copyUrl")}
         </button>
       </div>
-      <a id="sf-ad-portal-url" href="/advertiser" target="_blank" rel="noopener" title="クリックで開く" style="display:block;font-size:10px;color:#8cf;margin-top:8px;word-break:break-all;text-align:center;user-select:all;cursor:pointer;padding:8px;border:1px dashed #356;border-radius:8px;background:#041018;text-decoration:none"></a>
-      <div style="font-size:10px;color:#678;margin-top:10px;line-height:1.4">
-        · 動画ID / 尺（秒）/ 合計表示上限（時間）<br/>
-        · 累計再生秒数・受取回数を一覧表示<br/>
-        · ポータルは連携ユーザーが直URLで利用
+      <a id="sf-portal-url" href="/partner" target="_blank" rel="noopener" title="${t("common.open")}" style="display:block;font-size:10px;color:#8cf;margin-top:8px;word-break:break-all;text-align:center;user-select:all;cursor:pointer;padding:8px;border:1px dashed #356;border-radius:8px;background:#041018;text-decoration:none"></a>
+      <div style="font-size:10px;color:#678;margin-top:10px;line-height:1.4;white-space:pre-line">
+        ${t("admin.adsHint")}
       </div>
       ${flash ? `<div style="margin-top:8px;font-size:11px;color:#fc8">${esc(flash)}</div>` : ""}
       `;
@@ -390,16 +387,16 @@ export function openPromoAdminDialog(opts: {
 
       card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:14px;font-weight:800;color:#ffe088">管理パネル</div>
+        <div style="font-size:14px;font-weight:800;color:#ffe088">${t("admin.title")}</div>
         <button type="button" id="sf-pa-x" style="border:0;background:transparent;color:#9ab;font-size:20px;cursor:pointer;line-height:1">×</button>
       </div>
       <div style="font-size:10px;color:#8a7;margin-bottom:8px">
-        操作者 ${esc(String(opts.playerId || "").slice(0, 28))}${isSuperAdmin(opts.playerId) ? " · SUPER" : " · STAFF"}
+        ${t("admin.operator", { id: esc(String(opts.playerId || "").slice(0, 28)), role: isSuperAdmin(opts.playerId) ? " · SUPER" : " · STAFF" })}
       </div>
       <div style="display:flex;gap:6px;margin-bottom:12px">
-        <button type="button" id="sf-tab-promo" style="${btnStyle(tab === "promo" ? "tabOn" : "tab")}">プロモ</button>
-        <button type="button" id="sf-tab-ads" style="${btnStyle(tab === "ads" ? "tabOn" : "tab")}">広告動画</button>
-        <button type="button" id="sf-tab-staff" style="${btnStyle(tab === "staff" ? "tabOn" : "tab")}">管理者</button>
+        <button type="button" id="sf-tab-promo" style="${btnStyle(tab === "promo" ? "tabOn" : "tab")}">${t("admin.tabPromo")}</button>
+        <button type="button" id="sf-tab-ads" style="${btnStyle(tab === "ads" ? "tabOn" : "tab")}">${t("admin.tabAds")}</button>
+        <button type="button" id="sf-tab-staff" style="${btnStyle(tab === "staff" ? "tabOn" : "tab")}">${t("admin.tabStaff")}</button>
       </div>
       <div id="sf-pa-body">${tab === "promo" ? renderPromoBody() : tab === "ads" ? renderAdsBody() : renderStaffBody()}</div>
       `;
@@ -429,34 +426,34 @@ export function openPromoAdminDialog(opts: {
     }
 
     function bindAdsHandlers() {
-      const portalUrl = advertiserPortalUrl();
+      const portalUrl = partnerPortalUrl();
       const setFlash = (msg: string) => {
         flash = msg;
         render();
       };
-      const urlEl = card.querySelector("#sf-ad-portal-url") as HTMLAnchorElement | null;
+      const urlEl = card.querySelector("#sf-portal-url") as HTMLAnchorElement | null;
       if (urlEl) {
         urlEl.href = portalUrl;
         urlEl.textContent = portalUrl;
       }
       card.querySelector("#sf-open-ad-portal")?.addEventListener("click", () => {
         opts.sfxUi?.();
-        openAdvertiserPortal();
+        openPartnerPortal();
       });
-      card.querySelector("#sf-ad-portal-copy")?.addEventListener("click", async () => {
+      card.querySelector("#sf-portal-copy")?.addEventListener("click", async () => {
         const ok = await copyText(portalUrl);
         if (ok) {
           opts.sfxOk?.();
-          setFlash(`ポータルURLをコピーしました`);
+          setFlash(t("admin.copiedPortal"));
         } else {
           opts.sfxFail?.();
-          setFlash(`コピー失敗 · 長押しで選択`);
+          setFlash(t("admin.copyFail"));
         }
       });
-      card.querySelector("#sf-open-ad-admin")?.addEventListener("click", () => {
+      card.querySelector("#sf-open-media-admin")?.addEventListener("click", () => {
         opts.sfxUi?.();
         close();
-        openAdAdminDialog({
+        openMediaAdminDialog({
           playerId: opts.playerId,
           sfxUi: opts.sfxUi,
           sfxOk: opts.sfxOk,
@@ -473,13 +470,13 @@ export function openPromoAdminDialog(opts: {
 
       const bindRow = (host: HTMLElement, def: ServerPromo, isCustom: boolean) => {
         const row = document.createElement("div");
-        const claimedMark = claimed.has(def.code) ? " · 端末受取済" : "";
+        const claimedMark = claimed.has(def.code) ? t("admin.claimedLocal") : "";
         const uses = Number(def.claimCount) || 0;
         const max = Number(def.maxClaims) || 0;
         const expired = isCustom && isPromoExpired(def.expiresAt);
         const soldOut = isCustom && isPromoSoldOut(def.maxClaims, uses);
         const status =
-          expired ? "期限切れ" : soldOut ? "上限到達" : isCustom ? "配布中" : "常設";
+          expired ? t("admin.expired") : soldOut ? t("admin.soldOut") : isCustom ? t("admin.live") : t("admin.always");
         const statusCol = expired || soldOut ? "#f88" : "#8ef";
         row.style.cssText =
           "background:#031018;border:1px solid #234;border-radius:8px;padding:8px";
@@ -489,7 +486,7 @@ export function openPromoAdminDialog(opts: {
           <div style="font-size:11px;font-weight:800;color:${statusCol};white-space:nowrap">${esc(status)}</div>
         </div>
         <div style="font-size:10px;color:#9ab;margin-top:2px">${esc(def.label)} · ${esc(formatGrantSummary(def.grant))}${esc(claimedMark)}</div>
-        <div style="font-size:10px;color:#8ab;margin-top:3px">${esc(formatMaxClaimsLabel(max, uses))} · ${esc(isCustom ? formatExpiresLabel(def.expiresAt) : "期限なし")}</div>
+        <div style="font-size:10px;color:#8ab;margin-top:3px">${esc(formatMaxClaimsLabel(max, uses))} · ${esc(isCustom ? formatExpiresLabel(def.expiresAt) : t("admin.noExpire"))}</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px"></div>
       `;
         const actions = row.lastElementChild as HTMLElement;
@@ -510,37 +507,37 @@ export function openPromoAdminDialog(opts: {
           const url = buildPromoUrl(def.code);
           try {
             await navigator.clipboard.writeText(url);
-            setFlash(`コピー: ${url}`);
+            setFlash(t("admin.copied", { url }));
           } catch {
             setFlash(url, true);
           }
         });
         if (isCustom) {
-          addBtn("編集", "ghost", () => {
+          addBtn(t("admin.edit"), "ghost", () => {
             const snapshot = { ...def };
             flash = "";
             render();
             fillForm(snapshot);
           });
-          addBtn("削除", "danger", () => {
-            if (!confirm(`DBから削除: ${def.code} ?`)) return;
+          addBtn(t("admin.del"), "danger", () => {
+            if (!confirm(t("admin.delConfirm", { code: def.code }))) return;
             void (async () => {
               promoBusy = true;
               const r = await deleteAdminPromo(def.code);
               promoBusy = false;
               if (!r.ok) {
-                setFlash(`削除失敗: ${r.reason || "error"}`, false);
+                setFlash(t("admin.delFail", { r: r.reason || "error" }), false);
                 return;
               }
               if (editCode === def.code) editCode = "";
               await reloadPromos();
-              setFlash(`DB削除: ${def.code}`);
+              setFlash(t("admin.deleted", { code: def.code }));
             })();
           });
         }
-        addBtn("端末受取解除", "ghost", () => {
+        addBtn(t("admin.unclaimLocal"), "ghost", () => {
           unclaimPromoCode(def.code);
-          setFlash(`端末の受取履歴クリア: ${def.code}`);
+          setFlash(t("admin.unclaimed", { code: def.code }));
         });
         host.appendChild(row);
       };
@@ -549,10 +546,10 @@ export function openPromoAdminDialog(opts: {
       if (customHost) {
         if (!promoLoaded && !customs.length) {
           customHost.innerHTML =
-            '<div style="font-size:11px;color:#678;padding:6px">サーバーから読み込み中…</div>';
+            `<div style="font-size:11px;color:#678;padding:6px">${t("admin.loadingServer")}</div>`;
         } else if (!customs.length) {
           customHost.innerHTML =
-            '<div style="font-size:11px;color:#678;padding:6px">まだカスタムコードがありません</div>';
+            `<div style="font-size:11px;color:#678;padding:6px">${t("admin.noCustom")}</div>`;
         } else {
           for (const d of customs) bindRow(customHost, d, true);
         }
@@ -564,13 +561,13 @@ export function openPromoAdminDialog(opts: {
 
       card.querySelector("#sf-pa-reload")?.addEventListener("click", () => {
         void reloadPromos().then(() => {
-          setFlash("再読込しました");
+          setFlash(t("admin.reloaded"));
         });
       });
 
       card.querySelector("#sf-pa-save")?.addEventListener("click", () => {
         if (!isPromoAdminPlayer(opts.playerId)) {
-          setFlash("管理者のみ操作できます", false);
+          setFlash(t("admin.adminOnly"), false);
           return;
         }
         const form = readForm();
@@ -582,21 +579,21 @@ export function openPromoAdminDialog(opts: {
           if (!res.ok) {
             const msg =
               res.reason === "bad_code"
-                ? "コードが不正です (2文字以上 A-Z0-9)"
+                ? t("admin.badCode")
                 : res.reason === "empty_grant"
-                  ? "配布内容を1つ以上指定してください"
+                  ? t("admin.needGrant")
                   : res.reason === "builtin_locked"
-                    ? "ビルトインコードは上書きできません"
+                    ? t("admin.noOverwrite")
                     : res.reason === "auth" || res.reason === "forbidden"
-                      ? "管理者としてログインしてください"
-                      : `保存失敗: ${res.reason || "error"}`;
+                      ? t("admin.loginAdmin")
+                      : t("admin.saveFail", { r: res.reason || "error" });
             setFlash(msg, false);
             return;
           }
           editCode = res.def?.code || form.code;
           await reloadPromos();
           setFlash(
-            `DB保存: ${res.def?.code || form.code} (${res.summary || formatGrantSummary(form.grant)}) · ${formatMaxClaimsLabel(form.maxClaims, res.def?.claimCount)} · ${formatExpiresLabel(form.expiresAt || res.def?.expiresAt)}`,
+            t("admin.saved", { code: res.def?.code || form.code }),
           );
         })();
       });
@@ -617,7 +614,7 @@ export function openPromoAdminDialog(opts: {
       if (listHost) {
         if (!staff.length) {
           listHost.innerHTML =
-            '<div style="font-size:11px;color:#678;padding:6px">読み込み中…</div>';
+            `<div style="font-size:11px;color:#678;padding:6px">${t("admin.loading")}</div>`;
         }
         for (const s of staff) {
           const row = document.createElement("div");
@@ -626,27 +623,27 @@ export function openPromoAdminDialog(opts: {
             "background:#031018;border:1px solid #234;border-radius:8px;padding:8px";
           row.innerHTML = `
             <div style="font-size:12px;font-weight:700;color:${fixed ? "#9cf" : "#ffe088"}">${esc(s.playerId)}${fixed ? " 🔒" : ""}</div>
-            <div style="font-size:10px;color:#9ab;margin-top:2px">${esc(s.label || (fixed ? "固定管理者" : "追加管理者"))}${s.appointedBy ? ` · by ${esc(s.appointedBy)}` : ""}</div>
+            <div style="font-size:10px;color:#9ab;margin-top:2px">${esc(s.label || (fixed ? t("admin.fixedAdmin") : t("admin.extraAdmin")))}${s.appointedBy ? ` · by ${esc(s.appointedBy)}` : ""}</div>
             <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px"></div>
           `;
           const actions = row.lastElementChild as HTMLElement;
           if (!fixed) {
             const b = document.createElement("button");
             b.type = "button";
-            b.textContent = "解任";
+            b.textContent = t("admin.dismiss");
             b.style.cssText = btnStyle("danger");
             b.onclick = () => {
-              if (!confirm(`解任: ${s.playerId} ?`)) return;
+              if (!confirm(t("admin.dismissQ", { id: s.playerId }))) return;
               void (async () => {
                 staffBusy = true;
                 const r = await removeAppointedAdmin(s.playerId);
                 staffBusy = false;
                 if (!r.ok) {
-                  setFlash(`解任失敗: ${r.reason || "error"}`, false);
+                  setFlash(t("admin.dismissFail", { r: r.reason || "error" }), false);
                   return;
                 }
                 await reloadStaff();
-                setFlash(`解任: ${s.playerId}`);
+                setFlash(t("admin.dismissed", { id: s.playerId }));
               })();
             };
             actions.appendChild(b);
@@ -666,11 +663,11 @@ export function openPromoAdminDialog(opts: {
           const r = await appointAdmin(rawId, label);
           staffBusy = false;
           if (!r.ok) {
-            setFlash(`任命失敗: ${r.reason || "error"}`, false);
+            setFlash(t("admin.appointFail", { r: r.reason || "error" }), false);
             return;
           }
           await reloadStaff();
-          setFlash(`任命: ${rawId}`);
+          setFlash(t("admin.appointed", { id: rawId }));
         })();
       });
     }

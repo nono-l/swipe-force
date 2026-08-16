@@ -8,6 +8,7 @@ function trackKeyOk(k: string): string | null {
   if (s === "title") return s;
   if (/^(stage|boss|legacy):\d{1,3}$/.test(s)) return s;
   if (/^prof:[a-z0-9]{4,24}$/i.test(s)) return s;
+  if (/^bnr:[a-z0-9_-]{3,28}$/i.test(s)) return s;
   return null;
 }
 

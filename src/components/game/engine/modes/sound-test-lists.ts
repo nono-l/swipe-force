@@ -5,6 +5,7 @@
 
 import { listWindowStart } from "./list-scroll";
 import { commentKindEmoji } from "./sound-test-meta";
+import { t } from "@/lib/i18n";
 
 export type SoundTestMenuAction =
   | "title"
@@ -29,11 +30,11 @@ export type SoundTestMenuItem = {
 /** Recovered `Fi()` — root sound-test menu */
 export function buildSoundTestRootMenu(): SoundTestMenuItem[] {
   return [
-    { label: "▶ TITLE THEME", action: "title" },
-    { label: "STAGE BGM ×64", sub: "各面テーマ", action: "stage_list" },
-    { label: "BOSS THEME ×64", sub: "物語アーク", action: "boss_list" },
-    { label: "旧ボス曲 CHIP×64", sub: "チップアーカイブ", action: "legacy_list" },
-    { label: "旧曲バックアップ", sub: "入れ替え前の曲", action: "archive_list" },
+    { label: "▶ KEYGEN TITLE", action: "title" },
+    { label: "STAGE BGM ×64", sub: t("sound.stageSub"), action: "stage_list" },
+    { label: "BOSS THEME ×64", sub: t("sound.bossSub"), action: "boss_list" },
+    { label: "LEGACY BOSS ×64", sub: t("sound.legacySub"), action: "legacy_list" },
+    { label: "ARCHIVES", sub: t("sound.archiveSub"), action: "archive_list" },
     { label: "■ STOP", action: "stop" },
     { label: "◀ BACK", action: "back" },
   ];

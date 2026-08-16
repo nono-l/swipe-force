@@ -13,12 +13,13 @@ export type AttractDispatch =
   | { type: "profile" }
   | { type: "stats" }
   | { type: "open_bag" }
-  | { type: "open_ad_watch" }
-  | { type: "open_ad_advertiser" }
+  | { type: "open_media_watch" }
+  | { type: "open_partner" }
   | { type: "open_promo_admin" }
   | { type: "back_root"; cursor: number }
   | { type: "start_easy" }
   | { type: "start_normal" }
+  | { type: "open_help" }
   | { type: "open_diff"; preferNormal: boolean }
   | { type: "share" }
   | { type: "inbox" }
@@ -43,9 +44,10 @@ export function toAttractDispatch(action: {
     case "profile":
     case "stats":
     case "open_bag":
-    case "open_ad_watch":
-    case "open_ad_advertiser":
+    case "open_media_watch":
+    case "open_partner":
     case "open_promo_admin":
+    case "open_help":
     case "start_easy":
     case "start_normal":
     case "share":

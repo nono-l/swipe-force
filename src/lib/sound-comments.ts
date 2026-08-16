@@ -452,6 +452,7 @@ export async function markUrlVisited(
   track: string,
   url: string,
   playerId: string,
+  opts?: { allowGuest?: boolean },
 ): Promise<boolean> {
   try {
     const res = await fetch("/api/sound/url-visit", {
@@ -460,13 +461,14 @@ export async function markUrlVisited(
       credentials: "same-origin",
       body: JSON.stringify({ track, playerId, url }),
     });
-    if (res.status === 401) return false;
-    if (!res.ok) {
+    if (res.status === 401) {
+      if (!opts?.allowGuest) return false;
+    } else if (!res.ok) {
       const data = (await res.json().catch(() => ({}))) as { ok?: boolean };
-      if (!data.ok) return false;
+      if (!data.ok && !opts?.allowGuest) return false;
     }
   } catch {
-    return false;
+    if (!opts?.allowGuest) return false;
   }
   const visits = readVisits();
   visits[urlRepKey(track, url)] = true;

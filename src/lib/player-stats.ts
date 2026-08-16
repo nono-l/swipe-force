@@ -11,6 +11,7 @@ import {
   formatIdCreatedAt,
   getIdCreatedAt,
 } from "@/lib/player-id-meta";
+import { t } from "@/lib/i18n";
 
 const KEY = "swipe_force_stats_v1";
 
@@ -220,18 +221,20 @@ export function buildStatusLines(playerId?: string): string[] {
   const upTotal = Object.values(up).reduce((a, b) => a + b, 0);
   return [
     `ID ${pid}`,
-    `ID作成 ${formatIdCreatedAt(created)}`,
-    `総プレイ ${formatPlayTime(st.playTimeSec)}`,
-    `ラン ${st.runs}  撃破 ${st.totalKills}  ボス ${st.bossesDefeated}`,
-    `最高到達 E${st.maxStageEasy} / N${st.maxStageNormal}`,
-    `ハイスコア ${st.hiScore}`,
-    `ヘルプ求めた ${st.helpAsked}  貰った ${st.helpReceived}`,
-    `コンティニュー使用 ${st.continuesUsed}  コイン ×${coins}`,
-    `EASY強化 合計${upTotal}Lv`,
+    t("stats.created", { at: formatIdCreatedAt(created) }),
+    t("stats.play", { time: formatPlayTime(st.playTimeSec) }),
+    t("stats.run", { runs: st.runs, kills: st.totalKills, boss: st.bossesDefeated }),
+    t("stats.reach", { e: st.maxStageEasy, n: st.maxStageNormal }),
+    t("stats.hi", { n: st.hiScore }),
+    t("stats.help", { a: st.helpAsked, b: st.helpReceived }),
+    t("stats.cont", { n: st.continuesUsed, c: coins }),
+    t("stats.easy", { n: upTotal }),
     easyUpgradeSummary(up).slice(0, 42),
     prof.hasProfile
-      ? `プロフ ${prof.displayName || "—"}`
-      : `プロフ 未設定`,
-    prof.shareBlurb ? `シェア文 ${prof.shareBlurb.slice(0, 28)}` : `シェア文 未設定`,
+      ? t("stats.profOn", { name: prof.displayName || "—" })
+      : t("stats.profOff"),
+    prof.shareBlurb
+      ? t("stats.blurbOn", { t: prof.shareBlurb.slice(0, 28) })
+      : t("stats.blurbOff"),
   ];
 }

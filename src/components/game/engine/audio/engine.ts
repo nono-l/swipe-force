@@ -291,6 +291,66 @@ export function makeChipPatch(e, t) {
         counter: u.map((e, t) => t % 2 == 0 ? e : -1)
     }
 }
+
+/** Keygen-style title theme · ~2 min form (A / B / Bridge / Chorus) */
+export function makeAttractKeygenPatch() {
+    // 16 ticks/bar · tempo 118ms → bar ≈ 1.89s · 64 bars ≈ 121s
+    const leadA = [
+        0, 2, 4, 5, 4, 2, 0, -1, 5, 4, 2, 0, 2, 4, 7, 5,
+        0, 2, 4, 7, 5, 4, 2, 0, 4, 5, 7, 5, 4, 2, 0, -1,
+    ];
+    const leadA2 = [
+        0, 2, 5, 4, 7, 5, 4, 2, 0, -1, 4, 5, 7, 9, 7, 5,
+        4, 2, 0, 2, 4, 5, 4, 2, 0, 5, 4, 2, 0, -1, 0, 2,
+    ];
+    const leadB = [
+        5, 4, 2, 0, 2, 4, 5, 7, 9, 7, 5, 4, 2, 0, 2, -1,
+        5, 7, 9, 7, 5, 4, 2, 0, 4, 5, 7, 5, 4, 2, 0, 4,
+    ];
+    const leadBridge = [
+        7, 5, 4, 2, 4, 5, 7, -1, 5, 4, 2, 0, 2, 4, 5, 4,
+        0, -1, 2, 4, 5, 7, 9, 7, 5, 4, 2, 0, -1, -1, 0, 2,
+    ];
+    const leadChorus = [
+        0, 0, 4, 4, 5, 5, 7, 7, 9, 7, 5, 4, 2, 0, 2, 4,
+        0, 2, 4, 5, 7, 5, 4, 2, 0, 4, 5, 7, 9, 7, 5, 4,
+    ];
+    const leadChorus2 = [
+        0, 4, 7, 4, 0, 5, 9, 5, 0, 4, 7, 11, 7, 4, 0, -1,
+        0, 2, 4, 7, 5, 4, 2, 0, 5, 7, 5, 4, 2, 0, -1, 0,
+    ];
+    // I–V–vi–IV · classic bright keygen progression
+    const progA = [0, 4, 5, 3];
+    const progB = [5, 3, 0, 4];
+    const progChorus = [0, 5, 3, 4];
+    const progBridge = [3, 4, 0, 5];
+    return {
+        tonic: 48, // C3 base
+        scale: [0, 2, 4, 5, 7, 9, 11], // major
+        prog: progA,
+        lead: leadA,
+        leadA,
+        leadA2,
+        leadB,
+        leadBridge,
+        leadChorus,
+        leadChorus2,
+        progA,
+        progB,
+        progChorus,
+        progBridge,
+        tempo: 118,
+        arpStyle: 0,
+        drum: 4,
+        leadDuty: "square",
+        style: "keygen",
+        flavor: "keygen",
+        story: "KEYGEN TITLE",
+        counter: leadA.map((e, i) => (i % 2 === 0 ? e : -1)),
+        formBars: 64,
+    };
+}
+
 export var BAROQUE_SCALES = [
         [0, 2, 3, 5, 7, 8, 10],
         [0, 2, 3, 5, 7, 8, 11],
@@ -1420,11 +1480,96 @@ export function bgmResume() {
         let e = r;
         (e === 0 || e === 8) && tone(70, .05, `triangle`, .05, void 0, `bgm`), (e === 4 || e === 12) && noiseBurst(.02, .025, 2500, `bgm`)
     } else if (activePatch.flavor === `iron` || activePatch.flavor === `storm` || activePatch.flavor === `chase`) playDrums(r);
-    else if (activePatch.flavor) {
+    else if (activePatch.flavor === `keygen`) {
+        /* drums + melody in keygen form block below */
+    } else if (activePatch.flavor) {
         let e = r;
         (e === 0 || e === 8) && tone(90, .05, `triangle`, .06, void 0, `bgm`), (e === 4 || e === 12) && noiseBurst(.03, .03, 3e3, `bgm`)
     } else playDrums(r);
-    if (activePatch.style === `baroque`) {
+    
+    if (activePatch.style === `keygen` || activePatch.flavor === `keygen`) {
+        // ── Keygen title form ──
+        // 16 ticks / bar · formBars (default 64) ≈ 2 minutes then loop
+        const bar = Math.floor(n / 16);
+        const formBars = activePatch.formBars || 64;
+        const b = bar % formBars;
+        const step = r; // 0..15 within bar
+        // section map
+        // 0-3 intro | 4-11 A | 12-19 A' | 20-27 B | 28-31 bridge
+        // 32-39 chorus | 40-47 A | 48-55 chorus | 56-59 bridge2 | 60-63 chorus out
+        let section = `intro`;
+        if (b >= 4 && b < 12) section = `A`;
+        else if (b >= 12 && b < 20) section = `A2`;
+        else if (b >= 20 && b < 28) section = `B`;
+        else if (b >= 28 && b < 32) section = `bridge`;
+        else if (b >= 32 && b < 40) section = `chorus`;
+        else if (b >= 40 && b < 48) section = `A`;
+        else if (b >= 48 && b < 56) section = `chorus2`;
+        else if (b >= 56 && b < 60) section = `bridge`;
+        else if (b >= 60) section = `chorusOut`;
+
+        const progPick =
+            section === `B` ? (activePatch.progB || activePatch.prog) :
+            section === `bridge` ? (activePatch.progBridge || activePatch.prog) :
+            section.startsWith(`chorus`) ? (activePatch.progChorus || activePatch.prog) :
+            (activePatch.progA || activePatch.prog);
+        const chord = progPick[Math.floor(b % progPick.length)] ?? 0;
+
+        // bass triangle (root + fifth pulse)
+        if (step % 2 === 0) {
+            const deg = step % 4 === 2 ? chord + 4 : chord;
+            tone(midiToHz(degreeToMidi(deg, -12)), .1, `triangle`, .1, void 0, `bgm`);
+        }
+        // keygen arp square high
+        if (section !== `intro` || b >= 2) {
+            const arp = pickArpStep(arpSteps(chord), 0, step);
+            tone(midiToHz(degreeToMidi(arp, 24)), .04, `square`, .028, void 0, `bgm`);
+        }
+        // drums — light keygen kit
+        if (section !== `bridge` || step % 8 === 0) {
+            if (step === 0 || step === 8) drumKickLight();
+            if (step === 4 || step === 12) drumHat(false);
+            if (step === 14 && (section.startsWith(`chorus`) || section === `B`)) drumSnare();
+            if (step % 2 === 1 && section.startsWith(`chorus`)) drumHat(true);
+        }
+
+        // lead melody
+        let lead = activePatch.leadA || activePatch.lead;
+        if (section === `A2`) lead = activePatch.leadA2 || lead;
+        else if (section === `B`) lead = activePatch.leadB || lead;
+        else if (section === `bridge`) lead = activePatch.leadBridge || lead;
+        else if (section === `chorus` || section === `chorusOut`) lead = activePatch.leadChorus || lead;
+        else if (section === `chorus2`) lead = activePatch.leadChorus2 || activePatch.leadChorus || lead;
+        else if (section === `intro`) lead = null;
+
+        if (lead && step % 1 === 0) {
+            // 32-step phrases: 2 bars
+            const li = (b % 2) * 16 + step;
+            const deg = lead[li % lead.length];
+            if (deg != null && deg >= 0) {
+                const peak = section.startsWith(`chorus`) ? .11 : section === `B` ? .095 : .085;
+                const oct = section.startsWith(`chorus`) ? 12 : 12;
+                const hz = midiToHz(degreeToMidi(deg, oct));
+                tone(hz, .09, `square`, peak, void 0, `bgm`);
+                // soft detune echo for keygen sparkle
+                if (section.startsWith(`chorus`) && step % 2 === 0) {
+                    tone(hz * 2, .05, `square`, peak * .28, void 0, `bgm`);
+                }
+            }
+        }
+        // bridge pad (held fifths)
+        if (section === `bridge` && (step === 0 || step === 8)) {
+            tone(midiToHz(degreeToMidi(chord, 0)), .35, `triangle`, .06, void 0, `bgm`);
+            tone(midiToHz(degreeToMidi(chord + 4, 0)), .35, `triangle`, .045, void 0, `bgm`);
+        }
+        // chorus brass-ish stack
+        if ((section === `chorus` || section === `chorus2` || section === `chorusOut`) && step === 0) {
+            playTriad(chord, 0, .05, `square`);
+        }
+        scheduleNextTick();
+        return
+    }
+if (activePatch.style === `baroque`) {
         if (activePatch.choir) {
             try {
                 let e = activePatch.leadEvery || 2;
@@ -1798,12 +1943,7 @@ export function clearBgmTimer() {
 
 // ── BGM scheduler ──
 export function bgmStartScene(e, t = 1) {
-    if (clearBgmTimer(), bgmMode = e, bgmStage = Math.max(1, t | 0), themeSeed = 0, tickIndex = 0, activePatch = makeChipPatch(e === `attract` ? 1 : bgmStage, !1), e === `attract` && (activePatch = {
-            ...makeChipPatch(8, !1),
-            tempo: 110,
-            drum: 5,
-            leadDuty: `triangle`
-        }), u) return;
+    if (clearBgmTimer(), bgmMode = e, bgmStage = Math.max(1, t | 0), themeSeed = 0, tickIndex = 0, activePatch = makeChipPatch(e === `attract` ? 1 : bgmStage, !1), e === `attract` && (activePatch = makeAttractKeygenPatch()), u) return;
     let n = ensureAudioCtx();
     if (n && n.state === `suspended`) {
         n.resume().then(() => {
@@ -1848,6 +1988,16 @@ export function makeArchivePatch(index1based) {
     const stage = entry.sampleStage || 1;
     if (entry.flavor === `abyss_v1`) {
         return makeAbyssPatchV1(stage, meta);
+    }
+    if (entry.flavor === `title_v1`) {
+        const p = makeChipPatch(stage, !1);
+        p.tempo = 110;
+        p.drum = 5;
+        p.leadDuty = `triangle`;
+        p.style = `chip`;
+        p.story = entry.title;
+        p.flavor = entry.flavor;
+        return p;
     }
     // fallback: chip snapshot tagged with archive story
     const p = makeChipPatch(stage, !0);
@@ -1906,7 +2056,7 @@ export function soundCatalogMeta() {
         bosses: 64,
         archives,
         labels: {
-            title: `TITLE THEME`,
+            title: `KEYGEN TITLE`,
             stage: e => `STAGE ${String(e).padStart(2, `0`)}`,
             boss: e => getBossThemeMeta(e).title,
             legacy: e => `旧B${String(e).padStart(2, `0`)} CHIP`,

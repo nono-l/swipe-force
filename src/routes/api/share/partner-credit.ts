@@ -125,7 +125,7 @@ async function getBalance(
   };
 }
 
-export const Route = createFileRoute("/api/share/ad-prepaid")({
+export const Route = createFileRoute("/api/share/partner-credit")({
   server: {
     handlers: {
       GET: async ({ request }) => {
@@ -353,7 +353,7 @@ export const Route = createFileRoute("/api/share/ad-prepaid")({
           return Response.json({ ok: false, reason: "action" }, { status: 400 });
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
-          console.error("[ad-prepaid]", msg);
+          console.error("[partner-credit]", msg);
           return Response.json({ ok: false, reason: "db", error: msg }, { status: 500 });
         }
       },

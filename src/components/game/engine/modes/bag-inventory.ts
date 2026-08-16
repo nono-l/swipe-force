@@ -3,6 +3,8 @@
  * Obtained via login bonus / promo links — not sold in shop.
  */
 
+import { t } from "@/lib/i18n";
+
 export const BAG_KEY = "swipe_force_bag_v1";
 export const BAG_PENDING_KEY = "swipe_force_bag_pending_v1";
 
@@ -161,7 +163,7 @@ export function buildBagRows(opts: {
   loginSummary?: string;
 }): BagRow[] {
   const rows: BagRow[] = [
-    { kind: "header", label: "— 配布アイテム · ショップ非売品 —" },
+    { kind: "header", label: t("bag.header") },
   ];
 
   if (opts.loginReady) {
@@ -169,14 +171,14 @@ export function buildBagRows(opts: {
       kind: "claim_login",
       label: "LOGIN BONUS",
       desc: opts.loginSummary
-        ? `受取 → ${opts.loginSummary}`
-        : "本日の配布を受け取る",
+        ? `→ ${opts.loginSummary}`
+        : t("bag.loginTake"),
     });
   } else {
     rows.push({
       kind: "status",
       label: "LOGIN",
-      value: "受取済(本日)",
+      value: t("bag.loginTaken"),
     });
   }
 
@@ -189,15 +191,15 @@ export function buildBagRows(opts: {
     kind: "item",
     key: "stageTicket",
     label: "STAGE TICKET",
-    desc: "クリア済みまでスキップ",
+    desc: t("bag.skipDesc"),
     stock: opts.bag.stageTicket,
     action:
       opts.bag.stageTicket > 0 && opts.maxStage >= 1 ? "use_stage" : "locked",
     lockedReason:
       opts.bag.stageTicket <= 0
-        ? "在庫なし"
+        ? t("bag.noStock")
         : opts.maxStage < 1
-          ? "未クリア"
+          ? t("bag.notCleared")
           : undefined,
   });
 
@@ -205,17 +207,17 @@ export function buildBagRows(opts: {
     kind: "item",
     key: "ptsX5",
     label: "PTS ×5",
-    desc: "NORMAL専用 · 重複不可",
+    desc: t("bag.nrmDup"),
     stock: opts.bag.ptsX5,
     action:
       opts.bag.ptsX5 > 0 && normalOk && !multActive ? "use_x5" : "locked",
     lockedReason:
       opts.bag.ptsX5 <= 0
-        ? "在庫なし"
+        ? t("bag.noStock")
         : multActive
-          ? "倍率使用中"
+          ? t("bag.multOn")
           : !normalOk
-            ? "NORMALのみ"
+            ? t("bag.nrmOnly")
             : undefined,
   });
 
@@ -223,17 +225,17 @@ export function buildBagRows(opts: {
     kind: "item",
     key: "ptsX10",
     label: "PTS ×10",
-    desc: "NORMAL専用 · 重複不可",
+    desc: t("bag.nrmDup"),
     stock: opts.bag.ptsX10,
     action:
       opts.bag.ptsX10 > 0 && normalOk && !multActive ? "use_x10" : "locked",
     lockedReason:
       opts.bag.ptsX10 <= 0
-        ? "在庫なし"
+        ? t("bag.noStock")
         : multActive
-          ? "倍率使用中"
+          ? t("bag.multOn")
           : !normalOk
-            ? "NORMALのみ"
+            ? t("bag.nrmOnly")
             : undefined,
   });
 
@@ -241,7 +243,7 @@ export function buildBagRows(opts: {
     kind: "item",
     key: "ptsPack",
     label: "PTS +5000",
-    desc: "NORMALラン中に即時",
+    desc: t("bag.nrmNow"),
     stock: opts.bag.ptsPack,
     action:
       opts.bag.ptsPack > 0 && opts.inRun && opts.difficulty === "normal"
@@ -249,39 +251,39 @@ export function buildBagRows(opts: {
         : "locked",
     lockedReason:
       opts.bag.ptsPack <= 0
-        ? "在庫なし"
+        ? t("bag.noStock")
         : !opts.inRun
-          ? "ラン中のみ"
+          ? t("bag.runOnly")
           : opts.difficulty !== "normal"
-            ? "NORMALのみ"
+            ? t("bag.nrmOnly")
             : undefined,
   });
 
   rows.push({
     kind: "status",
-    label: "PTS倍率",
+    label: t("bag.ptsMult"),
     value:
       opts.runPtsMult != null && opts.runPtsMult > 1
-        ? `×${opts.runPtsMult} 発動中`
+        ? t("bag.ptsActive", { n: opts.runPtsMult })
         : opts.pending.ptsMult > 1
-          ? `×${opts.pending.ptsMult} 準備中`
-          : "なし",
+          ? t("bag.ptsReady", { n: opts.pending.ptsMult })
+          : t("bag.none"),
   });
   rows.push({
     kind: "status",
-    label: "開始STAGE",
+    label: t("bag.startStage"),
     value:
-      opts.pending.startStage > 0 ? `S${opts.pending.startStage}` : "通常(1)",
+      opts.pending.startStage > 0 ? `S${opts.pending.startStage}` : t("bag.startNormal"),
   });
   rows.push({
     kind: "status",
-    label: "到達記録",
+    label: t("bag.record"),
     value: opts.maxStage > 0 ? `S${opts.maxStage}` : "—",
   });
   rows.push({
     kind: "status",
-    label: "入手",
-    value: "ログイン/プロモ",
+    label: t("bag.got"),
+    value: t("bag.gotVia"),
   });
   rows.push({ kind: "back", label: "◀ BACK" });
   return rows;
@@ -293,13 +295,27 @@ export function buildStageSelectRows(
 ): { stage: number; label: string; sub: string }[] {
   const rows: { stage: number; label: string; sub: string }[] = [];
   const hi = Math.max(1, maxStage | 0);
+  // lazy import-free biome label (keep bag-inventory free of heavy deps)
+  const biome = (s: number) =>
+    (
+      [
+        "GRASS",
+        "DESERT",
+        "COAST",
+        "CITY",
+        "ICE",
+        "MAGMA",
+        "NEON",
+        "VOID",
+      ] as const
+    )[(((Math.max(1, s | 0) - 1) % 64) >> 3) as number];
   for (let s = 1; s <= hi; s++) {
     rows.push({
       stage: s,
       label: `STAGE ${String(s).padStart(2, "0")}`,
-      sub: s === cursorHint ? "選択中" : "チケットで開始",
+      sub: `${biome(s)} · ticket`,
     });
   }
-  rows.push({ stage: 0, label: "◀ BACK", sub: "バッグへ" });
+  rows.push({ stage: 0, label: "◀ BACK", sub: t("bag.backBag") });
   return rows;
 }
