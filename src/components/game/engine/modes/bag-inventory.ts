@@ -3,7 +3,7 @@
  * Obtained via login bonus / promo links — not sold in shop.
  */
 
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 export const BAG_KEY = "swipe_force_bag_v1";
 export const BAG_PENDING_KEY = "swipe_force_bag_pending_v1";
@@ -163,7 +163,7 @@ export function buildBagRows(opts: {
   loginSummary?: string;
 }): BagRow[] {
   const rows: BagRow[] = [
-    { kind: "header", label: t("bag.header") },
+    { kind: "header", label: translate("bag.header") },
   ];
 
   if (opts.loginReady) {
@@ -172,13 +172,13 @@ export function buildBagRows(opts: {
       label: "LOGIN BONUS",
       desc: opts.loginSummary
         ? `→ ${opts.loginSummary}`
-        : t("bag.loginTake"),
+        : translate("bag.loginTake"),
     });
   } else {
     rows.push({
       kind: "status",
       label: "LOGIN",
-      value: t("bag.loginTaken"),
+      value: translate("bag.loginTaken"),
     });
   }
 
@@ -191,15 +191,15 @@ export function buildBagRows(opts: {
     kind: "item",
     key: "stageTicket",
     label: "STAGE TICKET",
-    desc: t("bag.skipDesc"),
+    desc: translate("bag.skipDesc"),
     stock: opts.bag.stageTicket,
     action:
       opts.bag.stageTicket > 0 && opts.maxStage >= 1 ? "use_stage" : "locked",
     lockedReason:
       opts.bag.stageTicket <= 0
-        ? t("bag.noStock")
+        ? translate("bag.noStock")
         : opts.maxStage < 1
-          ? t("bag.notCleared")
+          ? translate("bag.notCleared")
           : undefined,
   });
 
@@ -207,17 +207,17 @@ export function buildBagRows(opts: {
     kind: "item",
     key: "ptsX5",
     label: "PTS ×5",
-    desc: t("bag.nrmDup"),
+    desc: translate("bag.nrmDup"),
     stock: opts.bag.ptsX5,
     action:
       opts.bag.ptsX5 > 0 && normalOk && !multActive ? "use_x5" : "locked",
     lockedReason:
       opts.bag.ptsX5 <= 0
-        ? t("bag.noStock")
+        ? translate("bag.noStock")
         : multActive
-          ? t("bag.multOn")
+          ? translate("bag.multOn")
           : !normalOk
-            ? t("bag.nrmOnly")
+            ? translate("bag.nrmOnly")
             : undefined,
   });
 
@@ -225,17 +225,17 @@ export function buildBagRows(opts: {
     kind: "item",
     key: "ptsX10",
     label: "PTS ×10",
-    desc: t("bag.nrmDup"),
+    desc: translate("bag.nrmDup"),
     stock: opts.bag.ptsX10,
     action:
       opts.bag.ptsX10 > 0 && normalOk && !multActive ? "use_x10" : "locked",
     lockedReason:
       opts.bag.ptsX10 <= 0
-        ? t("bag.noStock")
+        ? translate("bag.noStock")
         : multActive
-          ? t("bag.multOn")
+          ? translate("bag.multOn")
           : !normalOk
-            ? t("bag.nrmOnly")
+            ? translate("bag.nrmOnly")
             : undefined,
   });
 
@@ -243,7 +243,7 @@ export function buildBagRows(opts: {
     kind: "item",
     key: "ptsPack",
     label: "PTS +5000",
-    desc: t("bag.nrmNow"),
+    desc: translate("bag.nrmNow"),
     stock: opts.bag.ptsPack,
     action:
       opts.bag.ptsPack > 0 && opts.inRun && opts.difficulty === "normal"
@@ -251,39 +251,39 @@ export function buildBagRows(opts: {
         : "locked",
     lockedReason:
       opts.bag.ptsPack <= 0
-        ? t("bag.noStock")
+        ? translate("bag.noStock")
         : !opts.inRun
-          ? t("bag.runOnly")
+          ? translate("bag.runOnly")
           : opts.difficulty !== "normal"
-            ? t("bag.nrmOnly")
+            ? translate("bag.nrmOnly")
             : undefined,
   });
 
   rows.push({
     kind: "status",
-    label: t("bag.ptsMult"),
+    label: translate("bag.ptsMult"),
     value:
       opts.runPtsMult != null && opts.runPtsMult > 1
-        ? t("bag.ptsActive", { n: opts.runPtsMult })
+        ? translate("bag.ptsActive", { n: opts.runPtsMult })
         : opts.pending.ptsMult > 1
-          ? t("bag.ptsReady", { n: opts.pending.ptsMult })
-          : t("bag.none"),
+          ? translate("bag.ptsReady", { n: opts.pending.ptsMult })
+          : translate("bag.none"),
   });
   rows.push({
     kind: "status",
-    label: t("bag.startStage"),
+    label: translate("bag.startStage"),
     value:
-      opts.pending.startStage > 0 ? `S${opts.pending.startStage}` : t("bag.startNormal"),
+      opts.pending.startStage > 0 ? `S${opts.pending.startStage}` : translate("bag.startNormal"),
   });
   rows.push({
     kind: "status",
-    label: t("bag.record"),
+    label: translate("bag.record"),
     value: opts.maxStage > 0 ? `S${opts.maxStage}` : "—",
   });
   rows.push({
     kind: "status",
-    label: t("bag.got"),
-    value: t("bag.gotVia"),
+    label: translate("bag.got"),
+    value: translate("bag.gotVia"),
   });
   rows.push({ kind: "back", label: "◀ BACK" });
   return rows;
@@ -316,6 +316,6 @@ export function buildStageSelectRows(
       sub: `${biome(s)} · ticket`,
     });
   }
-  rows.push({ stage: 0, label: "◀ BACK", sub: t("bag.backBag") });
+  rows.push({ stage: 0, label: "◀ BACK", sub: translate("bag.backBag") });
   return rows;
 }

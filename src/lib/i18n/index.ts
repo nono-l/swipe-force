@@ -148,7 +148,7 @@ export function dict(id?: LocaleId): Messages {
   return DICTS[id || getLocale()] || en;
 }
 
-export function t(path: MsgPath, vars?: Vars): string {
+export function translate(path: MsgPath, vars?: Vars): string {
   bootLocale();
   const loc = current;
   const raw =

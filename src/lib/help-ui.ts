@@ -2,7 +2,7 @@
  * How-to / explanation overlay. Tutorial Easy starts only from here.
  */
 
-import { t, onLocaleChange } from "@/lib/i18n";
+import { translate, onLocaleChange } from "@/lib/i18n";
 import {
   TUTORIAL_MISSIONS,
   formatTutorialReward,
@@ -95,13 +95,13 @@ export function openHelpDialog(opts: HelpDialogOpts): void {
     );
     const left = el("div");
     left.append(
-      el("div", "font-size:15px;font-weight:800;color:#9ef", t("help.title")),
-      el("div", "font-size:10px;color:#8ab;margin-top:4px;line-height:1.4", t("help.lead")),
+      el("div", "font-size:15px;font-weight:800;color:#9ef", translate("help.title")),
+      el("div", "font-size:10px;color:#8ab;margin-top:4px;line-height:1.4", translate("help.lead")),
     );
     const btnX = el(
       "button",
       "background:#123;border:1px solid #456;color:#cde;border-radius:8px;padding:6px 10px;cursor:pointer;flex-shrink:0",
-      t("help.close"),
+      translate("help.close"),
     ) as HTMLButtonElement;
     btnX.type = "button";
     btnX.addEventListener("click", () => {
@@ -112,10 +112,10 @@ export function openHelpDialog(opts: HelpDialogOpts): void {
     card.appendChild(head);
 
     card.append(
-      section(t("help.coinTitle"), t("help.coinBody")),
-      section(t("help.shopTitle"), t("help.shopBody")),
-      section(t("help.optTitle"), t("help.optBody")),
-      section(t("help.promoTitle"), t("help.promoBody")),
+      section(translate("help.coinTitle"), translate("help.coinBody")),
+      section(translate("help.shopTitle"), translate("help.shopBody")),
+      section(translate("help.optTitle"), translate("help.optBody")),
+      section(translate("help.promoTitle"), translate("help.promoBody")),
     );
 
     const mis = el(
@@ -123,15 +123,15 @@ export function openHelpDialog(opts: HelpDialogOpts): void {
       "background:#0a1810;border:1px solid #364;border-radius:10px;padding:10px;margin-bottom:10px",
     );
     mis.append(
-      el("div", "font-size:12px;font-weight:800;color:#cfe;margin-bottom:6px", t("tutorial.title")),
+      el("div", "font-size:12px;font-weight:800;color:#cfe;margin-bottom:6px", translate("tutorial.title")),
       el(
         "div",
         "font-size:10px;color:#8ab;margin-bottom:8px",
-        t("tutorial.sum", {
+        translate("tutorial.sum", {
           got: prog.got,
           all: prog.all,
           coins: prog.coins,
-          ticket: prog.ticket > 0 ? t("tutorial.ticketBit", { n: prog.ticket }) : "",
+          ticket: prog.ticket > 0 ? translate("tutorial.ticketBit", { n: prog.ticket }) : "",
         }),
       ),
     );
@@ -153,7 +153,7 @@ export function openHelpDialog(opts: HelpDialogOpts): void {
       const pay = el(
         "div",
         `font-size:10px;font-weight:800;color:${done ? "#686" : "#fe8"};white-space:nowrap`,
-        done ? t("tutorial.claimed") : formatTutorialReward(m.coins, m.ticket),
+        done ? translate("tutorial.claimed") : formatTutorialReward(m.coins, m.ticket),
       );
       row.append(info, pay);
       mis.appendChild(row);
@@ -163,7 +163,7 @@ export function openHelpDialog(opts: HelpDialogOpts): void {
     const start = el(
       "button",
       "width:100%;padding:14px;border-radius:10px;border:1px solid #8c4;background:linear-gradient(180deg,#1a5030,#0e2818);color:#dfe;font-weight:800;font-size:14px;cursor:pointer",
-      t("help.start"),
+      translate("help.start"),
     ) as HTMLButtonElement;
     start.type = "button";
     start.addEventListener("click", () => {
@@ -176,7 +176,7 @@ export function openHelpDialog(opts: HelpDialogOpts): void {
       el(
         "div",
         "font-size:9px;color:#8ab;margin-top:6px;text-align:center;line-height:1.35",
-        `${t("help.startHint")}${prog.got > 0 ? " · " + t("help.already") : ""}`,
+        `${translate("help.startHint")}${prog.got > 0 ? " · " + translate("help.already") : ""}`,
       ),
     );
   };
@@ -223,13 +223,13 @@ export function openTutorialClearDialog(opts: {
 
   card.append(
     el("div", "font-size:13px;font-weight:800;letter-spacing:.08em;color:#fe8;margin-bottom:8px", "TUTORIAL CLEAR"),
-    el("div", "font-size:18px;font-weight:900;color:#9ef;line-height:1.35;margin-bottom:10px", t("tutorial.clearTitle")),
-    el("div", "font-size:12px;color:#bcd;line-height:1.45;margin-bottom:16px", t("tutorial.clearLead")),
+    el("div", "font-size:18px;font-weight:900;color:#9ef;line-height:1.35;margin-bottom:10px", translate("tutorial.clearTitle")),
+    el("div", "font-size:12px;color:#bcd;line-height:1.45;margin-bottom:16px", translate("tutorial.clearLead")),
   );
   const btn = el(
     "button",
     "width:100%;padding:14px;border-radius:10px;border:1px solid #8c4;background:linear-gradient(180deg,#1a5030,#0e2818);color:#dfe;font-weight:800;font-size:14px;cursor:pointer",
-    t("tutorial.clearOk"),
+    translate("tutorial.clearOk"),
   ) as HTMLButtonElement;
   btn.type = "button";
   btn.addEventListener("click", () => {

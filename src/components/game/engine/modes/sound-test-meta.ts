@@ -3,7 +3,7 @@
  * Drawing / network stay in recovered-game.
  */
 
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 export type SoundTestMode = "title" | "stage" | "boss" | "legacy" | "archive" | string;
 
@@ -101,9 +101,9 @@ export function buildTrackCard(opts: {
 export function commentKindLabel(
   kind: string | undefined,
 ): string {
-  if (kind === "arrange") return t("sound.kindArrange");
-  if (kind === "cover") return t("sound.kindCover");
-  return t("sound.kindNote");
+  if (kind === "arrange") return translate("sound.kindArrange");
+  if (kind === "cover") return translate("sound.kindCover");
+  return translate("sound.kindNote");
 }
 
 export function commentKindEmoji(kind: string | undefined): string {

@@ -22,7 +22,7 @@ import {
   SUPER_ADMIN_PLAYER_ID,
   type StaffEntry,
 } from "@/components/game/engine/modes/admin";
-import { t, onLocaleChange } from "@/lib/i18n";
+import { translate, onLocaleChange } from "@/lib/i18n";
 import {
   deleteAdminPromo,
   fetchAdminPromos,
@@ -134,7 +134,7 @@ export function openPromoAdminDialog(opts: {
     let editCode = "";
     let flash = "";
     let staff: StaffEntry[] = [
-      { playerId: SUPER_ADMIN_PLAYER_ID, label: t("admin.fixedAdmin"), fixed: true },
+      { playerId: SUPER_ADMIN_PLAYER_ID, label: translate("admin.fixedAdmin"), fixed: true },
     ];
     let staffBusy = false;
     let promoBusy = false;
@@ -261,8 +261,8 @@ export function openPromoAdminDialog(opts: {
       } else {
         flash =
           res.reason === "auth" || res.reason === "forbidden"
-            ? t("admin.needLogin")
-            : t("admin.loadFail", { r: res.reason || "error" });
+            ? translate("admin.needLogin")
+            : translate("admin.loadFail", { r: res.reason || "error" });
       }
     }
 
@@ -272,17 +272,17 @@ export function openPromoAdminDialog(opts: {
       return `
       ${flash ? `<div style="font-size:11px;margin-bottom:8px;padding:8px;border-radius:8px;background:#1a2010;border:1px solid #664;color:#fec">${esc(flash)}</div>` : ""}
       <div style="font-size:10px;color:#8a7;margin-bottom:8px;line-height:1.4">
-        ${t("admin.lead")}<br/>
-        ${t("admin.uses", { n: totalClaims })}
-        ${promoLoaded ? "" : ` · ${t("admin.loading")}`}
-        ${promoBusy ? ` · ${t("admin.busy")}` : ""}
+        ${translate("admin.lead")}<br/>
+        ${translate("admin.uses", { n: totalClaims })}
+        ${promoLoaded ? "" : ` · ${translate("admin.loading")}`}
+        ${promoBusy ? ` · ${translate("admin.busy")}` : ""}
       </div>
       <div style="background:#0a141c;border:1px solid #345;border-radius:10px;padding:10px;margin-bottom:12px">
-        <div style="font-size:11px;font-weight:700;color:#9cf;margin-bottom:8px">${editCode ? t("admin.editCode", { code: esc(editCode) }) : t("admin.newCode")}</div>
-        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">${t("admin.code")}</label>
+        <div style="font-size:11px;font-weight:700;color:#9cf;margin-bottom:8px">${editCode ? translate("admin.editCode", { code: esc(editCode) }) : translate("admin.newCode")}</div>
+        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">${translate("admin.code")}</label>
         <input id="sf-pa-code" maxlength="24" placeholder="SUMMER2026" style="${inputStyle("margin-bottom:8px;text-transform:uppercase")}" />
-        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">${t("admin.label")}</label>
-        <input id="sf-pa-label" maxlength="40" placeholder="${t("admin.labelPh")}" style="${inputStyle("margin-bottom:8px")}" />
+        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">${translate("admin.label")}</label>
+        <input id="sf-pa-label" maxlength="40" placeholder="${translate("admin.labelPh")}" style="${inputStyle("margin-bottom:8px")}" />
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
           <div>
             <label style="font-size:10px;color:#8ab">TICKET</label>
@@ -302,34 +302,34 @@ export function openPromoAdminDialog(opts: {
           </div>
         </div>
         <div style="background:#0a1810;border:1px solid #264;border-radius:8px;padding:8px;margin-bottom:10px">
-          <div style="font-size:10px;font-weight:700;color:#9ec;margin-bottom:6px">${t("admin.unlocks")}</div>
+          <div style="font-size:10px;font-weight:700;color:#9ec;margin-bottom:6px">${translate("admin.unlocks")}</div>
           <label style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#cfe;margin-right:14px;cursor:pointer">
             <input type="checkbox" id="sf-pa-u-beam" /> OPT-LASER (beam)
           </label>
           <label style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#cfe;cursor:pointer">
             <input type="checkbox" id="sf-pa-u-flame" /> FLAME (flame)
           </label>
-          <div style="font-size:9px;color:#678;margin-top:6px;line-height:1.35">${t("admin.unlockHint")}</div>
+          <div style="font-size:9px;color:#678;margin-top:6px;line-height:1.35">${translate("admin.unlockHint")}</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
           <div>
-            <label style="font-size:10px;color:#8ab">${t("admin.expires")}</label>
+            <label style="font-size:10px;color:#8ab">${translate("admin.expires")}</label>
             <input id="sf-pa-exp" type="date" style="${inputStyle()}" />
           </div>
           <div>
-            <label style="font-size:10px;color:#8ab">${t("admin.maxUse")}</label>
+            <label style="font-size:10px;color:#8ab">${translate("admin.maxUse")}</label>
             <input id="sf-pa-max" type="number" min="0" max="1000000" value="0" style="${inputStyle()}" />
           </div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button type="button" id="sf-pa-save" style="flex:1;${btnStyle("primary")}" ${promoBusy ? "disabled" : ""}>${editCode ? t("admin.updDb") : t("admin.addDb")}</button>
-          <button type="button" id="sf-pa-clear" style="${btnStyle("ghost")}">${t("admin.clear")}</button>
-          <button type="button" id="sf-pa-reload" style="${btnStyle("ok")}">${t("admin.reload")}</button>
+          <button type="button" id="sf-pa-save" style="flex:1;${btnStyle("primary")}" ${promoBusy ? "disabled" : ""}>${editCode ? translate("admin.updDb") : translate("admin.addDb")}</button>
+          <button type="button" id="sf-pa-clear" style="${btnStyle("ghost")}">${translate("admin.clear")}</button>
+          <button type="button" id="sf-pa-reload" style="${btnStyle("ok")}">${translate("admin.reload")}</button>
         </div>
       </div>
-      <div style="font-size:11px;font-weight:700;color:#fec;margin-bottom:6px">${t("admin.customDb", { n: customs.length })}</div>
+      <div style="font-size:11px;font-weight:700;color:#fec;margin-bottom:6px">${translate("admin.customDb", { n: customs.length })}</div>
       <div id="sf-pa-custom" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
-      <div style="font-size:11px;font-weight:700;color:#8ab;margin-bottom:6px">${t("admin.builtin", { n: builtins.length })}</div>
+      <div style="font-size:11px;font-weight:700;color:#8ab;margin-bottom:6px">${translate("admin.builtin", { n: builtins.length })}</div>
       <div id="sf-pa-built" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
       `;
     }
@@ -338,17 +338,17 @@ export function openPromoAdminDialog(opts: {
       return `
       ${flash ? `<div style="font-size:11px;margin-bottom:8px;padding:8px;border-radius:8px;background:#1a2010;border:1px solid #664;color:#fec">${esc(flash)}</div>` : ""}
       <div style="font-size:10px;color:#8a7;margin-bottom:10px;line-height:1.45">
-        ${t("admin.staffLead", { id: esc(SUPER_ADMIN_PLAYER_ID) })}
+        ${translate("admin.staffLead", { id: esc(SUPER_ADMIN_PLAYER_ID) })}
       </div>
       <div style="background:#0a141c;border:1px solid #345;border-radius:10px;padding:10px;margin-bottom:12px">
-        <div style="font-size:11px;font-weight:700;color:#9cf;margin-bottom:8px">${t("admin.appoint")}</div>
-        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">${t("admin.playerId")}</label>
+        <div style="font-size:11px;font-weight:700;color:#9cf;margin-bottom:8px">${translate("admin.appoint")}</div>
+        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">${translate("admin.playerId")}</label>
         <input id="sf-st-id" maxlength="32" placeholder="uxxxxxxxxxxxx" style="${inputStyle("margin-bottom:8px")}" />
-        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">${t("admin.nameOpt")}</label>
-        <input id="sf-st-label" maxlength="40" placeholder="${t("admin.namePh")}" style="${inputStyle("margin-bottom:10px")}" />
-        <button type="button" id="sf-st-add" style="width:100%;${btnStyle("primary")}" ${staffBusy ? "disabled" : ""}>${t("admin.appointBtn")}</button>
+        <label style="display:block;font-size:10px;color:#8ab;margin-bottom:3px">${translate("admin.nameOpt")}</label>
+        <input id="sf-st-label" maxlength="40" placeholder="${translate("admin.namePh")}" style="${inputStyle("margin-bottom:10px")}" />
+        <button type="button" id="sf-st-add" style="width:100%;${btnStyle("primary")}" ${staffBusy ? "disabled" : ""}>${translate("admin.appointBtn")}</button>
       </div>
-      <div style="font-size:11px;font-weight:700;color:#fec;margin-bottom:6px">${t("admin.staffList", { n: staff.length })}</div>
+      <div style="font-size:11px;font-weight:700;color:#fec;margin-bottom:6px">${translate("admin.staffList", { n: staff.length })}</div>
       <div id="sf-st-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
       `;
     }
@@ -356,23 +356,23 @@ export function openPromoAdminDialog(opts: {
     function renderAdsBody(): string {
       return `
       <div style="font-size:12px;color:#9bc;line-height:1.5;margin-bottom:12px">
-        ${t("admin.adsLead")}
+        ${translate("admin.adsLead")}
       </div>
       <button type="button" id="sf-open-media-admin" style="width:100%;padding:12px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-weight:800;cursor:pointer">
-        ${t("admin.openAds")}
+        ${translate("admin.openAds")}
       </button>
       <div style="display:flex;gap:8px;margin-top:8px">
         <button type="button" id="sf-open-ad-portal"
            style="flex:1;box-sizing:border-box;padding:12px;border-radius:8px;border:1px solid #8cf;background:#102030;color:#cef;font-weight:800;cursor:pointer;text-align:center">
-          ${t("admin.openPortal")}
+          ${translate("admin.openPortal")}
         </button>
         <button type="button" id="sf-portal-copy" style="flex-shrink:0;padding:12px 14px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-weight:800;cursor:pointer;font-size:12px">
-          ${t("admin.copyUrl")}
+          ${translate("admin.copyUrl")}
         </button>
       </div>
-      <a id="sf-portal-url" href="/partner" target="_blank" rel="noopener" title="${t("common.open")}" style="display:block;font-size:10px;color:#8cf;margin-top:8px;word-break:break-all;text-align:center;user-select:all;cursor:pointer;padding:8px;border:1px dashed #356;border-radius:8px;background:#041018;text-decoration:none"></a>
+      <a id="sf-portal-url" href="/partner" target="_blank" rel="noopener" title="${translate("common.open")}" style="display:block;font-size:10px;color:#8cf;margin-top:8px;word-break:break-all;text-align:center;user-select:all;cursor:pointer;padding:8px;border:1px dashed #356;border-radius:8px;background:#041018;text-decoration:none"></a>
       <div style="font-size:10px;color:#678;margin-top:10px;line-height:1.4;white-space:pre-line">
-        ${t("admin.adsHint")}
+        ${translate("admin.adsHint")}
       </div>
       ${flash ? `<div style="margin-top:8px;font-size:11px;color:#fc8">${esc(flash)}</div>` : ""}
       `;
@@ -387,16 +387,16 @@ export function openPromoAdminDialog(opts: {
 
       card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:14px;font-weight:800;color:#ffe088">${t("admin.title")}</div>
+        <div style="font-size:14px;font-weight:800;color:#ffe088">${translate("admin.title")}</div>
         <button type="button" id="sf-pa-x" style="border:0;background:transparent;color:#9ab;font-size:20px;cursor:pointer;line-height:1">×</button>
       </div>
       <div style="font-size:10px;color:#8a7;margin-bottom:8px">
-        ${t("admin.operator", { id: esc(String(opts.playerId || "").slice(0, 28)), role: isSuperAdmin(opts.playerId) ? " · SUPER" : " · STAFF" })}
+        ${translate("admin.operator", { id: esc(String(opts.playerId || "").slice(0, 28)), role: isSuperAdmin(opts.playerId) ? " · SUPER" : " · STAFF" })}
       </div>
       <div style="display:flex;gap:6px;margin-bottom:12px">
-        <button type="button" id="sf-tab-promo" style="${btnStyle(tab === "promo" ? "tabOn" : "tab")}">${t("admin.tabPromo")}</button>
-        <button type="button" id="sf-tab-ads" style="${btnStyle(tab === "ads" ? "tabOn" : "tab")}">${t("admin.tabAds")}</button>
-        <button type="button" id="sf-tab-staff" style="${btnStyle(tab === "staff" ? "tabOn" : "tab")}">${t("admin.tabStaff")}</button>
+        <button type="button" id="sf-tab-promo" style="${btnStyle(tab === "promo" ? "tabOn" : "tab")}">${translate("admin.tabPromo")}</button>
+        <button type="button" id="sf-tab-ads" style="${btnStyle(tab === "ads" ? "tabOn" : "tab")}">${translate("admin.tabAds")}</button>
+        <button type="button" id="sf-tab-staff" style="${btnStyle(tab === "staff" ? "tabOn" : "tab")}">${translate("admin.tabStaff")}</button>
       </div>
       <div id="sf-pa-body">${tab === "promo" ? renderPromoBody() : tab === "ads" ? renderAdsBody() : renderStaffBody()}</div>
       `;
@@ -444,10 +444,10 @@ export function openPromoAdminDialog(opts: {
         const ok = await copyText(portalUrl);
         if (ok) {
           opts.sfxOk?.();
-          setFlash(t("admin.copiedPortal"));
+          setFlash(translate("admin.copiedPortal"));
         } else {
           opts.sfxFail?.();
-          setFlash(t("admin.copyFail"));
+          setFlash(translate("admin.copyFail"));
         }
       });
       card.querySelector("#sf-open-media-admin")?.addEventListener("click", () => {
@@ -470,13 +470,13 @@ export function openPromoAdminDialog(opts: {
 
       const bindRow = (host: HTMLElement, def: ServerPromo, isCustom: boolean) => {
         const row = document.createElement("div");
-        const claimedMark = claimed.has(def.code) ? t("admin.claimedLocal") : "";
+        const claimedMark = claimed.has(def.code) ? translate("admin.claimedLocal") : "";
         const uses = Number(def.claimCount) || 0;
         const max = Number(def.maxClaims) || 0;
         const expired = isCustom && isPromoExpired(def.expiresAt);
         const soldOut = isCustom && isPromoSoldOut(def.maxClaims, uses);
         const status =
-          expired ? t("admin.expired") : soldOut ? t("admin.soldOut") : isCustom ? t("admin.live") : t("admin.always");
+          expired ? translate("admin.expired") : soldOut ? translate("admin.soldOut") : isCustom ? translate("admin.live") : translate("admin.always");
         const statusCol = expired || soldOut ? "#f88" : "#8ef";
         row.style.cssText =
           "background:#031018;border:1px solid #234;border-radius:8px;padding:8px";
@@ -486,7 +486,7 @@ export function openPromoAdminDialog(opts: {
           <div style="font-size:11px;font-weight:800;color:${statusCol};white-space:nowrap">${esc(status)}</div>
         </div>
         <div style="font-size:10px;color:#9ab;margin-top:2px">${esc(def.label)} · ${esc(formatGrantSummary(def.grant))}${esc(claimedMark)}</div>
-        <div style="font-size:10px;color:#8ab;margin-top:3px">${esc(formatMaxClaimsLabel(max, uses))} · ${esc(isCustom ? formatExpiresLabel(def.expiresAt) : t("admin.noExpire"))}</div>
+        <div style="font-size:10px;color:#8ab;margin-top:3px">${esc(formatMaxClaimsLabel(max, uses))} · ${esc(isCustom ? formatExpiresLabel(def.expiresAt) : translate("admin.noExpire"))}</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px"></div>
       `;
         const actions = row.lastElementChild as HTMLElement;
@@ -507,37 +507,37 @@ export function openPromoAdminDialog(opts: {
           const url = buildPromoUrl(def.code);
           try {
             await navigator.clipboard.writeText(url);
-            setFlash(t("admin.copied", { url }));
+            setFlash(translate("admin.copied", { url }));
           } catch {
             setFlash(url, true);
           }
         });
         if (isCustom) {
-          addBtn(t("admin.edit"), "ghost", () => {
+          addBtn(translate("admin.edit"), "ghost", () => {
             const snapshot = { ...def };
             flash = "";
             render();
             fillForm(snapshot);
           });
-          addBtn(t("admin.del"), "danger", () => {
-            if (!confirm(t("admin.delConfirm", { code: def.code }))) return;
+          addBtn(translate("admin.del"), "danger", () => {
+            if (!confirm(translate("admin.delConfirm", { code: def.code }))) return;
             void (async () => {
               promoBusy = true;
               const r = await deleteAdminPromo(def.code);
               promoBusy = false;
               if (!r.ok) {
-                setFlash(t("admin.delFail", { r: r.reason || "error" }), false);
+                setFlash(translate("admin.delFail", { r: r.reason || "error" }), false);
                 return;
               }
               if (editCode === def.code) editCode = "";
               await reloadPromos();
-              setFlash(t("admin.deleted", { code: def.code }));
+              setFlash(translate("admin.deleted", { code: def.code }));
             })();
           });
         }
-        addBtn(t("admin.unclaimLocal"), "ghost", () => {
+        addBtn(translate("admin.unclaimLocal"), "ghost", () => {
           unclaimPromoCode(def.code);
-          setFlash(t("admin.unclaimed", { code: def.code }));
+          setFlash(translate("admin.unclaimed", { code: def.code }));
         });
         host.appendChild(row);
       };
@@ -546,10 +546,10 @@ export function openPromoAdminDialog(opts: {
       if (customHost) {
         if (!promoLoaded && !customs.length) {
           customHost.innerHTML =
-            `<div style="font-size:11px;color:#678;padding:6px">${t("admin.loadingServer")}</div>`;
+            `<div style="font-size:11px;color:#678;padding:6px">${translate("admin.loadingServer")}</div>`;
         } else if (!customs.length) {
           customHost.innerHTML =
-            `<div style="font-size:11px;color:#678;padding:6px">${t("admin.noCustom")}</div>`;
+            `<div style="font-size:11px;color:#678;padding:6px">${translate("admin.noCustom")}</div>`;
         } else {
           for (const d of customs) bindRow(customHost, d, true);
         }
@@ -561,13 +561,13 @@ export function openPromoAdminDialog(opts: {
 
       card.querySelector("#sf-pa-reload")?.addEventListener("click", () => {
         void reloadPromos().then(() => {
-          setFlash(t("admin.reloaded"));
+          setFlash(translate("admin.reloaded"));
         });
       });
 
       card.querySelector("#sf-pa-save")?.addEventListener("click", () => {
         if (!isPromoAdminPlayer(opts.playerId)) {
-          setFlash(t("admin.adminOnly"), false);
+          setFlash(translate("admin.adminOnly"), false);
           return;
         }
         const form = readForm();
@@ -579,21 +579,21 @@ export function openPromoAdminDialog(opts: {
           if (!res.ok) {
             const msg =
               res.reason === "bad_code"
-                ? t("admin.badCode")
+                ? translate("admin.badCode")
                 : res.reason === "empty_grant"
-                  ? t("admin.needGrant")
+                  ? translate("admin.needGrant")
                   : res.reason === "builtin_locked"
-                    ? t("admin.noOverwrite")
+                    ? translate("admin.noOverwrite")
                     : res.reason === "auth" || res.reason === "forbidden"
-                      ? t("admin.loginAdmin")
-                      : t("admin.saveFail", { r: res.reason || "error" });
+                      ? translate("admin.loginAdmin")
+                      : translate("admin.saveFail", { r: res.reason || "error" });
             setFlash(msg, false);
             return;
           }
           editCode = res.def?.code || form.code;
           await reloadPromos();
           setFlash(
-            t("admin.saved", { code: res.def?.code || form.code }),
+            translate("admin.saved", { code: res.def?.code || form.code }),
           );
         })();
       });
@@ -614,7 +614,7 @@ export function openPromoAdminDialog(opts: {
       if (listHost) {
         if (!staff.length) {
           listHost.innerHTML =
-            `<div style="font-size:11px;color:#678;padding:6px">${t("admin.loading")}</div>`;
+            `<div style="font-size:11px;color:#678;padding:6px">${translate("admin.loading")}</div>`;
         }
         for (const s of staff) {
           const row = document.createElement("div");
@@ -623,27 +623,27 @@ export function openPromoAdminDialog(opts: {
             "background:#031018;border:1px solid #234;border-radius:8px;padding:8px";
           row.innerHTML = `
             <div style="font-size:12px;font-weight:700;color:${fixed ? "#9cf" : "#ffe088"}">${esc(s.playerId)}${fixed ? " 🔒" : ""}</div>
-            <div style="font-size:10px;color:#9ab;margin-top:2px">${esc(s.label || (fixed ? t("admin.fixedAdmin") : t("admin.extraAdmin")))}${s.appointedBy ? ` · by ${esc(s.appointedBy)}` : ""}</div>
+            <div style="font-size:10px;color:#9ab;margin-top:2px">${esc(s.label || (fixed ? translate("admin.fixedAdmin") : translate("admin.extraAdmin")))}${s.appointedBy ? ` · by ${esc(s.appointedBy)}` : ""}</div>
             <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px"></div>
           `;
           const actions = row.lastElementChild as HTMLElement;
           if (!fixed) {
             const b = document.createElement("button");
             b.type = "button";
-            b.textContent = t("admin.dismiss");
+            b.textContent = translate("admin.dismiss");
             b.style.cssText = btnStyle("danger");
             b.onclick = () => {
-              if (!confirm(t("admin.dismissQ", { id: s.playerId }))) return;
+              if (!confirm(translate("admin.dismissQ", { id: s.playerId }))) return;
               void (async () => {
                 staffBusy = true;
                 const r = await removeAppointedAdmin(s.playerId);
                 staffBusy = false;
                 if (!r.ok) {
-                  setFlash(t("admin.dismissFail", { r: r.reason || "error" }), false);
+                  setFlash(translate("admin.dismissFail", { r: r.reason || "error" }), false);
                   return;
                 }
                 await reloadStaff();
-                setFlash(t("admin.dismissed", { id: s.playerId }));
+                setFlash(translate("admin.dismissed", { id: s.playerId }));
               })();
             };
             actions.appendChild(b);
@@ -663,11 +663,11 @@ export function openPromoAdminDialog(opts: {
           const r = await appointAdmin(rawId, label);
           staffBusy = false;
           if (!r.ok) {
-            setFlash(t("admin.appointFail", { r: r.reason || "error" }), false);
+            setFlash(translate("admin.appointFail", { r: r.reason || "error" }), false);
             return;
           }
           await reloadStaff();
-          setFlash(t("admin.appointed", { id: rawId }));
+          setFlash(translate("admin.appointed", { id: rawId }));
         })();
       });
     }

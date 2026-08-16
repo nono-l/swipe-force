@@ -10,7 +10,7 @@ import { fetchLinkedAccount } from "@/lib/account";
 import { openBannerEditor } from "@/lib/banner-editor-ui";
 import { openBannerHistoryDialog } from "@/lib/banner-history-ui";
 import { confirmBannerDelete } from "@/lib/banner-delete-ui";
-import { t, useLocale } from "@/lib/i18n";
+import { translate, useLocale } from "@/lib/i18n";
 import {
   fetchPartnerBannerStatus,
   savePartnerBannerHref,
@@ -395,15 +395,15 @@ function BannerEditorPage() {
                           }
                           setFlash(
                             href
-                              ? t("partner.hrefSaved")
-                              : t("partner.hrefCleared"),
+                              ? translate("partner.hrefSaved")
+                              : translate("partner.hrefCleared"),
                           );
                           await reloadBanner(playerId);
                         })();
                       }}
                     >
                       <label className="block text-[10px] text-[#8ab]">
-                        {t("bannerPage.hrefLabel")}
+                        {translate("bannerPage.hrefLabel")}
                       </label>
                       <input
                         name="href"
@@ -420,7 +420,7 @@ function BannerEditorPage() {
                           disabled={busy}
                           className="shrink-0 rounded-lg border border-[#6af] bg-[#1a4060] px-3 py-2 text-[11px] font-bold text-[#dff] disabled:opacity-50"
                         >
-                          {t("common.save")}
+                          {translate("common.save")}
                         </button>
                         <button
                           type="button"
@@ -436,10 +436,10 @@ function BannerEditorPage() {
                               );
                               setBusy(false);
                               if (!res.ok) {
-                                setFlash(t("partner.toggleFail", { r: res.reason || "?" }));
+                                setFlash(translate("partner.toggleFail", { r: res.reason || "?" }));
                                 return;
                               }
-                              setFlash(on ? t("partner.disabled") : t("partner.enabled"));
+                              setFlash(on ? translate("partner.disabled") : translate("partner.enabled"));
                               await reloadBanner(playerId);
                             })();
                           }}
@@ -450,7 +450,7 @@ function BannerEditorPage() {
                             color: on ? "#fcc" : "#dff",
                           }}
                         >
-                          {on ? t("partner.disable") : t("partner.enable")}
+                          {on ? translate("partner.disable") : translate("partner.enable")}
                         </button>
                       </div>
                       <button
@@ -468,16 +468,16 @@ function BannerEditorPage() {
                             );
                             setBusy(false);
                             if (!res.ok) {
-                              setFlash(t("partner.delFail", { r: res.reason || "?" }));
+                              setFlash(translate("partner.delFail", { r: res.reason || "?" }));
                               return;
                             }
-                            setFlash(t("partner.deleted"));
+                            setFlash(translate("partner.deleted"));
                             await reloadBanner(playerId);
                           })();
                         }}
                         className="w-full rounded-lg border border-[#844] bg-[#2a1010] px-3 py-2 text-[11px] font-bold text-[#fcc] disabled:opacity-50"
                       >
-                        {t("partner.delThis")}
+                        {translate("partner.delThis")}
                       </button>
                     </form>
                   </div>

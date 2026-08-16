@@ -2,7 +2,7 @@
  * Options screen title / row colors (recovered ii pure bits).
  */
 
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 export function optionsScreenTitle(submenu: string): {
   title: string;
@@ -12,23 +12,23 @@ export function optionsScreenTitle(submenu: string): {
 } {
   if (submenu === "shot") {
     return {
-      title: t("options.shotTitle"),
-      subtitle: t("options.shotSub"),
+      title: translate("options.shotTitle"),
+      subtitle: translate("options.shotSub"),
       border: "#66ffaa",
       titleColor: "#88ffcc",
     };
   }
   if (submenu === "weapons") {
     return {
-      title: t("options.wepTitle"),
-      subtitle: t("options.wepSub"),
+      title: translate("options.wepTitle"),
+      subtitle: translate("options.wepSub"),
       border: "#66ffaa",
       titleColor: "#88ffcc",
     };
   }
   return {
-    title: t("options.title"),
-    subtitle: t("options.subtitle"),
+    title: translate("options.title"),
+    subtitle: translate("options.subtitle"),
     border: "#00ccff",
     titleColor: "#66eeff",
   };

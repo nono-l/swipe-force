@@ -16,7 +16,7 @@ import {
 import { maxCoinsForVideo, parseYouTubeVideoId } from "@/components/game/engine/modes/media-watch";
 import { fetchYouTubeDurationSec, fetchYouTubeTitle } from "@/lib/youtube-duration";
 import { isPromoAdminPlayer } from "@/components/game/engine/modes/admin";
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 function isFlagOn(v: unknown): boolean {
   return v === true || v === 1 || v === "1" || v === "true";
@@ -44,14 +44,14 @@ function paintChannelToggle(root: ParentNode, prefix: string, on: boolean) {
 function channelToggleHtml(prefix: string, on: boolean): string {
   return `
     <div style="grid-column:1/-1;background:#0a1520;border:1px solid #345;border-radius:10px;padding:10px">
-      <div style="font-size:12px;font-weight:800;color:#cfe">${t("mediaAd.showCh")}</div>
-      <div style="font-size:10px;color:#8ab;margin:4px 0 8px;line-height:1.4">${t("mediaAd.showChHint")}</div>
+      <div style="font-size:12px;font-weight:800;color:#cfe">${translate("mediaAd.showCh")}</div>
+      <div style="font-size:10px;color:#8ab;margin:4px 0 8px;line-height:1.4">${translate("mediaAd.showChHint")}</div>
       <div style="display:flex;gap:8px">
-        <button type="button" id="${prefix}-off" style="flex:1;padding:12px 8px;border-radius:8px;border:2px solid ${on ? "#345" : "#a66"};background:${on ? "#152018" : "#3a2020"};color:${on ? "#89a" : "#fcc"};font-weight:${on ? 600 : 800};cursor:pointer">${t("mediaAd.chOff")}</button>
-        <button type="button" id="${prefix}-on" style="flex:1;padding:12px 8px;border-radius:8px;border:2px solid ${on ? "#6a4" : "#345"};background:${on ? "#1a4030" : "#152018"};color:${on ? "#cfc" : "#89a"};font-weight:${on ? 800 : 600};cursor:pointer">${t("mediaAd.chOn")}</button>
+        <button type="button" id="${prefix}-off" style="flex:1;padding:12px 8px;border-radius:8px;border:2px solid ${on ? "#345" : "#a66"};background:${on ? "#152018" : "#3a2020"};color:${on ? "#89a" : "#fcc"};font-weight:${on ? 600 : 800};cursor:pointer">${translate("mediaAd.chOff")}</button>
+        <button type="button" id="${prefix}-on" style="flex:1;padding:12px 8px;border-radius:8px;border:2px solid ${on ? "#6a4" : "#345"};background:${on ? "#1a4030" : "#152018"};color:${on ? "#cfc" : "#89a"};font-weight:${on ? 800 : 600};cursor:pointer">${translate("mediaAd.chOn")}</button>
       </div>
       <input type="hidden" id="${prefix}" value="${on ? "1" : "0"}" />
-      <div style="font-size:10px;margin-top:8px;color:${on ? "#9e8" : "#889"}">${on ? t("mediaAd.chNowOn") : t("mediaAd.chNowOff")}</div>
+      <div style="font-size:10px;margin-top:8px;color:${on ? "#9e8" : "#889"}">${on ? translate("mediaAd.chNowOn") : translate("mediaAd.chNowOff")}</div>
     </div>`;
 }
 
@@ -73,12 +73,12 @@ function esc(s: string): string {
 
 function formatHours(sec: number): string {
   const s = Math.max(0, Math.floor(sec));
-  if (s < 60) return t("mediaAd.sec", { n: s });
+  if (s < 60) return translate("mediaAd.sec", { n: s });
   const m = Math.floor(s / 60);
-  if (m < 60) return s % 60 ? t("mediaAd.minSec", { m, s: s % 60 }) : t("mediaAd.min", { m });
+  if (m < 60) return s % 60 ? translate("mediaAd.minSec", { m, s: s % 60 }) : translate("mediaAd.min", { m });
   const h = Math.floor(m / 60);
   const rm = m % 60;
-  return rm ? t("mediaAd.hourMin", { h, m: rm }) : t("mediaAd.hour", { h });
+  return rm ? translate("mediaAd.hourMin", { h, m: rm }) : translate("mediaAd.hour", { h });
 }
 
 function inputStyle(extra = "") {
@@ -151,7 +151,7 @@ export function openMediaAdminDialog(opts: AdAdminDialogOpts): void {
   const reload = async () => {
     const r = await fetchAdminAdVideos(String(opts.playerId || ""));
     if (!r.ok) {
-      flash = t("mediaAd.loadFail", { r: r.reason || "error" });
+      flash = translate("mediaAd.loadFail", { r: r.reason || "error" });
       opts.sfxFail?.();
       return;
     }
@@ -168,11 +168,11 @@ export function openMediaAdminDialog(opts: AdAdminDialogOpts): void {
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div>
-          <div style="font-size:15px;font-weight:800;color:#9ef">${t("mediaAd.title")}</div>
-          <div style="font-size:10px;color:#8ab;margin-top:2px">${t("mediaAd.lead")}</div>
+          <div style="font-size:15px;font-weight:800;color:#9ef">${translate("mediaAd.title")}</div>
+          <div style="font-size:10px;color:#8ab;margin-top:2px">${translate("mediaAd.lead")}</div>
           <div style="font-size:10px;margin-top:6px;line-height:1.45">
-            <button type="button" id="sf-ma-portal" style="margin-right:6px;padding:4px 10px;border-radius:6px;border:1px solid #8cf;background:#102838;color:#cef;font-size:11px;font-weight:700;cursor:pointer">${t("mediaAd.openPortal")}</button>
-            <button type="button" id="sf-ma-portal-copy" style="padding:3px 8px;border-radius:6px;border:1px solid #456;background:#122028;color:#bcd;font-size:10px;cursor:pointer">${t("mediaAd.copyUrl")}</button>
+            <button type="button" id="sf-ma-portal" style="margin-right:6px;padding:4px 10px;border-radius:6px;border:1px solid #8cf;background:#102838;color:#cef;font-size:11px;font-weight:700;cursor:pointer">${translate("mediaAd.openPortal")}</button>
+            <button type="button" id="sf-ma-portal-copy" style="padding:3px 8px;border-radius:6px;border:1px solid #456;background:#122028;color:#bcd;font-size:10px;cursor:pointer">${translate("mediaAd.copyUrl")}</button>
             <a id="sf-ma-portal-url" href="/partner" target="_blank" rel="noopener" title="クリックで開く / 長押しでコピー" style="display:block;font-size:9px;color:#8cf;margin-top:4px;word-break:break-all;user-select:all;cursor:pointer;padding:4px 6px;border:1px dashed #356;border-radius:6px;background:#041018;text-decoration:none"></a>
           </div>
         </div>
@@ -180,59 +180,59 @@ export function openMediaAdminDialog(opts: AdAdminDialogOpts): void {
       </div>
 
       <div style="background:#0a1820;border:1px solid #264;border-radius:10px;padding:10px;margin-bottom:12px">
-        <div style="font-size:11px;font-weight:700;color:#9ec;margin-bottom:8px">${editId ? t("mediaAd.edit") : t("mediaAd.create")}</div>
+        <div style="font-size:11px;font-weight:700;color:#9ec;margin-bottom:8px">${editId ? translate("mediaAd.edit") : translate("mediaAd.create")}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
           <div style="grid-column:1/-1">
-            <label style="font-size:10px;color:#8ab">${t("mediaAd.yt")}</label>
+            <label style="font-size:10px;color:#8ab">${translate("mediaAd.yt")}</label>
             <input id="sf-ma-id" ${editId ? "readonly" : ""} value="${esc(editing?.id || "")}" placeholder="https://www.youtube.com/watch?v=… / live / youtu.be/…" style="${inputStyle(editId ? "opacity:.7" : "")}" />
             <div id="sf-ma-id-parsed" style="font-size:10px;color:#8ab;margin-top:4px"></div>
           </div>
           <div style="grid-column:1/-1">
-            <label style="font-size:10px;color:#8ab">${t("mediaAd.label")}</label>
-            <input id="sf-ma-label" value="${esc(editing?.label || "")}" placeholder="${t("mediaAd.labelPh")}" style="${inputStyle()}" />
+            <label style="font-size:10px;color:#8ab">${translate("mediaAd.label")}</label>
+            <input id="sf-ma-label" value="${esc(editing?.label || "")}" placeholder="${translate("mediaAd.labelPh")}" style="${inputStyle()}" />
           </div>
           <div>
-            <label style="font-size:10px;color:#8ab">${t("mediaAd.dur")}</label>
+            <label style="font-size:10px;color:#8ab">${translate("mediaAd.dur")}</label>
             <div style="display:flex;gap:6px">
               <input id="sf-ma-dur" type="number" min="10" max="86400" value="${editing?.durationSec ?? ""}" placeholder="自動" style="${inputStyle()}" />
-              <button type="button" id="sf-ma-dur-fetch" style="${btnStyle("ghost")};white-space:nowrap;flex-shrink:0">${t("mediaAd.fetchDur")}</button>
+              <button type="button" id="sf-ma-dur-fetch" style="${btnStyle("ghost")};white-space:nowrap;flex-shrink:0">${translate("mediaAd.fetchDur")}</button>
             </div>
-            <div id="sf-ma-dur-status" style="font-size:9px;color:#678;margin-top:3px">${t("mediaAd.durHint")}</div>
+            <div id="sf-ma-dur-status" style="font-size:9px;color:#678;margin-top:3px">${translate("mediaAd.durHint")}</div>
           </div>
           <div>
-            <label style="font-size:10px;color:#8ab">${t("mediaAd.hours")}</label>
+            <label style="font-size:10px;color:#8ab">${translate("mediaAd.hours")}</label>
             <input id="sf-ma-maxh" type="number" min="0" max="100000" step="0.1" value="${editing?.maxDisplayHours ?? 0}" style="${inputStyle()}" />
-            <div style="font-size:9px;color:#678;margin-top:2px">${t("mediaAd.hoursHint")}</div>
+            <div style="font-size:9px;color:#678;margin-top:2px">${translate("mediaAd.hoursHint")}</div>
           </div>
           <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#cde;cursor:pointer">
               <input type="checkbox" id="sf-ma-active" ${editing ? (editing.active && !editing.exhausted ? "checked" : editing.active ? "checked" : "") : "checked"} />
-              ${t("mediaAd.liveOn")}
+              ${translate("mediaAd.liveOn")}
             </label>
             <label style="display:inline-flex;align-items:flex-start;gap:6px;font-size:12px;color:#cde;cursor:pointer;line-height:1.35">
               <input type="checkbox" id="sf-ma-once" ${editing?.claimOnce ? "checked" : ""} style="margin-top:2px" />
-              <span>${t("mediaAd.once")}<span style="display:block;font-size:10px;color:#8ab">${t("mediaAd.onceHint")}</span></span>
+              <span>${translate("mediaAd.once")}<span style="display:block;font-size:10px;color:#8ab">${translate("mediaAd.onceHint")}</span></span>
             </label>
           </div>
           ${channelToggleHtml("sf-ma-ch", formShowCh)}
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button type="button" id="sf-ma-save" style="flex:1;${btnStyle("primary")}" ${busy ? "disabled" : ""}>${busy ? t("mediaAd.saving") : editId ? t("mediaAd.update") : t("mediaAd.add")}</button>
-          ${editId ? `<button type="button" id="sf-ma-cancel" style="${btnStyle("ghost")}">${t("mediaAd.backNew")}</button>` : ""}
+          <button type="button" id="sf-ma-save" style="flex:1;${btnStyle("primary")}" ${busy ? "disabled" : ""}>${busy ? translate("mediaAd.saving") : editId ? translate("mediaAd.update") : translate("mediaAd.add")}</button>
+          ${editId ? `<button type="button" id="sf-ma-cancel" style="${btnStyle("ghost")}">${translate("mediaAd.backNew")}</button>` : ""}
         </div>
         ${flash ? `<div style="margin-top:8px;font-size:11px;color:#fc8">${esc(flash)}</div>` : ""}
       </div>
 
-      <div style="font-size:11px;font-weight:700;color:#fec;margin-bottom:6px">${t("mediaAd.list", { n: videos.length })}</div>
+      <div style="font-size:11px;font-weight:700;color:#fec;margin-bottom:6px">${translate("mediaAd.list", { n: videos.length })}</div>
       <div id="sf-ma-list" style="display:flex;flex-direction:column;gap:8px"></div>
       <div style="font-size:9px;color:#567;margin-top:12px;line-height:1.4">
-        ${t("mediaAd.note")}
+        ${translate("mediaAd.note")}
       </div>
     `;
 
     const list = card.querySelector("#sf-ma-list")!;
     if (!videos.length) {
-      list.innerHTML = `<div style="font-size:11px;color:#789;padding:12px;text-align:center;border:1px dashed #345;border-radius:8px">${t("mediaAd.empty")}</div>`;
+      list.innerHTML = `<div style="font-size:11px;color:#789;padding:12px;text-align:center;border:1px dashed #345;border-radius:8px">${translate("mediaAd.empty")}</div>`;
     } else {
       for (const v of videos) {
         const row = document.createElement("div");
@@ -240,14 +240,14 @@ export function openMediaAdminDialog(opts: AdAdminDialogOpts): void {
           "background:#0a1520;border:1px solid #234;border-radius:10px;padding:10px";
         const budget =
           v.maxDisplayHours > 0
-            ? `${formatHours(v.totalWatchSec)} / ${t("mediaAd.hour", { h: v.maxDisplayHours })}`
-            : `${formatHours(v.totalWatchSec)} / ${t("mediaAd.unlimited")}`;
+            ? `${formatHours(v.totalWatchSec)} / ${translate("mediaAd.hour", { h: v.maxDisplayHours })}`
+            : `${formatHours(v.totalWatchSec)} / ${translate("mediaAd.unlimited")}`;
         const rem =
           v.remainingDisplaySec == null
-            ? t("mediaAd.remainInf")
+            ? translate("mediaAd.remainInf")
             : v.exhausted
-              ? t("mediaAd.cap")
-              : t("mediaAd.remain", { h: formatHours(v.remainingDisplaySec) });
+              ? translate("mediaAd.cap")
+              : translate("mediaAd.remain", { h: formatHours(v.remainingDisplaySec) });
         const pct =
           v.maxDisplayHours > 0
             ? Math.min(
@@ -261,30 +261,30 @@ export function openMediaAdminDialog(opts: AdAdminDialogOpts): void {
         row.innerHTML = `
           <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
             <div style="min-width:0">
-              <div style="font-size:12px;font-weight:800;color:${v.exhausted ? "#a86" : v.active ? "#cfe" : "#889"}">${esc(v.label)} ${v.exhausted ? t("mediaAd.stopped") : v.active ? "" : t("mediaAd.off")}</div>
+              <div style="font-size:12px;font-weight:800;color:${v.exhausted ? "#a86" : v.active ? "#cfe" : "#889"}">${esc(v.label)} ${v.exhausted ? translate("mediaAd.stopped") : v.active ? "" : translate("mediaAd.off")}</div>
               <div style="font-size:10px;color:#789;margin-top:2px;word-break:break-all">${esc(v.id)}</div>
               <div style="font-size:10px;margin-top:4px;line-height:1.35">
                 ${
                   v.ownerKind === "advertiser" && v.ownerPlayerId
-                    ? `<span style="color:#fe8">${t("mediaAd.partner")}</span> ${
+                    ? `<span style="color:#fe8">${translate("mediaAd.partner")}</span> ${
                         (v.ownerDisplayName || "").trim()
                           ? `<b style="color:#cfe">${esc(v.ownerDisplayName || "")}</b> <span style="color:#567;font-size:9px">${esc(v.ownerPlayerId)}</span>`
                           : `<span style="color:#9ab;word-break:break-all">${esc(v.ownerPlayerId)}</span>`
                       }`
-                    : `<span style="color:#6a8">${t("mediaAd.staff")}</span>`
+                    : `<span style="color:#6a8">${translate("mediaAd.staff")}</span>`
                 }
               </div>
             </div>
             <div style="display:flex;gap:4px;flex-shrink:0">
-              <button type="button" data-edit="${esc(v.id)}" style="${btnStyle("ghost")}">${t("mediaAd.edit")}</button>
-              <button type="button" data-del="${esc(v.id)}" style="${btnStyle("danger")}">${t("mediaAd.del")}</button>
+              <button type="button" data-edit="${esc(v.id)}" style="${btnStyle("ghost")}">${translate("mediaAd.edit")}</button>
+              <button type="button" data-del="${esc(v.id)}" style="${btnStyle("danger")}">${translate("mediaAd.del")}</button>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin-top:8px;font-size:10px;color:#9ab">
-            <div>${t("mediaAd.len", { n: v.durationSec })}</div>
-            <div>${t("mediaAd.coins", { n: maxCoinsForVideo(v.durationSec) })}</div>
+            <div>${translate("mediaAd.len", { n: v.durationSec })}</div>
+            <div>${translate("mediaAd.coins", { n: maxCoinsForVideo(v.durationSec) })}</div>
             <div>受取 <b style="color:#cde">${v.claimOnce ? "一人1回" : "何度でも"}</b></div>
-            <div>CLEARリンク <b style="color:${isFlagOn(v.showChannel) ? "#9e8" : "#a86"}">${isFlagOn(v.showChannel) ? t("mediaAd.chOn") : t("mediaAd.chOff")}</b></div>
+            <div>CLEARリンク <b style="color:${isFlagOn(v.showChannel) ? "#9e8" : "#a86"}">${isFlagOn(v.showChannel) ? translate("mediaAd.chOn") : translate("mediaAd.chOff")}</b></div>
             <div>受取実績 <b style="color:#cde">${v.totalClaims}</b> 回</div>
             <div style="grid-column:1/-1">累計再生 <b style="color:#fe8">${formatHours(v.totalWatchSec)}</b> <span style="color:#678">(${v.totalWatchSec}秒)</span></div>
             <div style="grid-column:1/-1">表示予算 ${esc(budget)} · <b style="color:${v.exhausted ? "#f86" : "#8c8"}">${esc(rem)}</b></div>

@@ -1,6 +1,6 @@
 /** 3-step last-resort confirm before deleting a partner banner. */
 
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 export function confirmBannerDelete(opts?: {
   sfxUi?: () => void;
@@ -18,9 +18,9 @@ export function confirmBannerDelete(opts?: {
     document.body.appendChild(root);
 
     const steps = [
-      { n: 1, title: t("bannerDel.s1t"), body: t("bannerDel.s1b"), next: t("bannerDel.next") },
-      { n: 2, title: t("bannerDel.s2t"), body: t("bannerDel.s2b"), next: t("bannerDel.next") },
-      { n: 3, title: t("bannerDel.s3t"), body: t("bannerDel.s3b"), next: t("bannerDel.last") },
+      { n: 1, title: translate("bannerDel.s1t"), body: translate("bannerDel.s1b"), next: translate("bannerDel.next") },
+      { n: 2, title: translate("bannerDel.s2t"), body: translate("bannerDel.s2b"), next: translate("bannerDel.next") },
+      { n: 3, title: translate("bannerDel.s3t"), body: translate("bannerDel.s3b"), next: translate("bannerDel.last") },
     ];
     let i = 0;
     let done = false;
@@ -36,11 +36,11 @@ export function confirmBannerDelete(opts?: {
       const s = steps[i]!;
       const last = i >= steps.length - 1;
       card.innerHTML = `
-        <div style="font-size:10px;font-weight:800;letter-spacing:.08em;color:#fc8;margin-bottom:6px">${t("bannerDel.stepOf", { n: s.n })}</div>
+        <div style="font-size:10px;font-weight:800;letter-spacing:.08em;color:#fc8;margin-bottom:6px">${translate("bannerDel.stepOf", { n: s.n })}</div>
         <div style="font-size:16px;font-weight:800;color:#fcc;margin-bottom:8px">${s.title}</div>
         <div style="font-size:13px;line-height:1.55;color:#edc;background:#1a0c0c;border:1px solid #643;border-radius:8px;padding:10px;margin-bottom:14px">${s.body}</div>
         <div style="display:flex;gap:8px">
-          <button type="button" id="sf-bd-no" style="flex:1;padding:12px;border-radius:10px;border:1px solid #567;background:#1a2428;color:#cde;font-weight:700;cursor:pointer">${i === 0 ? t("bannerDel.stop") : t("bannerDel.back")}</button>
+          <button type="button" id="sf-bd-no" style="flex:1;padding:12px;border-radius:10px;border:1px solid #567;background:#1a2428;color:#cde;font-weight:700;cursor:pointer">${i === 0 ? translate("bannerDel.stop") : translate("bannerDel.back")}</button>
           <button type="button" id="sf-bd-yes" style="flex:1.2;padding:12px;border-radius:10px;border:1px solid ${last ? "#c64" : "#864"};background:${last ? "#501818" : "#301010"};color:#fcc;font-weight:800;cursor:pointer">${s.next}</button>
         </div>
       `;

@@ -2,7 +2,7 @@
  * Account-link gate messages (recovered Si).
  */
 
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 export type LinkGate =
   | { ok: true }
@@ -10,8 +10,8 @@ export type LinkGate =
 
 export function requireLinked(
   linked: boolean,
-  feature = t("hud.featDefault"),
+  feature = translate("hud.featDefault"),
 ): LinkGate {
   if (linked) return { ok: true };
-  return { ok: false, message: t("hud.gate", { feat: feature }) };
+  return { ok: false, message: translate("hud.gate", { feat: feature }) };
 }

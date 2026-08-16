@@ -2,7 +2,7 @@
  * Fan-mail dialog to sharer (recovered yi DOM).
  */
 
-import { t as i18n } from "@/lib/i18n";
+import { translate as i18n } from "@/lib/i18n";
 
 export type FanmailDialogHandlers = {
   host: HTMLElement;

@@ -3,7 +3,7 @@
  * Rewards grant once per player — replay does not pay again.
  */
 
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 import { addLocalCoins } from "@/lib/share";
 
 export const TUTORIAL_KEY = "swipe_force_tutorial_v1";
@@ -92,18 +92,18 @@ export function tutorialProgress() {
 
 export function missionLabel(id: TutorialMissionId): string {
   const m = tutorialMission(id);
-  return m ? t(m.nameKey) : id;
+  return m ? translate(m.nameKey) : id;
 }
 
 export function missionHint(id: TutorialMissionId): string {
   const m = tutorialMission(id);
-  return m ? t(m.hintKey) : "";
+  return m ? translate(m.hintKey) : "";
 }
 
 export function formatTutorialReward(coins: number, ticket: number): string {
   const bits: string[] = [];
-  if (coins > 0) bits.push(t("tutorial.claim", { n: coins }));
-  if (ticket > 0) bits.push(t("tutorial.ticket", { n: ticket }));
+  if (coins > 0) bits.push(translate("tutorial.claim", { n: coins }));
+  if (ticket > 0) bits.push(translate("tutorial.ticket", { n: ticket }));
   return bits.join(" · ") || "—";
 }
 

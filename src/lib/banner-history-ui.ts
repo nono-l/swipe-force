@@ -6,7 +6,7 @@ import {
   fetchBannerHistory,
   type BannerHistoryRow,
 } from "@/lib/partner-banner-api";
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 export type BannerHistoryOpts = {
   playerId: string;
@@ -108,28 +108,28 @@ export function openBannerHistoryDialog(opts: BannerHistoryOpts): void {
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px">
         <div>
-          <div style="font-size:14px;font-weight:800;color:#9ef">${t("bannerHist.title")}</div>
-          <div style="font-size:10px;color:#8ab;margin-top:2px">${t("bannerHist.summary", {
+          <div style="font-size:14px;font-weight:800;color:#9ef">${translate("bannerHist.title")}</div>
+          <div style="font-size:10px;color:#8ab;margin-top:2px">${translate("bannerHist.summary", {
             i: summary.impress,
             c: summary.clicks,
             v: summary.viewers,
-            scope: opts.bannerId ? t("bannerHist.thisOne") : opts.all ? t("bannerHist.all") : "",
+            scope: opts.bannerId ? translate("bannerHist.thisOne") : opts.all ? translate("bannerHist.all") : "",
           })}</div>
         </div>
-        <button type="button" id="sf-bh-x" style="padding:6px 10px;border-radius:8px;border:1px solid #456;background:#122028;color:#cde;cursor:pointer;font-size:12px">${t("bannerHist.close")}</button>
+        <button type="button" id="sf-bh-x" style="padding:6px 10px;border-radius:8px;border:1px solid #456;background:#122028;color:#cde;cursor:pointer;font-size:12px">${translate("bannerHist.close")}</button>
       </div>
       <div style="display:flex;gap:6px;margin-bottom:10px">
-        <button type="button" id="sf-bh-tab-im" style="flex:1;padding:8px;border-radius:8px;border:1px solid ${tab === "impress" ? "#4a8" : "#345"};background:${tab === "impress" ? "#0f2a18" : "#0a1520"};color:${tab === "impress" ? "#cfc" : "#9ab"};font-weight:800;font-size:12px;cursor:pointer">${t("bannerHist.impress")} ${summary.impress}</button>
-        <button type="button" id="sf-bh-tab-ck" style="flex:1;padding:8px;border-radius:8px;border:1px solid ${tab === "click" ? "#4a8" : "#345"};background:${tab === "click" ? "#0f2a18" : "#0a1520"};color:${tab === "click" ? "#cfc" : "#9ab"};font-weight:800;font-size:12px;cursor:pointer">${t("bannerHist.clicks")} ${summary.clicks}</button>
+        <button type="button" id="sf-bh-tab-im" style="flex:1;padding:8px;border-radius:8px;border:1px solid ${tab === "impress" ? "#4a8" : "#345"};background:${tab === "impress" ? "#0f2a18" : "#0a1520"};color:${tab === "impress" ? "#cfc" : "#9ab"};font-weight:800;font-size:12px;cursor:pointer">${translate("bannerHist.impress")} ${summary.impress}</button>
+        <button type="button" id="sf-bh-tab-ck" style="flex:1;padding:8px;border-radius:8px;border:1px solid ${tab === "click" ? "#4a8" : "#345"};background:${tab === "click" ? "#0f2a18" : "#0a1520"};color:${tab === "click" ? "#cfc" : "#9ab"};font-weight:800;font-size:12px;cursor:pointer">${translate("bannerHist.clicks")} ${summary.clicks}</button>
       </div>
       ${
         loading
-          ? `<div style="padding:24px;text-align:center;color:#8ab;font-size:12px">${t("common.loading")}</div>`
+          ? `<div style="padding:24px;text-align:center;color:#8ab;font-size:12px">${translate("common.loading")}</div>`
           : err
             ? `<div style="padding:16px;color:#fc8;font-size:12px">${esc(err)}</div>`
             : `<div style="display:flex;flex-direction:column;gap:6px;max-height:min(62vh,480px);overflow:auto">${paintList(
                 rows,
-                tab === "impress" ? t("bannerHist.emptyI") : t("bannerHist.emptyC"),
+                tab === "impress" ? translate("bannerHist.emptyI") : translate("bannerHist.emptyC"),
               )}</div>`
       }
     `;
@@ -156,7 +156,7 @@ export function openBannerHistoryDialog(opts: BannerHistoryOpts): void {
     all: opts.all,
   }).then((st) => {
     loading = false;
-    if (!st.ok) err = t("bannerHist.loadFail", { r: st.reason || "?" });
+    if (!st.ok) err = translate("bannerHist.loadFail", { r: st.reason || "?" });
     impress = st.impress;
     clicks = st.clicks;
     summary = st.summary;

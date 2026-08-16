@@ -3,7 +3,7 @@
  * Pure data — recovered-game draws and handles input.
  */
 
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 export type TitleSub = "root" | "diff" | "extra" | string;
 
@@ -88,46 +88,46 @@ export function buildTitleMenu(
   if (sub === "extra") {
     const items: TitleMenuItem[] = [
       {
-        title: ctx.linked ? t("title.sound") : `${t("title.sound")} 🔒`,
-        sub: ctx.linked ? t("title.soundSub") : t("common.locked"),
+        title: ctx.linked ? translate("title.sound") : `${translate("title.sound")} 🔒`,
+        sub: ctx.linked ? translate("title.soundSub") : translate("common.locked"),
         h: 22,
       },
       {
-        title: ctx.linked ? t("title.profile") : `${t("title.profile")} 🔒`,
-        sub: ctx.linked ? t("title.profileSub") : t("common.locked"),
+        title: ctx.linked ? translate("title.profile") : `${translate("title.profile")} 🔒`,
+        sub: ctx.linked ? translate("title.profileSub") : translate("common.locked"),
         h: 22,
       },
       {
-        title: t("title.data"),
-        sub: t("title.dataSub"),
+        title: translate("title.data"),
+        sub: translate("title.dataSub"),
         h: 22,
       },
       {
-        title: t("title.items"),
-        sub: t("title.itemsSub"),
+        title: translate("title.items"),
+        sub: translate("title.itemsSub"),
         h: 22,
       },
       {
-        title: t("title.watch"),
-        sub: t("title.watchSub"),
+        title: translate("title.watch"),
+        sub: translate("title.watchSub"),
         h: 22,
       },
       {
-        title: ctx.linked ? t("title.partner") : `${t("title.partner")} 🔒`,
-        sub: ctx.linked ? t("title.partnerSub") : t("common.locked"),
+        title: ctx.linked ? translate("title.partner") : `${translate("title.partner")} 🔒`,
+        sub: ctx.linked ? translate("title.partnerSub") : translate("common.locked"),
         h: 22,
       },
     ];
     if (ctx.isPromoAdmin) {
       items.push({
-        title: t("title.promo"),
-        sub: t("title.promoSub"),
+        title: translate("title.promo"),
+        sub: translate("title.promoSub"),
         h: 20,
       });
     }
     items.push({
-      title: t("title.back"),
-      sub: t("title.backSub"),
+      title: translate("title.back"),
+      sub: translate("title.backSub"),
       h: 20,
     });
     return items;
@@ -139,18 +139,18 @@ export function buildTitleMenu(
         title: "EASY",
         sub:
           ctx.easyCarryLv > 0
-            ? t("title.easyCarry", { n: ctx.easyCarryLv })
-            : t("title.easySub"),
+            ? translate("title.easyCarry", { n: ctx.easyCarryLv })
+            : translate("title.easySub"),
         h: 26,
       },
       {
         title: "NORMAL",
-        sub: t("title.normalSub"),
+        sub: translate("title.normalSub"),
         h: 26,
       },
       {
-        title: t("title.back"),
-        sub: t("title.backSub"),
+        title: translate("title.back"),
+        sub: translate("title.backSub"),
         h: 18,
       },
     ];
@@ -161,13 +161,13 @@ export function buildTitleMenu(
     : `v${ctx.versionLabel}`;
   return [
     {
-      title: t("title.start"),
-      sub: t("title.startSub"),
+      title: translate("title.start"),
+      sub: translate("title.startSub"),
       h: 22,
     },
     {
-      title: t("title.share"),
-      sub: t("title.shareSub"),
+      title: translate("title.share"),
+      sub: translate("title.shareSub"),
       h: 20,
     },
     {
@@ -176,25 +176,25 @@ export function buildTitleMenu(
       h: 20,
     },
     {
-      title: t("title.options"),
+      title: translate("title.options"),
       sub: "",
       h: 18,
     },
     {
-      title: t("title.extraItem"),
-      sub: ctx.linked ? t("title.extraSubLinked") : t("title.extraSubGuest"),
+      title: translate("title.extraItem"),
+      sub: ctx.linked ? translate("title.extraSubLinked") : translate("title.extraSubGuest"),
       h: 18,
     },
     {
       title: `📋 VER ${ver.replace(/^v/, "")}`,
-      sub: t("title.verSub"),
+      sub: translate("title.verSub"),
       h: 16,
     },
   ];
 }
 
 export function titleSelectLabel(sub: TitleSub): string {
-  if (sub === "extra") return t("title.extra");
-  if (sub === "diff") return t("title.difficulty");
-  return t("title.select");
+  if (sub === "extra") return translate("title.extra");
+  if (sub === "diff") return translate("title.difficulty");
+  return translate("title.select");
 }

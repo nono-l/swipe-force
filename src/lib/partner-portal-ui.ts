@@ -71,7 +71,7 @@ import {
 import { openBannerEditor } from "@/lib/banner-editor-ui";
 import { openBannerHistoryDialog } from "@/lib/banner-history-ui";
 import { confirmBannerDelete } from "@/lib/banner-delete-ui";
-import { onLocaleChange, t } from "@/lib/i18n";
+import { onLocaleChange, translate } from "@/lib/i18n";
 
 /** Support desk (Discord) for advertisers */
 export const PARTNER_SUPPORT_URL = "https://discord.gg/hfDykSD2JJ";
@@ -254,17 +254,17 @@ export function openPartnerPortalDialog(opts: PartnerPortalDialogOpts): void {
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div>
-          <div style="font-size:15px;font-weight:800;color:#9ef">${t("partner.title")}</div>
-          <div style="font-size:10px;color:#8ab;margin-top:2px">${t("partner.lead")}</div>
-          <div style="font-size:9px;color:#6a8;margin-top:4px;word-break:break-all">${t("partner.directUrl")}:
+          <div style="font-size:15px;font-weight:800;color:#9ef">${translate("partner.title")}</div>
+          <div style="font-size:10px;color:#8ab;margin-top:2px">${translate("partner.lead")}</div>
+          <div style="font-size:9px;color:#6a8;margin-top:4px;word-break:break-all">${translate("partner.directUrl")}:
             <a href="${partnerPortalUrl()}" target="_blank" rel="noopener" style="color:#8cf;text-decoration:underline">${esc(partnerPortalUrl())}</a>
-            <button type="button" id="sf-pt-open-portal" style="margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid #456;background:#122028;color:#bcd;font-size:9px;cursor:pointer">${t("common.open")}</button>
+            <button type="button" id="sf-pt-open-portal" style="margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid #456;background:#122028;color:#bcd;font-size:9px;cursor:pointer">${translate("common.open")}</button>
           </div>
-          <div style="font-size:9px;color:#6a8;margin-top:4px;word-break:break-all">${t("partner.bannerEdit")}:
+          <div style="font-size:9px;color:#6a8;margin-top:4px;word-break:break-all">${translate("partner.bannerEdit")}:
             <a href="/banner" target="_blank" rel="noopener" style="color:#8cf;text-decoration:underline">${esc(typeof location !== "undefined" ? location.origin + "/banner" : "/banner")}</a>
           </div>
           <div style="font-size:9px;margin-top:6px;line-height:1.4">
-            <span style="color:#8ab">${t("partner.support")}</span>
+            <span style="color:#8ab">${translate("partner.support")}</span>
             <a href="${PARTNER_SUPPORT_URL}" target="_blank" rel="noopener" style="color:#8cf;text-decoration:underline;margin-left:4px">Discord</a>
             <div style="color:#567;word-break:break-all;user-select:all">${esc(PARTNER_SUPPORT_URL)}</div>
           </div>
@@ -273,18 +273,18 @@ export function openPartnerPortalDialog(opts: PartnerPortalDialogOpts): void {
       </div>
 
       <div style="background:#0a1820;border:1px solid #264;border-radius:10px;padding:10px;margin-bottom:10px;font-size:11px;line-height:1.5">
-        ${t("partner.credit")} <b style="color:#fe8">${creditSec.toLocaleString()} sec</b>
-        <span style="color:#9ab">${t("partner.aboutHours", { h: creditHours.toFixed(2) })}</span>
-        · ${t("partner.assigned", { h: assignedHours.toFixed(1) })} · ${t("partner.free", { h: freeHours.toFixed(1) })}
-        <div style="font-size:9px;color:#678;margin-top:2px">${t("partner.creditHint", { h: totalCredited.toFixed(1) })}</div>
+        ${translate("partner.credit")} <b style="color:#fe8">${creditSec.toLocaleString()} sec</b>
+        <span style="color:#9ab">${translate("partner.aboutHours", { h: creditHours.toFixed(2) })}</span>
+        · ${translate("partner.assigned", { h: assignedHours.toFixed(1) })} · ${translate("partner.free", { h: freeHours.toFixed(1) })}
+        <div style="font-size:9px;color:#678;margin-top:2px">${translate("partner.creditHint", { h: totalCredited.toFixed(1) })}</div>
       </div>
 
       <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
-        <button type="button" id="sf-pt-tab-mine" style="${btnStyle(tab === "mine" ? "tabOn" : "tab")}">${t("partner.tabMine")}</button>
-        <button type="button" id="sf-pt-tab-banner" style="${btnStyle(tab === "banner" ? "tabOn" : "tab")}">${t("partner.tabBanner")}</button>
-        ${isAdmin ? `<button type="button" id="sf-pt-tab-all" style="${btnStyle(tab === "all" ? "tabOn" : "tab")}">${t("partner.tabAll")}</button>` : ""}
-        <button type="button" id="sf-pt-tab-redeem" style="${btnStyle(tab === "redeem" ? "tabOn" : "tab")}">${t("partner.tabRedeem")}</button>
-        ${isAdmin ? `<button type="button" id="sf-pt-tab-issue" style="${btnStyle(tab === "issue" ? "tabOn" : "tab")}">${t("partner.tabIssue")}</button>` : ""}
+        <button type="button" id="sf-pt-tab-mine" style="${btnStyle(tab === "mine" ? "tabOn" : "tab")}">${translate("partner.tabMine")}</button>
+        <button type="button" id="sf-pt-tab-banner" style="${btnStyle(tab === "banner" ? "tabOn" : "tab")}">${translate("partner.tabBanner")}</button>
+        ${isAdmin ? `<button type="button" id="sf-pt-tab-all" style="${btnStyle(tab === "all" ? "tabOn" : "tab")}">${translate("partner.tabAll")}</button>` : ""}
+        <button type="button" id="sf-pt-tab-redeem" style="${btnStyle(tab === "redeem" ? "tabOn" : "tab")}">${translate("partner.tabRedeem")}</button>
+        ${isAdmin ? `<button type="button" id="sf-pt-tab-issue" style="${btnStyle(tab === "issue" ? "tabOn" : "tab")}">${translate("partner.tabIssue")}</button>` : ""}
       </div>
 
       <div id="sf-pt-body"></div>
@@ -306,62 +306,62 @@ export function openPartnerPortalDialog(opts: PartnerPortalDialogOpts): void {
               return `<div data-bn="${bid}" style="background:#0a1820;border:1px solid ${on ? "#264" : "#543"};border-radius:10px;padding:10px;margin-bottom:8px;opacity:${on ? "1" : ".72"}">
                 <div style="width:100%;height:64px;border-radius:8px;background:#000 center/cover no-repeat;background-image:url('${safeUrl}');border:1px solid #345;margin-bottom:6px;filter:${on ? "none" : "grayscale(.7)"}"></div>
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">
-                  <div style="font-size:10px;color:#8ab">#${i + 1} · ${item.width}×${item.height} · ${Math.round((item.bytes || 0) / 1024)}KB · ${on ? t("partner.lotteryOn") : t("partner.lotteryOff")}</div>
-                  <span style="font-size:9px;font-weight:800;padding:2px 7px;border-radius:999px;border:1px solid ${on ? "#3a6" : "#864"};background:${on ? "#0f2a18" : "#2a1810"};color:${on ? "#cfc" : "#fc8"}">${on ? t("partner.active") : t("partner.inactive")}</span>
+                  <div style="font-size:10px;color:#8ab">#${i + 1} · ${item.width}×${item.height} · ${Math.round((item.bytes || 0) / 1024)}KB · ${on ? translate("partner.lotteryOn") : translate("partner.lotteryOff")}</div>
+                  <span style="font-size:9px;font-weight:800;padding:2px 7px;border-radius:999px;border:1px solid ${on ? "#3a6" : "#864"};background:${on ? "#0f2a18" : "#2a1810"};color:${on ? "#cfc" : "#fc8"}">${on ? translate("partner.active") : translate("partner.inactive")}</span>
                 </div>
-                <label style="font-size:10px;color:#8ab">${t("partner.href")}</label>
+                <label style="font-size:10px;color:#8ab">${translate("partner.href")}</label>
                 <input class="sf-bn-href" type="url" inputmode="url" data-id="${bid}" placeholder="https://example.com" value="${esc(item.href || "")}" style="${inputStyle("width:100%;margin-top:4px;word-break:break-all")}" />
                 <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
-                  <button type="button" class="sf-bn-href-save" data-id="${bid}" style="${btnStyle("primary")};flex:1;min-width:72px;padding:8px 10px">${t("common.save")}</button>
-                  <button type="button" class="sf-bn-hist" data-id="${bid}" style="${btnStyle("ghost")};flex:1;min-width:72px;padding:8px 10px">${t("partner.history")}</button>
-                  <button type="button" class="sf-bn-toggle" data-id="${bid}" data-on="${on ? "1" : "0"}" style="${on ? btnStyle("danger") : btnStyle("primary")};flex:1;min-width:88px;padding:8px 10px">${on ? t("partner.disable") : t("partner.enable")}</button>
+                  <button type="button" class="sf-bn-href-save" data-id="${bid}" style="${btnStyle("primary")};flex:1;min-width:72px;padding:8px 10px">${translate("common.save")}</button>
+                  <button type="button" class="sf-bn-hist" data-id="${bid}" style="${btnStyle("ghost")};flex:1;min-width:72px;padding:8px 10px">${translate("partner.history")}</button>
+                  <button type="button" class="sf-bn-toggle" data-id="${bid}" data-on="${on ? "1" : "0"}" style="${on ? btnStyle("danger") : btnStyle("primary")};flex:1;min-width:88px;padding:8px 10px">${on ? translate("partner.disable") : translate("partner.enable")}</button>
                 </div>
-                <button type="button" class="sf-bn-del" data-id="${bid}" style="width:100%;margin-top:6px;${btnStyle("danger")}">${t("partner.delThis")}</button>
+                <button type="button" class="sf-bn-del" data-id="${bid}" style="width:100%;margin-top:6px;${btnStyle("danger")}">${translate("partner.delThis")}</button>
               </div>`;
             })
             .join("")
-        : `<div style="padding:18px;text-align:center;color:#678;font-size:11px;border:1px dashed #345;border-radius:8px;margin-bottom:10px">${t("partner.noBanners")}</div>`;
+        : `<div style="padding:18px;text-align:center;color:#678;font-size:11px;border:1px dashed #345;border-radius:8px;margin-bottom:10px">${translate("partner.noBanners")}</div>`;
       body.innerHTML = `
         <div style="font-size:11px;color:#9bc;margin-bottom:10px;line-height:1.45">
-          ${t("partner.bannerLead1")}<br/>
-          ${t("partner.bannerLead2")}<br/>
-          ${t("partner.bannerSpec", { min: bannerStatus.minRatio, max: bannerStatus.maxRatio, kb })}<br/>
-          ${t("partner.bannerCount", { n: list.length, left: bannerStatus.weekRemaining, limit: bannerStatus.weekLimit })}
+          ${translate("partner.bannerLead1")}<br/>
+          ${translate("partner.bannerLead2")}<br/>
+          ${translate("partner.bannerSpec", { min: bannerStatus.minRatio, max: bannerStatus.maxRatio, kb })}<br/>
+          ${translate("partner.bannerCount", { n: list.length, left: bannerStatus.weekRemaining, limit: bannerStatus.weekLimit })}
         </div>
-        <button type="button" id="sf-bn-hist-all" style="width:100%;margin-bottom:10px;${btnStyle("ghost")}">${t("partner.histAll")}</button>
+        <button type="button" id="sf-bn-hist-all" style="width:100%;margin-bottom:10px;${btnStyle("ghost")}">${translate("partner.histAll")}</button>
         ${cards}
-        <div style="font-size:11px;font-weight:700;color:#9ef;margin:12px 0 8px">${t("partner.addNew")}</div>
+        <div style="font-size:11px;font-weight:700;color:#9ef;margin:12px 0 8px">${translate("partner.addNew")}</div>
         <button type="button" id="sf-strip-open" data-action="open-strip-editor" style="width:100%;padding:14px;border-radius:10px;border:1px solid #8cf;background:linear-gradient(180deg,#1a4060,#102838);color:#eff;font-weight:800;font-size:14px;cursor:pointer;margin-bottom:8px;pointer-events:auto;opacity:1" ${atCap || bannerStatus.weekRemaining <= 0 ? "disabled" : ""}>
-          ${t("partner.makeEditor")}
+          ${translate("partner.makeEditor")}
         </button>
         <a id="sf-strip-open-tab" href="/banner" target="_blank" rel="noopener" style="display:block;width:100%;box-sizing:border-box;padding:10px;border-radius:10px;border:1px solid #456;background:#0a1520;color:#9cf;font-weight:700;font-size:12px;text-align:center;text-decoration:none;margin-bottom:8px">
-          ${t("partner.openTab")}
+          ${translate("partner.openTab")}
         </a>
         <div style="font-size:10px;color:#8ab;margin-bottom:10px;text-align:center;line-height:1.4">
-          ${t("partner.deepLink")}:
+          ${translate("partner.deepLink")}:
           <a id="sf-strip-deeplink" href="/banner" target="_blank" rel="noopener" style="color:#8cf;word-break:break-all;text-decoration:underline">${esc(typeof location !== "undefined" ? location.origin + "/banner" : "/banner")}</a>
-          <button type="button" id="sf-strip-copy-link" style="margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid #456;background:#122028;color:#bcd;font-size:9px;cursor:pointer">${t("common.copy")}</button>
+          <button type="button" id="sf-strip-copy-link" style="margin-left:6px;padding:2px 8px;border-radius:6px;border:1px solid #456;background:#122028;color:#bcd;font-size:9px;cursor:pointer">${translate("common.copy")}</button>
         </div>
-        <div style="font-size:10px;color:#8ab;margin-bottom:6px;text-align:center">${t("partner.orUpload")}</div>
+        <div style="font-size:10px;color:#8ab;margin-bottom:6px;text-align:center">${translate("partner.orUpload")}</div>
         <input type="file" id="sf-bn-file" accept="image/jpeg,image/png,image/webp" style="width:100%;margin:0 0 10px;font-size:12px;color:#cde" />
         <button type="button" id="sf-bn-up" style="width:100%;${btnStyle("primary")}" ${busy || bannerStatus.weekRemaining <= 0 || atCap ? "disabled" : ""}>
-          ${busy ? t("partner.uploading") : atCap ? t("partner.atCap", { n: bannerStatus.maxOwned }) : bannerStatus.weekRemaining <= 0 ? t("partner.weekCap") : t("partner.upload")}
+          ${busy ? translate("partner.uploading") : atCap ? translate("partner.atCap", { n: bannerStatus.maxOwned }) : bannerStatus.weekRemaining <= 0 ? translate("partner.weekCap") : translate("partner.upload")}
         </button>
         <div style="font-size:9px;color:#567;margin-top:10px;line-height:1.4;white-space:pre-line">
-          ${t("partner.bannerNote")}
+          ${translate("partner.bannerNote")}
         </div>
       `;
     } else if (tab === "redeem") {
       body.innerHTML = `
         <div style="font-size:11px;color:#9bc;margin-bottom:8px;line-height:1.4">
-          ${t("partner.redeemLead")}
+          ${translate("partner.redeemLead")}
         </div>
-        <label style="font-size:10px;color:#8ab">${t("partner.redeemLabel")}</label>
+        <label style="font-size:10px;color:#8ab">${translate("partner.redeemLabel")}</label>
         <div style="display:flex;gap:6px;margin:4px 0 10px">
           <input id="sf-pt-code" placeholder="ADXXXXXXXX" autocomplete="off" autocapitalize="characters" style="${inputStyle("text-transform:uppercase;flex:1")}" />
-          <button type="button" id="sf-pt-paste" style="${btnStyle("ghost")};flex-shrink:0">${t("partner.paste")}</button>
+          <button type="button" id="sf-pt-paste" style="${btnStyle("ghost")};flex-shrink:0">${translate("partner.paste")}</button>
         </div>
-        <button type="button" id="sf-pt-redeem" style="width:100%;${btnStyle("primary")}" ${busy ? "disabled" : ""}>${t("partner.redeemBtn")}</button>
+        <button type="button" id="sf-pt-redeem" style="width:100%;${btnStyle("primary")}" ${busy ? "disabled" : ""}>${translate("partner.redeemBtn")}</button>
       `;
     } else if (tab === "all" && isAdmin) {
       body.innerHTML = `

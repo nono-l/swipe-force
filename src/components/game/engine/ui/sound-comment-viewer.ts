@@ -5,7 +5,7 @@
  */
 import { commentKindLabel } from "../modes/sound-test-meta";
 import { recordUrlVisit, fetchUrlReports, hasVisitedUrl, postUrlReport, URL_REPORT_TYPES } from "../meta/sound_social";
-import { t as i18n } from "@/lib/i18n";
+import { translate as i18n } from "@/lib/i18n";
 
 export type SoundComment = {
   id?: string;

@@ -2,7 +2,7 @@
  * Shop / options open-close pure seeds (recovered loadEasyUpgradesCloud / saveEasyUpgradesCloud / mergeEasyUpgrades).
  */
 
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 export type OpenShop = {
   mode: "shop";
@@ -18,7 +18,7 @@ export function openShopSeed(paused: boolean): OpenShop {
     mode: "shop",
     paused,
     cursor: 0,
-    toast: paused ? t("shop.pauseToast") : t("shop.ptsToast"),
+    toast: paused ? translate("shop.pauseToast") : translate("shop.ptsToast"),
     toastLife: 80,
     clearEntities: !paused,
   };

@@ -9,7 +9,7 @@
  * - Real-time cap: 4 coins / rolling hour
  */
 
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 export const AD_WATCH_MAX_SEC = 60;
 export const AD_WATCH_FLOOR_SEC = 10;
@@ -297,7 +297,7 @@ export function unclaimedCoinsForVideo(
 export function fullWatchRewardLabel(durationSec: number): string {
   const n = maxCoinsForVideo(durationSec);
   if (n <= 0) return "この動画ではコインは貰えません";
-  return t("watch.fullWatch", { n });
+  return translate("watch.fullWatch", { n });
 }
 
 export function watchMilestones(durationSec: number): number[] {

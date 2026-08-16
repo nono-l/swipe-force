@@ -18,7 +18,7 @@ import {
   hasLocalUrlVisit,
   type UrlReportSummary,
 } from "@/lib/sound-comments";
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 import { openUrlCushion } from "@/lib/url-cushion";
 import { buildStatusLines, formatPlayTime, readStats } from "@/lib/player-stats";
 
@@ -133,18 +133,18 @@ export function openProfileDialog(opts: {
         <div style="font-size:14px;font-weight:700;color:#8ff">プロフィール</div>
         <button type="button" id="sf-pr-x" style="border:0;background:transparent;color:#9ab;font-size:18px;cursor:pointer">×</button>
       </div>
-      <div style="font-size:11px;color:#6a9;line-height:1.4;margin-bottom:10px">${t("profile.lead")}</div>
-      <div id="sf-pr-sync" style="font-size:10px;color:#8a7;margin-bottom:8px">${t("profile.syncing")}</div>
-      <label style="font-size:11px;color:#9ab">${t("profile.name")}</label>
+      <div style="font-size:11px;color:#6a9;line-height:1.4;margin-bottom:10px">${translate("profile.lead")}</div>
+      <div id="sf-pr-sync" style="font-size:10px;color:#8a7;margin-bottom:8px">${translate("profile.syncing")}</div>
+      <label style="font-size:11px;color:#9ab">${translate("profile.name")}</label>
       <input id="sf-pr-name" maxlength="16" value="${esc(local.displayName)}" placeholder="パイロット名"
         style="width:100%;box-sizing:border-box;margin:4px 0 10px;padding:9px;border-radius:8px;border:1px solid #2a6;background:#001a10;color:#efe;font-size:14px" />
-      <label style="font-size:11px;color:#9ab">${t("profile.share")}</label>
-      <div style="font-size:10px;color:#678;margin:2px 0 4px">${t("profile.shareHint")}</div>
+      <label style="font-size:11px;color:#9ab">${translate("profile.share")}</label>
+      <div style="font-size:10px;color:#678;margin:2px 0 4px">${translate("profile.shareHint")}</div>
       <input id="sf-pr-share" maxlength="40" value="${esc(local.shareBlurb)}" placeholder="例: 4面ボス詰み助けて"
         style="width:100%;box-sizing:border-box;margin:0 0 4px;padding:9px;border-radius:8px;border:1px solid #2a6;background:#001a10;color:#efe" />
       <div id="sf-pr-sc" style="font-size:10px;color:#678;text-align:right;margin-bottom:10px">0 / 40</div>
-      <label style="font-size:11px;color:#9ab">${t("profile.bio")}</label>
-      <div style="font-size:10px;color:#678;margin:2px 0 4px">${t("profile.bioHint")}</div>
+      <label style="font-size:11px;color:#9ab">${translate("profile.bio")}</label>
+      <div style="font-size:10px;color:#678;margin:2px 0 4px">${translate("profile.bioHint")}</div>
       <textarea id="sf-pr-bio" maxlength="5000" rows="6" placeholder="例: 関東勢です&#10;https://x.com/you?s=20&t=abc#hi"
         style="width:100%;box-sizing:border-box;margin:4px 0 6px;padding:9px;border-radius:8px;border:1px solid #2a6;background:#001a10;color:#efe;resize:vertical;min-height:90px">${esc(local.bio)}</textarea>
       <div id="sf-pr-bc" style="font-size:10px;color:#678;text-align:right;margin-bottom:8px">0 / 5000</div>
@@ -267,7 +267,7 @@ export function openStatsDialog(opts: {
       <div style="background:#031018;border:1px solid #245;border-radius:8px;padding:10px;font-size:12px;line-height:1.65;font-family:ui-monospace,monospace;color:#cfe">
         ${lines.map((l) => esc(l)).join("<br/>")}
       </div>
-      <div style="font-size:10px;color:#567;margin-top:10px;line-height:1.4">v1.8.0 · 広告視聴 / 広告主ポータル / プリペイドクレジット</div>
+      <div style="font-size:10px;color:#567;margin-top:10px;line-height:1.4">v1.9.0 · 遊び方 / バナー / 二カ国語</div>
     </div>`;
   document.body.appendChild(dlg);
   dlg.addEventListener("pointerdown", (e) => e.stopPropagation());

@@ -2,7 +2,7 @@
  * Thanks-reply dialog for inbox mission messages (recovered loadLocalCommentsStore DOM).
  */
 
-import { t as i18n } from "@/lib/i18n";
+import { translate as i18n } from "@/lib/i18n";
 
 export type ThanksDialogHandlers = {
   host: HTMLElement;

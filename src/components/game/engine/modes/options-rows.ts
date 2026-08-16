@@ -3,7 +3,7 @@
  * Recovered game calls these with local unlock/level accessors — behavior frozen.
  */
 
-import { getLocaleNative, t } from "@/lib/i18n";
+import { getLocaleNative, translate } from "@/lib/i18n";
 
 export type OptionRow =
   | { kind: "header"; label: string }
@@ -56,7 +56,7 @@ export function buildOptionRows(
 ): OptionRow[] {
   if (submenu === "shot") {
     const rows: OptionRow[] = [
-      { kind: "header", label: t("options.shotHeader") },
+      { kind: "header", label: translate("options.shotHeader") },
       { kind: "weapon", key: "shot", label: "MAIN SHOT" },
     ];
     for (const item of SHOT_DETAIL_KEYS) {
@@ -64,13 +64,13 @@ export function buildOptionRows(
         rows.push({ kind: "weapon", key: item.key, label: item.label });
       }
     }
-    rows.push({ kind: "back", label: t("options.backLoadout") });
+    rows.push({ kind: "back", label: translate("options.backLoadout") });
     return rows;
   }
 
   if (submenu === "weapons") {
     const rows: OptionRow[] = [
-      { kind: "header", label: t("options.wepHeader") },
+      { kind: "header", label: translate("options.wepHeader") },
       { kind: "submenu", key: "shot", label: "SHOT" },
     ];
     for (const item of LOADOUT_WEAPON_KEYS) {
@@ -78,7 +78,7 @@ export function buildOptionRows(
         rows.push({ kind: "weapon", key: item.key, label: item.label });
       }
     }
-    rows.push({ kind: "back", label: t("options.backOptions") });
+    rows.push({ kind: "back", label: translate("options.backOptions") });
     return rows;
   }
 
@@ -92,10 +92,10 @@ export function buildOptionRows(
     { kind: "toggle", key: "vstick", label: "V-STICK" },
     { kind: "toggle", key: "autoShop", label: "AUTO SHOP" },
     { kind: "sense", label: "MOVE SENSE" },
-    { kind: "locale", label: t("options.language") },
+    { kind: "locale", label: translate("options.language") },
     { kind: "submenu", key: "weapons", label: "WEAPON LOADOUT" },
-    { kind: "title", label: t("options.toTitle") },
-    { kind: "back", label: t("options.back") },
+    { kind: "title", label: translate("options.toTitle") },
+    { kind: "back", label: translate("options.back") },
   ];
 }
 

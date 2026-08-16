@@ -15,7 +15,7 @@ import { fetchMediaCatalog } from "@/lib/media-catalog-api";
 import { fetchBannerPool, billPartnerBanner } from "@/lib/partner-banner-api";
 import { openPartnerPortal } from "@/lib/partner-portal-url";
 import { bannerUrlTrackKey, isExternalHttpUrl, openUrlCushion } from "@/lib/url-cushion";
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 import { tutorialProgress } from "@/lib/tutorial";
 
 const ROOT_ID = "sf-title-banner";
@@ -186,7 +186,7 @@ export function mountTitleBannerDom(
   const tl = document.createElement("button");
   tl.id = ROOT_TL_ID;
   tl.type = "button";
-  tl.setAttribute("aria-label", t("help.title"));
+  tl.setAttribute("aria-label", translate("help.title"));
   tl.dataset.slot = "hidden";
   tl.style.cssText = [
     "position:absolute",
@@ -235,13 +235,13 @@ export function mountTitleBannerDom(
 
   const paintTl = () => {
     const prog = tutorialProgress();
-    tlTag.textContent = t("help.bannerTag");
-    tlTitle.textContent = t("help.menu").replace(/^📖\s*/, "");
+    tlTag.textContent = translate("help.bannerTag");
+    tlTitle.textContent = translate("help.menu").replace(/^📖\s*/, "");
     tlCta.textContent =
       prog.got > 0
-        ? `${t("help.bannerCta")} · ${t("help.bannerProg", { got: prog.got, all: prog.all })}`
-        : t("help.bannerCta");
-    tl.setAttribute("aria-label", t("help.title"));
+        ? `${translate("help.bannerCta")} · ${translate("help.bannerProg", { got: prog.got, all: prog.all })}`
+        : translate("help.bannerCta");
+    tl.setAttribute("aria-label", translate("help.title"));
     tl.style.display = canShowTl() ? "block" : "none";
   };
 
@@ -436,7 +436,7 @@ export function mountTitleBannerDom(
     if (!video) {
       thumb.style.backgroundImage = "none";
       thumb.style.backgroundColor = "#0a2010";
-      title.textContent = t("bannerWanted");
+      title.textContent = translate("bannerWanted");
       title.style.color = "#8a9";
       cta.textContent = "配信開始をお待ちください";
       cta.style.color = "#567";

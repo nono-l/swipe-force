@@ -5,7 +5,7 @@
 
 import type { AdVideo } from "./media-watch";
 import { pickAdVideoBiased, getAdWatchVideos } from "./media-watch";
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 /** Banner rect in play-field coords (bottom-left of center field) */
 export const TITLE_BANNER = {
@@ -158,7 +158,7 @@ export function titleBannerDrawOps(
     });
     ops.push({
       type: "text",
-      text: t("bannerWanted"),
+      text: translate("bannerWanted"),
       x: b.x + b.w / 2,
       y: b.y + 18,
       c: "#88cc99",

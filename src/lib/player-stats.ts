@@ -11,7 +11,7 @@ import {
   formatIdCreatedAt,
   getIdCreatedAt,
 } from "@/lib/player-id-meta";
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 const KEY = "swipe_force_stats_v1";
 
@@ -221,20 +221,20 @@ export function buildStatusLines(playerId?: string): string[] {
   const upTotal = Object.values(up).reduce((a, b) => a + b, 0);
   return [
     `ID ${pid}`,
-    t("stats.created", { at: formatIdCreatedAt(created) }),
-    t("stats.play", { time: formatPlayTime(st.playTimeSec) }),
-    t("stats.run", { runs: st.runs, kills: st.totalKills, boss: st.bossesDefeated }),
-    t("stats.reach", { e: st.maxStageEasy, n: st.maxStageNormal }),
-    t("stats.hi", { n: st.hiScore }),
-    t("stats.help", { a: st.helpAsked, b: st.helpReceived }),
-    t("stats.cont", { n: st.continuesUsed, c: coins }),
-    t("stats.easy", { n: upTotal }),
+    translate("stats.created", { at: formatIdCreatedAt(created) }),
+    translate("stats.play", { time: formatPlayTime(st.playTimeSec) }),
+    translate("stats.run", { runs: st.runs, kills: st.totalKills, boss: st.bossesDefeated }),
+    translate("stats.reach", { e: st.maxStageEasy, n: st.maxStageNormal }),
+    translate("stats.hi", { n: st.hiScore }),
+    translate("stats.help", { a: st.helpAsked, b: st.helpReceived }),
+    translate("stats.cont", { n: st.continuesUsed, c: coins }),
+    translate("stats.easy", { n: upTotal }),
     easyUpgradeSummary(up).slice(0, 42),
     prof.hasProfile
-      ? t("stats.profOn", { name: prof.displayName || "—" })
-      : t("stats.profOff"),
+      ? translate("stats.profOn", { name: prof.displayName || "—" })
+      : translate("stats.profOff"),
     prof.shareBlurb
-      ? t("stats.blurbOn", { t: prof.shareBlurb.slice(0, 28) })
-      : t("stats.blurbOff"),
+      ? translate("stats.blurbOn", { t: prof.shareBlurb.slice(0, 28) })
+      : translate("stats.blurbOff"),
   ];
 }

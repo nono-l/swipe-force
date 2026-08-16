@@ -3,7 +3,7 @@
  * Sound-test comment composer (write form).
  * Recovered `Pi` — gate (link required / busy) stays in game.
  */
-import { t as i18n } from "@/lib/i18n";
+import { translate as i18n } from "@/lib/i18n";
 export type SoundCommentComposerOpts = {
   trackKey: string;
   trackCard: { cat: string; key: string; title: string };

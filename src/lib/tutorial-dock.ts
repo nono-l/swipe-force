@@ -3,7 +3,7 @@
  * Only mounted during a How-To-launched Easy run.
  */
 
-import { t, onLocaleChange } from "@/lib/i18n";
+import { translate, onLocaleChange } from "@/lib/i18n";
 import {
   TUTORIAL_MISSIONS,
   claimTutorialMission,
@@ -61,7 +61,7 @@ export function mountTutorialDock(opts: TutorialDockOpts) {
   const btn = el(
     "button",
     "padding:8px 10px;border-radius:999px;border:1px solid #4a6;background:#0c1c16;color:#cfe;font-size:11px;font-weight:800;cursor:pointer;box-shadow:0 6px 18px #000a;letter-spacing:.02em;max-width:min(220px,70vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap",
-    t("tutorial.dock"),
+    translate("tutorial.dock"),
   ) as HTMLButtonElement;
   btn.type = "button";
   btn.setAttribute("aria-expanded", "false");
@@ -87,20 +87,20 @@ export function mountTutorialDock(opts: TutorialDockOpts) {
     const prog = tutorialProgress();
     const nextName = prog.next ? missionLabel(prog.next.id) : "";
     btn.textContent = prog.next
-      ? t("tutorial.dockNext", { name: nextName })
-      : `${t("tutorial.dock")} · ${t("tutorial.dockDone")}`;
+      ? translate("tutorial.dockNext", { name: nextName })
+      : `${translate("tutorial.dock")} · ${translate("tutorial.dockDone")}`;
 
     panel.replaceChildren();
     panel.append(
-      el("div", "font-size:11px;font-weight:800;color:#9ef;margin-bottom:4px", t("tutorial.title")),
+      el("div", "font-size:11px;font-weight:800;color:#9ef;margin-bottom:4px", translate("tutorial.title")),
       el(
         "div",
         "font-size:10px;color:#8ab;margin-bottom:8px;line-height:1.35",
-        t("tutorial.sum", {
+        translate("tutorial.sum", {
           got: prog.got,
           all: prog.all,
           coins: prog.coins,
-          ticket: prog.ticket > 0 ? t("tutorial.ticketBit", { n: prog.ticket }) : "",
+          ticket: prog.ticket > 0 ? translate("tutorial.ticketBit", { n: prog.ticket }) : "",
         }),
       ),
     );
@@ -124,7 +124,7 @@ export function mountTutorialDock(opts: TutorialDockOpts) {
         el(
           "div",
           `font-size:10px;font-weight:900;color:${done ? "#686" : "#fe8"}`,
-          done ? t("tutorial.claimed") : formatTutorialReward(m.coins, m.ticket),
+          done ? translate("tutorial.claimed") : formatTutorialReward(m.coins, m.ticket),
         ),
       );
       item.append(top, el("div", "font-size:9px;color:#678;margin-top:2px", missionHint(m.id)));
@@ -132,7 +132,7 @@ export function mountTutorialDock(opts: TutorialDockOpts) {
     }
     const hist = tutorialClaims();
     if (hist.length) {
-      list.appendChild(el("div", "font-size:10px;color:#8ab;margin-top:4px", t("watch.histTitle")));
+      list.appendChild(el("div", "font-size:10px;color:#8ab;margin-top:4px", translate("watch.histTitle")));
       for (const row of hist.slice(0, 8)) {
         const when = new Date(row.at);
         const stamp = Number.isNaN(when.getTime())
@@ -149,7 +149,7 @@ export function mountTutorialDock(opts: TutorialDockOpts) {
         list.appendChild(h);
       }
     } else {
-      list.appendChild(el("div", "font-size:11px;color:#678;line-height:1.4", t("tutorial.empty")));
+      list.appendChild(el("div", "font-size:11px;color:#678;line-height:1.4", translate("tutorial.empty")));
     }
     panel.appendChild(list);
   };
@@ -189,12 +189,12 @@ export function noteTutorialEvent(id: TutorialMissionId): boolean {
   mounted.paint();
   if (!res.ok) return false;
   if (res.already) {
-    mounted.opts.onToast?.(t("tutorial.already", { name: missionLabel(id) }));
+    mounted.opts.onToast?.(translate("tutorial.already", { name: missionLabel(id) }));
     return false;
   }
   mounted.opts.onGrant?.(res.coins, res.ticket, res.balance);
   mounted.opts.onToast?.(
-    t("tutorial.toast", {
+    translate("tutorial.toast", {
       name: missionLabel(id),
       reward: formatTutorialReward(res.coins, res.ticket),
     }),

@@ -2025,28 +2025,28 @@ export function bgmUnlock() {
     clearBgmTimer(), bgmMode = `off`
 }
 
-export function playBgmForMode(e, t = 1) {
-    let n = Math.max(1, Math.min(64, t | 0));
-    if (e === `title`) {
+export function playBgmForMode(listMode, index = 1) {
+    let stageNo = Math.max(1, Math.min(64, index | 0));
+    if (listMode === `title`) {
         bgmStartScene(`attract`);
         return `TITLE THEME`;
     }
-    if (e === `stage`) {
-        bgmStartScene(`play`, n);
-        return `STAGE ${String(n).padStart(2, `0`)} BGM`;
+    if (listMode === `stage`) {
+        bgmStartScene(`play`, stageNo);
+        return `STAGE ${String(stageNo).padStart(2, `0`)} BGM`;
     }
-    if (e === `legacy`) {
-        bgmStop((n - 1) % 8, n);
-        return `旧ボス ${String(n).padStart(2, `0`)} (CHIP)`;
+    if (listMode === `legacy`) {
+        bgmStop((stageNo - 1) % 8, stageNo);
+        return `旧ボス ${String(stageNo).padStart(2, `0`)} (CHIP)`;
     }
-    if (e === `archive`) {
+    if (listMode === `archive`) {
         const count = themeArchiveCount();
-        const i = Math.max(1, Math.min(count || 1, t | 0));
-        bgmArchive(i);
-        return themeArchiveMeta(i).title;
+        const archiveIndex = Math.max(1, Math.min(count || 1, index | 0));
+        bgmArchive(archiveIndex);
+        return themeArchiveMeta(archiveIndex).title;
     }
-    bgmBoss((n - 1) % 8, n);
-    return getBossThemeMeta(n).title;
+    bgmBoss((stageNo - 1) % 8, stageNo);
+    return getBossThemeMeta(stageNo).title;
 }
 
 export function soundCatalogMeta() {

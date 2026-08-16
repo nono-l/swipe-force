@@ -9,7 +9,7 @@ import {
   type UrlReportSummary,
   type UrlReportId,
 } from "@/lib/sound-comments";
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 function esc(s: string) {
   const amp = ["&", "a", "m", "p", ";"].join("");
@@ -157,7 +157,7 @@ export function openUrlCushion(opts: UrlCushionOpts): void {
   const step2 = () => {
     onStep1 = false;
     card.innerHTML = `<div style="font-size:13px;font-weight:800;color:#fc8;margin-bottom:8px">② クッション · 外部サイトへ</div>
-      <div style="font-size:11px;line-height:1.5;color:#cba;background:#1a1208;border:1px solid #864;border-radius:8px;padding:10px;margin-bottom:10px">${t("cushion.warn")}${opts.requireLinkToOpen === false ? `<br/>${t("cushion.guest")}` : ""}</div>
+      <div style="font-size:11px;line-height:1.5;color:#cba;background:#1a1208;border:1px solid #864;border-radius:8px;padding:10px;margin-bottom:10px">${translate("cushion.warn")}${opts.requireLinkToOpen === false ? `<br/>${translate("cushion.guest")}` : ""}</div>
       <div style="font-size:11px;word-break:break-all;color:#8cf;background:#061018;border-radius:8px;padding:10px;margin-bottom:12px;border:1px solid #246">${esc(url)}</div>
       <button type="button" id="sf-cu-open" style="width:100%;padding:14px;border-radius:10px;border:1px solid #4f8;background:linear-gradient(180deg,#1a6040,#0e3020);color:#fff;font-weight:800;margin-bottom:8px;cursor:pointer">サイトを開く</button>
       <button type="button" id="sf-cu-back" style="width:100%;padding:10px;border-radius:10px;border:1px solid #456;background:#1a2428;color:#bcd;cursor:pointer">← 評価画面に戻る</button>`;

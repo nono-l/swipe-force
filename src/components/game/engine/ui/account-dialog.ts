@@ -3,7 +3,7 @@
  * Behavior callbacks injected — no game state imports.
  */
 
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 export type AccountProvider = { providerId: string; label: string };
 
@@ -32,30 +32,30 @@ const DLG_ID = "sf-account-dlg";
 function buildHtml(state: AccountDialogState, providers: readonly AccountProvider[]): string {
   const display = state.linked
     ? state.name || state.email || "LINKED"
-    : t("common.guest");
+    : translate("common.guest");
   const providerBtns = providers
     .map(
       (e) => `<button type="button" data-provider="${e.providerId}" class="sf-acc-btn"
                 style="width:100%;padding:12px;margin-top:8px;border-radius:8px;border:1px solid #4a8;background:#0a2818;color:#cfe;font-size:14px;font-weight:600;cursor:pointer;">
-                ${t("account.with", { p: e.label === "X" ? "𝕏" : e.label })}
+                ${translate("account.with", { p: e.label === "X" ? "𝕏" : e.label })}
               </button>`,
     )
     .join("");
   const linkedActions = state.linked
-    ? `<button type="button" id="sf-acc-profile" style="width:100%;padding:12px;margin-top:10px;border-radius:8px;border:1px solid #4a8;background:#0a2818;color:#cfe;font-size:14px;font-weight:600;cursor:pointer;">${t("account.profile")}</button>
-                <button type="button" id="sf-acc-stats" style="width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid #468;background:#0a1820;color:#adf;font-size:13px;cursor:pointer;">${t("account.stats")}</button>
+    ? `<button type="button" id="sf-acc-profile" style="width:100%;padding:12px;margin-top:10px;border-radius:8px;border:1px solid #4a8;background:#0a2818;color:#cfe;font-size:14px;font-weight:600;cursor:pointer;">${translate("account.profile")}</button>
+                <button type="button" id="sf-acc-stats" style="width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid #468;background:#0a1820;color:#adf;font-size:13px;cursor:pointer;">${translate("account.stats")}</button>
                 <button type="button" id="sf-acc-logout"
-                  style="width:100%;padding:12px;margin-top:8px;border-radius:8px;border:1px solid #844;background:#2a1010;color:#fcc;font-size:14px;cursor:pointer;">${t("account.unlink")}</button>`
+                  style="width:100%;padding:12px;margin-top:8px;border-radius:8px;border:1px solid #844;background:#2a1010;color:#fcc;font-size:14px;cursor:pointer;">${translate("account.unlink")}</button>`
     : providerBtns;
 
   return `
         <div style="width:min(300px,100%);margin-top:8px;background:#061a12;border:2px solid #66ffaa;border-radius:12px;padding:14px 12px;color:#dff;box-shadow:0 8px 28px #000;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div style="font-size:14px;font-weight:700;color:#8ff;">${t("account.title")}</div>
+            <div style="font-size:14px;font-weight:700;color:#8ff;">${translate("account.title")}</div>
             <button type="button" id="sf-acc-close" style="border:0;background:transparent;color:#9ab;font-size:18px;cursor:pointer;line-height:1;">×</button>
           </div>
           <div style="font-size:11px;color:#6a9;line-height:1.4;margin-bottom:10px;">
-            ${t("account.hint")}<br/>
+            ${translate("account.hint")}<br/>
             · Continue coins<br/>
             · Easy carry upgrades<br/>
             · INBOX<br/>
@@ -66,9 +66,9 @@ function buildHtml(state: AccountDialogState, providers: readonly AccountProvide
             · Game stats
           </div>
           <div style="background:#03140e;border-radius:8px;padding:10px;border:1px solid #245;">
-            <div style="font-size:10px;color:#6a8;">${t("account.status")}</div>
+            <div style="font-size:10px;color:#6a8;">${translate("account.status")}</div>
             <div id="sf-acc-status" style="font-size:13px;font-weight:700;color:${state.linked ? "#8f8" : "#fc8"};margin-top:2px;">
-              ${state.linked ? t("account.linked") : t("account.guest")}
+              ${state.linked ? translate("account.linked") : translate("account.guest")}
             </div>
             <div id="sf-acc-name" style="font-size:12px;color:#cfe;margin-top:4px;word-break:break-all;">${display}</div>
             <div style="font-size:10px;color:#567;margin-top:6px;">ID ${state.playerId}</div>
@@ -129,21 +129,21 @@ export function openAccountDialog(
   el.querySelectorAll("[data-provider]").forEach((btn) => {
     btn.addEventListener("click", () => {
       void (async () => {
-        if (msg) msg.textContent = t("account.linking");
+        if (msg) msg.textContent = translate("account.linking");
         const providerId = (btn as HTMLElement).dataset.provider || "";
         try {
           const acc = await handlers.onSignIn(providerId);
           if (acc && "linked" in acc && !acc.linked) {
-            if (msg) msg.textContent = t("account.syncFail");
+            if (msg) msg.textContent = translate("account.syncFail");
             return;
           }
-          if (msg) msg.textContent = t("account.linkOk");
+          if (msg) msg.textContent = translate("account.linkOk");
           handlers.onAfterLink?.();
           handlers.playUi?.();
         } catch (err) {
-          let m = err instanceof Error ? err.message : t("account.linkFail");
+          let m = err instanceof Error ? err.message : translate("account.linkFail");
           if (/popup/i.test(m)) {
-            m = t("account.popup");
+            m = translate("account.popup");
           }
           if (msg) msg.textContent = m;
           handlers.playError?.();
@@ -154,7 +154,7 @@ export function openAccountDialog(
 
   el.querySelector("#sf-acc-logout")?.addEventListener("click", () => {
     void (async () => {
-      if (msg) msg.textContent = t("account.unlinking");
+      if (msg) msg.textContent = translate("account.unlinking");
       try {
         await handlers.onSignOut();
       } catch {

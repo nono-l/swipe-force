@@ -1,7 +1,7 @@
 /** Client helpers for share-referral continue coins + missions. */
 
 import { sanitizeFanMessage } from "@/lib/sanitize-message";
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 export const PLAYER_KEY = "swipe_force_player_v1";
 export const COIN_KEY = "swipe_force_coins_v1";
@@ -257,33 +257,33 @@ function progressHelpLine(p: ShareProgress): string {
 
   if (ctx === "gameover") {
     return [
-      t("share.goHelp", { diff, st, sc }),
-      p.bossName ? t("share.goBoss", { name: p.bossName }) : t("share.goProg", { st }),
-      t("share.goHint"),
+      translate("share.goHelp", { diff, st, sc }),
+      p.bossName ? translate("share.goBoss", { name: p.bossName }) : translate("share.goProg", { st }),
+      translate("share.goHint"),
     ].join("\n");
   }
   if (ctx === "boss") {
     return [
-      t("share.bossHelp", {
+      translate("share.bossHelp", {
         diff,
         st,
         boss: p.bossName ? `「${p.bossName}」` : "",
         sc,
       }),
-      t("share.bossHint"),
+      translate("share.bossHint"),
     ].join("\n");
   }
   if (ctx === "playing" || ctx === "ready" || ctx === "shop") {
     return [
-      t("share.playHelp", { diff, st, sc }),
-      t("share.playWhere", { st }),
-      t("share.playM"),
+      translate("share.playHelp", { diff, st, sc }),
+      translate("share.playWhere", { st }),
+      translate("share.playM"),
     ].join("\n");
   }
   return [
-    t("share.titleHelp", { diff: diff || "SWIPE FORCE" }),
-    t("share.titleHint"),
-    t("share.titleM"),
+    translate("share.titleHelp", { diff: diff || "SWIPE FORCE" }),
+    translate("share.titleHint"),
+    translate("share.titleM"),
   ].join("\n");
 }
 

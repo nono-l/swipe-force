@@ -2,7 +2,7 @@
  * Power shop chrome: header chips, footer buttons, tier banner (pure).
  */
 
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 export type ShopChip = {
   x: number;
@@ -176,13 +176,13 @@ export function shopTierHint(opts: {
 }): { text: string; color: string } {
   let text: string;
   if (!opts.tier2) {
-    text = t("shop.t1");
+    text = translate("shop.t1");
   } else if (!opts.tier3) {
-    text = t("shop.t2");
+    text = translate("shop.t2");
   } else if (opts.linked) {
-    text = t("shop.t3linked");
+    text = translate("shop.t3linked");
   } else {
-    text = t("shop.t3guest");
+    text = translate("shop.t3guest");
   }
   const color =
     opts.celebrate && opts.frame % 10 < 5 ? "#ff66ff" : "#66aa66";

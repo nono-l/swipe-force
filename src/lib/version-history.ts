@@ -1,6 +1,6 @@
 /** SWIPE FORCE version & changelog (newest first). */
 
-export const APP_VERSION = "1.8.0";
+export const APP_VERSION = "1.9.0";
 
 export type VersionEntry = {
   version: string;
@@ -10,6 +10,18 @@ export type VersionEntry = {
 };
 
 export const VERSION_HISTORY: VersionEntry[] = [
+  {
+    version: "1.9.0",
+    date: "2026-08-16",
+    title: "遊び方・バナー・二カ国語",
+    notes: [
+      "表示言語 JA/EN（ブラウザ言語、OPTIONSで切替）",
+      "遊び方ページとチュートリアル（1面クリアで達成）",
+      "タイトル余白のパートナーバナー・バナーエディタ",
+      "広告CLEAR画面のYouTubeチャンネルリンク（デフォルト出さない）",
+      "広告まわりのファイル名を media/partner に変更（広告ブロッカー対策）",
+    ],
+  },
   {
     version: "1.8.0",
     date: "2026-08-11",

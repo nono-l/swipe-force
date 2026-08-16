@@ -95,7 +95,7 @@ import {
 import { mountTitleBannerDom } from "@/lib/title-banner-dom";
 import { openPartnerPortalDialog } from "@/lib/partner-portal-ui";
 import { isPromoAdminPlayer, fetchStaffList } from "./modes/admin";
-import { cycleLocale, t } from "@/lib/i18n";
+import { cycleLocale, translate } from "@/lib/i18n";
 import {
   addPlayTime,
   noteHelpAsked,
@@ -510,14 +510,14 @@ function SwipeForceEngine() {
             inboxDetail = !1;
 
         function reloadInbox() {
-            fetchInboxMessages(playerId).then(e => {
-                inbox = e, inboxCursor >= inbox.length && (inboxCursor = Math.max(0, inbox.length - 1))
+            fetchInboxMessages(playerId).then(list => {
+                inbox = list, inboxCursor >= inbox.length && (inboxCursor = Math.max(0, inbox.length - 1))
             })
         }
 
-        async function refreshAccount(e = !1) {
+        async function refreshAccount(forceLink = !1) {
             try {
-                const acc = e ? await linkAccountPost() : await fetchAccountGet();
+                const acc = forceLink ? await linkAccountPost() : await fetchAccountGet();
                 account = {
                     linked: !!acc.linked,
                     playerId: acc.playerId || loadPlayerId(),
@@ -612,9 +612,9 @@ function SwipeForceEngine() {
         reloadInbox();
         let mailBusy = !1;
 
-        function openThanks(e) {
-            if (!canReplyThanks(e)) {
-                sfx.buyFail(), shareToast = thanksBlockedMessage(e), shareToastLife = 80;
+        function openThanks(message) {
+            if (!canReplyThanks(message)) {
+                sfx.buyFail(), shareToast = thanksBlockedMessage(message), shareToastLife = 80;
                 return
             }
             if (mailBusy) return;
@@ -625,7 +625,7 @@ function SwipeForceEngine() {
                 reasonText: (reason) => sanitizeReasonText(reason),
                 send: (text) => sendThanksReply({
                     playerId: playerId,
-                    messageId: e.id,
+                    messageId: message.id,
                     text
                 }),
                 onClose: () => { closeMailDialog() },
@@ -637,8 +637,8 @@ function SwipeForceEngine() {
         }
 
         function refreshCoins() {
-            fetchCoinBalance(playerId).then(e => {
-                continueCoins = e
+            fetchCoinBalance(playerId).then(coins => {
+                continueCoins = coins
             })
         }
         refreshCoins();
@@ -656,20 +656,20 @@ function SwipeForceEngine() {
         }
         applyAudioSettings();
 
-        function weaponLevelCap(e) {
-            return ownedLevel(e, upgrades)
+        function weaponLevelCap(weaponId) {
+            return ownedLevel(weaponId, upgrades)
         }
 
-        function loadHighScore(e) {
-            return weaponLevelCap(e) > 0
+        function isWeaponOwned(weaponId) {
+            return weaponLevelCap(weaponId) > 0
         }
 
-        function armedLevelOf(e) {
-            return armedLevel(e, upgrades, settings.wepLv)
+        function armedLevelOf(weaponId) {
+            return armedLevel(weaponId, upgrades, settings.wepLv)
         }
 
-        function isWeaponArmed(e) {
-            return isArmed(e, upgrades, settings.wepLv)
+        function isWeaponArmed(weaponId) {
+            return isArmed(weaponId, upgrades, settings.wepLv)
         }
 
         function armedWeaponCount() {
@@ -690,7 +690,7 @@ function SwipeForceEngine() {
         }
 
         function optionRows() {
-            return buildOptionRows(optionsSub, loadHighScore);
+            return buildOptionRows(optionsSub, isWeaponOwned);
         }
         let player = {
                 x: PLAY_W / 2,
@@ -704,11 +704,11 @@ function SwipeForceEngine() {
             floatTexts = [],
             lockBeams = [],
             stars = [];
-        for (let e = 0; e < 48; e++) stars.push({
+        for (let i = 0; i < 48; i++) stars.push({
             x: RAIL_W + Math.random() * FIELD_INNER_W,
             y: Math.random() * PLAY_H,
-            s: 1 + e % 2,
-            speed: .4 + e % 5 * .25
+            s: 1 + i % 2,
+            speed: .4 + i % 5 * .25
         });
         try { warmAllStageMaps() } catch {}
         let swipeActive = !1,
@@ -775,7 +775,7 @@ function SwipeForceEngine() {
                             sfxFail: () => { try { sfx.buyFail() } catch {} },
                             onCoins: (c) => {
                                 continueCoins = Math.max(0, c | 0);
-                                shareToast = t(`hud.watchOpen`, { n: continueCoins });
+                                shareToast = translate(`hud.watchOpen`, { n: continueCoins });
                                 shareToastLife = 100;
                             },
                         });
@@ -810,16 +810,16 @@ function SwipeForceEngine() {
             return shopUnlockTier(!!account.linked, tier3Unlocked(), tier2Unlocked(), u.length > 0);
         }
 
-        function itemMaxOf(e) {
-            return shopItemMax(e, !!account.linked, LINKED_ITEM_IDS, specialUnlocks());
+        function itemMaxOf(item) {
+            return shopItemMax(item, !!account.linked, LINKED_ITEM_IDS, specialUnlocks());
         }
 
         function shopCatalog() {
             return filterShopCatalog(SHOP_ITEMS, currentShopTier(), !!account.linked, specialUnlocks());
         }
 
-        function shopListWindow(e, t) {
-            return listWindowStart(e.length, shopCursor, t)
+        function shopListWindow(rows, pageSize) {
+            return listWindowStart(rows.length, shopCursor, pageSize)
         }
 
         function saveHighScore() {
@@ -834,19 +834,19 @@ function SwipeForceEngine() {
             return totalHpScale(difficulty, score)
         }
 
-        function normalCostMult(e) {
-            return normalCostScale(e, difficulty);
+        function normalCostMult(item) {
+            return normalCostScale(item, difficulty);
         }
 
-        function itemCostOf(e) {
-            return shopItemCost(e, upgrades, difficulty);
+        function itemCostOf(item) {
+            return shopItemCost(item, upgrades, difficulty);
         }
 
-        function canBuyItem(e) {
-            if (e.stockable) {
-                return bagStockOfId(e.id) < itemMaxOf(e) && pts >= itemCostOf(e)
+        function canBuyItem(item) {
+            if (item.stockable) {
+                return bagStockOfId(item.id) < itemMaxOf(item) && pts >= itemCostOf(item)
             }
-            return e.consumable ? e.id === `life` && lives >= 5 || e.id === `shield` && shield > 0 ? !1 : pts >= itemCostOf(e) : (e.linkOnly || e.tier >= 4) && !hasSpecial(e.id) || upgrades[e.id] >= itemMaxOf(e) ? !1 : pts >= itemCostOf(e)
+            return item.consumable ? item.id === `life` && lives >= 5 || item.id === `shield` && shield > 0 ? !1 : pts >= itemCostOf(item) : (item.linkOnly || item.tier >= 4) && !hasSpecial(item.id) || upgrades[item.id] >= itemMaxOf(item) ? !1 : pts >= itemCostOf(item)
         }
 
         function syncEasyCarry() {
@@ -866,8 +866,8 @@ function SwipeForceEngine() {
             }
         }
 
-        function easyCarryLevelOf(e) {
-            return Object.keys(DEFAULT_UPGRADES).reduce((t, n) => t + e[n], 0)
+        function easyCarryLevelOf(weaponId) {
+            return Object.keys(DEFAULT_UPGRADES).reduce((t, n) => t + weaponId[n], 0)
         }
 
         function persistBag() {
@@ -912,7 +912,7 @@ function SwipeForceEngine() {
             let res = claimLoginBonus(bagStock, loginLastDate);
             if (!res.ok) {
                 if (!silent) {
-                    bagToast = t(`bag.loginDone`), bagToastLife = 60, sfx.buyFail();
+                    bagToast = translate(`bag.loginDone`), bagToastLife = 60, sfx.buyFail();
                 }
                 return !1
             }
@@ -935,14 +935,14 @@ function SwipeForceEngine() {
                 if (!res.ok) {
                     shareToast =
                         res.reason === `already`
-                            ? t(`bag.promoOk`, { code })
+                            ? translate(`bag.promoOk`, { code })
                             : res.reason === `expired`
-                              ? t(`bag.promoExp`, { code })
+                              ? translate(`bag.promoExp`, { code })
                               : res.reason === `sold_out`
-                                ? t(`bag.promoEnd`, { code })
+                                ? translate(`bag.promoEnd`, { code })
                                 : res.reason === `network`
-                                  ? t(`bag.promoNet`, { code })
-                                  : t(`bag.promoBad`, { code });
+                                  ? translate(`bag.promoNet`, { code })
+                                  : translate(`bag.promoBad`, { code });
                     shareToastLife = 120;
                     if (res.reason === `already`) {
                         promoClaimed = [...new Set([...promoClaimed, code.toUpperCase()])];
@@ -1014,7 +1014,7 @@ function SwipeForceEngine() {
         function openStageSelect() {
             let maxS = maxClearedForDiff();
             if (maxS < 1) {
-                bagToast = t(`bag.noClear`), bagToastLife = 70, sfx.buyFail();
+                bagToast = translate(`bag.noClear`), bagToastLife = 70, sfx.buyFail();
                 return
             }
             stageSelectCursor = Math.max(0, Math.min(maxS - 1, (bagPending.startStage || 1) - 1));
@@ -1032,7 +1032,7 @@ function SwipeForceEngine() {
                 return
             }
             if (row.kind !== `item` || row.action === `locked`) {
-                bagToast = row.lockedReason || t(`bag.noUse`), bagToastLife = 60, sfx.buyFail();
+                bagToast = row.lockedReason || translate(`bag.noUse`), bagToastLife = 60, sfx.buyFail();
                 return
             }
             if (row.action === `use_stage`) {
@@ -1041,13 +1041,13 @@ function SwipeForceEngine() {
             }
             if (row.action === `use_x5` || row.action === `use_x10`) {
                 if (bagPending.ptsMult > 1 || (bagInRunContext() && runPtsMult > 1)) {
-                    bagToast = t(`bag.noDup`), bagToastLife = 70, sfx.buyFail();
+                    bagToast = translate(`bag.noDup`), bagToastLife = 70, sfx.buyFail();
                     return
                 }
                 let field = row.action === `use_x5` ? `ptsX5` : `ptsX10`;
                 let res = consumeBagStock(bagStock, field, 1);
                 if (!res.ok) {
-                    bagToast = t(`bag.noInv`), bagToastLife = 50, sfx.buyFail();
+                    bagToast = translate(`bag.noInv`), bagToastLife = 50, sfx.buyFail();
                     return
                 }
                 bagStock = res.bag, persistBag();
@@ -1057,28 +1057,28 @@ function SwipeForceEngine() {
                         // refund stock if wrong difficulty mid-run
                         bagStock = addBagStock(bagStock, field, 1);
                         persistBag();
-                        bagToast = t(`bag.nrmNeed`), bagToastLife = 60, sfx.buyFail();
+                        bagToast = translate(`bag.nrmNeed`), bagToastLife = 60, sfx.buyFail();
                         return
                     }
                     runPtsMult = mult;
-                    bagToast = t(`bag.ptsGo`, { n: mult }), bagToastLife = 70, sfx.buy();
+                    bagToast = translate(`bag.ptsGo`, { n: mult }), bagToastLife = 70, sfx.buy();
                     return
                 }
                 bagPending = {
                     ...bagPending,
                     ptsMult: mult
                 }, persistPending();
-                bagToast = t(`bag.ptsSet`, { n: mult }), bagToastLife = 70, sfx.buy();
+                bagToast = translate(`bag.ptsSet`, { n: mult }), bagToastLife = 70, sfx.buy();
                 return
             }
             if (row.action === `use_pack`) {
                 if (difficulty !== `normal`) {
-                    bagToast = t(`bag.nrmNeed`), bagToastLife = 60, sfx.buyFail();
+                    bagToast = translate(`bag.nrmNeed`), bagToastLife = 60, sfx.buyFail();
                     return
                 }
                 let res = consumeBagStock(bagStock, `ptsPack`, 1);
                 if (!res.ok) {
-                    bagToast = t(`bag.noInv`), bagToastLife = 50, sfx.buyFail();
+                    bagToast = translate(`bag.noInv`), bagToastLife = 50, sfx.buyFail();
                     return
                 }
                 bagStock = res.bag, persistBag();
@@ -1098,7 +1098,7 @@ function SwipeForceEngine() {
             }
             let res = consumeBagStock(bagStock, `stageTicket`, 1);
             if (!res.ok) {
-                bagToast = t(`bag.noTicket`), bagToastLife = 60, mode = `bag`, sfx.buyFail();
+                bagToast = translate(`bag.noTicket`), bagToastLife = 60, mode = `bag`, sfx.buyFail();
                 return
             }
             bagStock = res.bag, persistBag();
@@ -1106,39 +1106,39 @@ function SwipeForceEngine() {
                 stage = row.stage;
                 shopPaused = !1;
                 startStage();
-                bagToast = t(`bag.stageStart`, { n: row.stage }), bagToastLife = 60, sfx.buy();
+                bagToast = translate(`bag.stageStart`, { n: row.stage }), bagToastLife = 60, sfx.buy();
                 return
             }
             bagPending = {
                 ...bagPending,
                 startStage: row.stage
             }, persistPending();
-            bagToast = t(`bag.stageSet`, { n: row.stage }), bagToastLife = 70;
+            bagToast = translate(`bag.stageSet`, { n: row.stage }), bagToastLife = 70;
             mode = `attract`, titleSub = `extra`, titleCursor = 3, sfx.buy()
         }
 
-        function buyShopItem(e) {
+        function buyShopItem(item) {
             let before = { ...upgrades };
             let result = applyShopPurchase({
-                item: e,
-                cost: itemCostOf(e),
+                item: item,
+                cost: itemCostOf(item),
                 pts: pts,
                 lives: lives,
                 shieldFrames: shield,
                 upgrades: upgrades,
-                maxLevel: itemMaxOf(e),
-                canBuy: canBuyItem(e),
+                maxLevel: itemMaxOf(item),
+                canBuy: canBuyItem(item),
                 difficulty: difficulty,
                 wepLv: settings.wepLv,
                 wepCap: weaponLevelCap,
-                bagStock: bagStockOfId(e.id)
+                bagStock: bagStockOfId(item.id)
             }, {
                 tier2Ready: false,
                 tier3Ready: false,
                 linkedSpecial: false
             });
             if (!result.ok) {
-                shopToast = t(`hud.needPts`), shopToastLife = 60, sfx.buyFail();
+                shopToast = translate(`hud.needPts`), shopToastLife = 60, sfx.buyFail();
                 return
             }
             pts = result.pts, lives = result.lives, shield = result.shieldFrames, upgrades = result.upgrades;
@@ -1148,10 +1148,10 @@ function SwipeForceEngine() {
             if (result.bagAddId) {
                 let field = bagFieldForShopId(result.bagAddId);
                 if (field) {
-                    bagStock = addBagStock(bagStock, field, 1, itemMaxOf(e)), persistBag()
+                    bagStock = addBagStock(bagStock, field, 1, itemMaxOf(item)), persistBag()
                 }
             }
-            if (e.id !== `life` && e.id !== `shield` && !e.stockable) syncEasyCarry();
+            if (item.id !== `life` && item.id !== `shield` && !item.stockable) syncEasyCarry();
             sfx.buy(), shopToast = result.message, shopToastLife = 50;
             if (tutorialRun) noteTutorialEvent(`buy`);
             // celebrate after state applied (match original)
@@ -1188,8 +1188,8 @@ function SwipeForceEngine() {
 
         
         // ── open shop ──
-        function openShop(e = !1) {
-            let seed = openShopSeed(!!e);
+        function openShop(paused = !1) {
+            let seed = openShopSeed(!!paused);
             mode = seed.mode, shopPaused = seed.paused, shopCursor = seed.cursor, shopToast = seed.toast, shopToastLife = seed.toastLife;
             swipeActive = !1, clearInput();
             if (seed.clearEntities) bullets.length = 0, enemies.length = 0, lockBeams.length = 0;
@@ -1210,8 +1210,8 @@ function SwipeForceEngine() {
 
         
         // ── open options ──
-        function openOptions(e) {
-            let seed = openOptionsSeed(e);
+        function openOptions(from) {
+            let seed = openOptionsSeed(from);
             optionsFrom = seed.from, mode = seed.mode, optionsSub = seed.submenu, optionsCursor = seed.cursor;
             optionsToast = ``, optionsToastLife = 0, swipeActive = !1, clearInput(), sfx.ui(), bgm.start(`attract`)
         }
@@ -1266,15 +1266,15 @@ function SwipeForceEngine() {
             refreshCoins();
             bgm.start(`attract`);
             sfx.ui();
-            shareToast = t(`hud.titleBack`), shareToastLife = 70;
+            shareToast = translate(`hud.titleBack`), shareToastLife = 70;
         }
 
-        function nudgeOptionFromMenu(e) {
-            return formatVolumeBar(e);
+        function nudgeOptionFromMenu(value) {
+            return formatVolumeBar(value);
         }
 
-        function formatOptionValueForRow(e) {
-            return formatOptionValue(e, {
+        function formatOptionValueForRow(row) {
+            return formatOptionValue(row, {
                 options: settings,
                 armedLevel: armedLevelOf,
                 maxLevel: weaponLevelCap,
@@ -1283,13 +1283,13 @@ function SwipeForceEngine() {
             });
         }
 
-        function nudgeOption(e) {
-            let t = optionRows();
-            (optionsCursor < 0 || optionsCursor >= t.length) && (optionsCursor = 0);
-            let n = t[optionsCursor];
+        function nudgeOption(delta) {
+            let rows = optionRows();
+            (optionsCursor < 0 || optionsCursor >= rows.length) && (optionsCursor = 0);
+            let row = rows[optionsCursor];
             let res = applyOptionDelta({
-                row: n,
-                delta: e,
+                row: row,
+                delta: delta,
                 settings: settings,
                 maxArmed: (key) => weaponLevelCap(key),
                 currentArmed: (key) => armedLevelOf(key),
@@ -1299,7 +1299,7 @@ function SwipeForceEngine() {
             if (res.type === `back`) { closeOptions(); return }
             if (res.type === `title`) { quitToTitle(); return }
             if (res.type === `locale`) {
-                cycleLocale(e >= 0 ? 1 : -1);
+                cycleLocale(delta >= 0 ? 1 : -1);
                 sfx.ui();
                 return;
             }
@@ -1308,7 +1308,7 @@ function SwipeForceEngine() {
             if (res.type === `applied`) {
                 settings = res.settings;
                 if (res.clearVstick) clearInput();
-                if (n.kind === `weapon`) {
+                if (row.kind === `weapon`) {
                     let feedback = dodgeOnlyFeedback(armedWeaponCount(), res.feedback);
                     optionsToast = feedback || res.feedback || ``, optionsToastLife = res.feedbackLife || 55
                 }
@@ -1318,20 +1318,20 @@ function SwipeForceEngine() {
             }
         }
 
-        function spawnBurst(e, t, n, r = 14) {
-            for (let mode of buildBurstParticles(e, t, n, r)) fxParticles.push(mode)
+        function spawnBurst(x, y, color, count = 14) {
+            for (let particle of buildBurstParticles(x, y, color, count)) fxParticles.push(particle)
         }
 
-        function findEnemyById(e) {
-            return enemies.find(t => t.id === e)
+        function findEnemyById(id) {
+            return enemies.find(en => en.id === id)
         }
 
-        function nearestEnemies(e) {
-            return pickNearestEnemies(enemies, player.x, player.y, e)
+        function nearestEnemies(count) {
+            return pickNearestEnemies(enemies, player.x, player.y, count)
         }
 
-        function damageEnemy(e, t, n, r) {
-            let out = applyEnemyDamage(e, t, n, r);
+        function damageEnemy(enemy, dmg, srcX, srcY) {
+            let out = applyEnemyDamage(enemy, dmg, srcX, srcY);
             sfx.hit();
             if (out.type === `survive`) {
                 spawnBurst(out.spark.x, out.spark.y, out.spark.color, out.spark.count);
@@ -1376,7 +1376,7 @@ function SwipeForceEngine() {
                     noteStage(difficulty === `normal` ? `normal` : `easy`, stage);
                 } catch {}
             }
-            let idx = enemies.indexOf(e);
+            let idx = enemies.indexOf(enemy);
             idx >= 0 && enemies.splice(idx, 1)
         }
 
@@ -1425,9 +1425,9 @@ function SwipeForceEngine() {
             }))
         }
 
-        function enemyShoot(e) {
-            let atk = e.boss ? bossById(e.bossId).atk : 0;
-            for (let entity of createEnemyVolley(e, player.x, player.y, atk)) bullets.push(entity)
+        function enemyShoot(enemy) {
+            let atk = enemy.boss ? bossById(enemy.bossId).atk : 0;
+            for (let entity of createEnemyVolley(enemy, player.x, player.y, atk)) bullets.push(entity)
         }
 
         function firePlayerShots() {
@@ -1514,23 +1514,23 @@ function SwipeForceEngine() {
             }
         }
 
-        function fillRect(e, t, n, r, i) {
-            ctx.fillStyle = i, ctx.fillRect(Math.round(e), Math.round(t), Math.round(n), Math.round(r))
+        function fillRect(x, y, w, h, color) {
+            ctx.fillStyle = color, ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h))
         }
 
-        function drawText(e, t, n, r, i = 8, a = `left`) {
-            ctx.fillStyle = r, ctx.font = `bold ${i}px "Courier New", monospace`, ctx.textAlign = a, ctx.textBaseline = `top`, ctx.fillText(e, t, n)
+        function drawText(text, x, y, color, size = 8, align = `left`) {
+            ctx.fillStyle = color, ctx.font = `bold ${size}px "Courier New", monospace`, ctx.textAlign = align, ctx.textBaseline = `top`, ctx.fillText(text, x, y)
         }
 
-        function drawPlayerShip(e, t, n, r) {
-            if (r) return;
-            ctx.save(), ctx.translate(Math.round(e), Math.round(t));
+        function drawPlayerShip(x, y, _flash, blinking) {
+            if (blinking) return;
+            ctx.save(), ctx.translate(Math.round(x), Math.round(y));
             ctx.fillStyle = PLAYER_SHIP_FILL, ctx.beginPath();
             let path = PLAYER_SHIP_PATH;
             ctx.moveTo(path[0][0], path[0][1]);
             for (let i = 1; i < path.length; i++) ctx.lineTo(path[i][0], path[i][1]);
             ctx.closePath(), ctx.fill();
-            for (let r of playerShipLocalRects()) fillRect(r.x, r.y, r.w, r.h, r.color);
+            for (let rect of playerShipLocalRects()) fillRect(rect.x, rect.y, rect.w, rect.h, rect.color);
             ctx.restore()
         }
 
@@ -1538,24 +1538,24 @@ function SwipeForceEngine() {
             for (let r of optionPodRects(player.x, player.y, armedLevelOf(`option`))) fillRect(r.x, r.y, r.w, r.h, r.color)
         }
 
-        function drawEnemy(e) {
-            if (e.boss) {
-                drawBoss(e);
+        function drawEnemy(enemy) {
+            if (enemy.boss) {
+                drawBoss(enemy);
                 return
             }
-            ctx.save(), ctx.translate(Math.round(e.x), Math.round(e.y)), e.flash > 0 && (ctx.globalAlpha = .5);
-            e.type === 2 && ctx.rotate(e.phase);
-            for (let r of gruntLocalRects(e.type)) fillRect(r.x, r.y, r.w, r.h, r.color);
+            ctx.save(), ctx.translate(Math.round(enemy.x), Math.round(enemy.y)), enemy.flash > 0 && (ctx.globalAlpha = .5);
+            enemy.type === 2 && ctx.rotate(enemy.phase);
+            for (let r of gruntLocalRects(enemy.type)) fillRect(r.x, r.y, r.w, r.h, r.color);
             ctx.restore()
         }
 
-        function drawBoss(e) {
-            let t = bossById(e.bossId);
-            ctx.save(), ctx.translate(Math.round(e.x), Math.round(e.y));
-            e.flash > 0 && (ctx.globalAlpha = bossFlashAlpha(e.flash, frame));
-            for (let r of bossLocalRects(t, e.w, e.h)) fillRect(r.x, r.y, r.w, r.h, r.color);
+        function drawBoss(enemy) {
+            let t = bossById(enemy.bossId);
+            ctx.save(), ctx.translate(Math.round(enemy.x), Math.round(enemy.y));
+            enemy.flash > 0 && (ctx.globalAlpha = bossFlashAlpha(enemy.flash, frame));
+            for (let r of bossLocalRects(t, enemy.w, enemy.h)) fillRect(r.x, r.y, r.w, r.h, r.color);
             ctx.restore();
-            let bar = bossHpBar({ hp: e.hp, maxHp: e.maxHp });
+            let bar = bossHpBar({ hp: enemy.hp, maxHp: enemy.maxHp });
             fillRect(bar.bg.x, bar.bg.y, bar.bg.w, bar.bg.h, bar.bg.color);
             fillRect(bar.fg.x, bar.fg.y, bar.fg.w, bar.fg.h, bar.fg.color);
             drawText(t.name, PLAY_W / 2, 18, `#ff66aa`, 8, `center`)
@@ -1637,23 +1637,23 @@ function SwipeForceEngine() {
             missionToastLife > 0 && drawText(missionToast, 264, 39, `#aaffff`, 6, `right`)
         }
 
-        function drawTitleMissions(e) {
+        function drawTitleMissions(cx) {
             if (!sharerId) return;
             reloadMissions(), fillRect(58, 90, 204, 82, `#001820`), ctx.strokeStyle = allMissionsClear() ? `#ffee66` : `#44ffcc`, ctx.lineWidth = 2, ctx.strokeRect(58.5, 90.5, 203, 81), ctx.lineWidth = 1;
-            drawText(`◆ SHARE MISSIONS`, e, 94, `#66ffee`, 9, `center`);
+            drawText(`◆ SHARE MISSIONS`, cx, 94, `#66ffee`, 9, `center`);
             {
                 let who = sharerProfile.hasProfile && sharerProfile.displayName
                     ? sharerProfile.displayName.slice(0, 12)
                     : `ID ${String(sharerId).slice(0, 8)}`;
-                drawText(t(`hud.requester`, { who }), e, 106, `#aaddff`, 7, `center`);
+                drawText(translate(`hud.requester`, { who }), cx, 106, `#aaddff`, 7, `center`);
             }
-            drawText(t(`hud.missionMax`), e, 116, `#ffcc66`, 6, `center`);
+            drawText(translate(`hud.missionMax`), cx, 116, `#ffcc66`, 6, `center`);
             for (let row of buildTitleMissionRows(MISSION_DEFS, missionsDone, 126, 9)) {
                 drawText(row.line, 66, row.y, row.color, 7);
             }
             let foot = titleMissionFooter(allMissionsClear(), alreadySentFanmail());
-            foot && drawText(foot, e, 164, alreadySentFanmail() ? `#88aa88` : `#ffff88`, 6, `center`);
-            drawText(t(`hud.tapProfile`), e, 173, `#5588aa`, 6, `center`);
+            foot && drawText(foot, cx, 164, alreadySentFanmail() ? `#88aa88` : `#ffff88`, 6, `center`);
+            drawText(translate(`hud.tapProfile`), cx, 173, `#5588aa`, 6, `center`);
         }
 
         function titleMissionHit(x, y) {
@@ -1735,7 +1735,7 @@ function SwipeForceEngine() {
                 entity.sub && drawText(entity.sub, entity.labelX, entity.subY, `#886644`, 6, `center`);
             }
             ctx.lineWidth = 1;
-            shopToastLife > 0 ? drawText(shopToast, PLAY_W / 2, 388, `#ffaa00`, 6, `center`) : drawText(shopPaused ? t(`hud.shopHelpPause`) : t(`hud.shopHelp`), PLAY_W / 2, 388, `#335544`, 6, `center`)
+            shopToastLife > 0 ? drawText(shopToast, PLAY_W / 2, 388, `#ffaa00`, 6, `center`) : drawText(shopPaused ? translate(`hud.shopHelpPause`) : translate(`hud.shopHelp`), PLAY_W / 2, 388, `#335544`, 6, `center`)
         }
 
         function drawOptions() {
@@ -1775,7 +1775,7 @@ function SwipeForceEngine() {
             bagCursor = Math.max(0, Math.min(rows.length - 1, bagCursor));
             fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#140c00`), fillRect(54, 18, 212, 370, `#1a1200`), ctx.strokeStyle = `#ffcc66`, ctx.strokeRect(54.5, 18.5, 211, 369);
             drawText(`ITEM BAG`, PLAY_W / 2, 22, `#ffee88`, 11, `center`);
-            drawText(t(`bag.hint`), PLAY_W / 2, 36, `#886644`, 7, `center`);
+            drawText(translate(`bag.hint`), PLAY_W / 2, 36, `#886644`, 7, `center`);
             let win = listWindowStart(rows.length, bagCursor, 12);
             for (let i = 0; i < Math.min(12, rows.length); i++) {
                 let idx = i + win, row = rows[idx], y = 50 + i * 24, sel = idx === bagCursor;
@@ -1808,7 +1808,7 @@ function SwipeForceEngine() {
                 drawText(`×${row.stock}`, 256, y + 2, can ? `#ffff66` : `#554433`, 8, `right`);
                 drawText(can ? row.desc : (row.lockedReason || row.desc), 64, y + 12, can ? `#887744` : `#553322`, 6);
             }
-            bagToastLife > 0 ? drawText(bagToast, PLAY_W / 2, 386, `#ffaa00`, 6, `center`) : drawText(t(`bag.foot`), PLAY_W / 2, 386, `#554422`, 6, `center`)
+            bagToastLife > 0 ? drawText(bagToast, PLAY_W / 2, 386, `#ffaa00`, 6, `center`) : drawText(translate(`bag.foot`), PLAY_W / 2, 386, `#554422`, 6, `center`)
         }
 
         function drawStageSelect() {
@@ -1817,7 +1817,7 @@ function SwipeForceEngine() {
             stageSelectCursor = Math.max(0, Math.min(rows.length - 1, stageSelectCursor));
             fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#001018`), fillRect(54, 18, 212, 370, `#001a28`), ctx.strokeStyle = `#66ccff`, ctx.strokeRect(54.5, 18.5, 211, 369);
             drawText(`STAGE SELECT`, PLAY_W / 2, 22, `#88eeff`, 11, `center`);
-            drawText(t(`bag.skipHint`), PLAY_W / 2, 36, `#447788`, 7, `center`);
+            drawText(translate(`bag.skipHint`), PLAY_W / 2, 36, `#447788`, 7, `center`);
             let win = listWindowStart(rows.length, stageSelectCursor, 12);
             for (let i = 0; i < Math.min(12, rows.length); i++) {
                 let idx = i + win, row = rows[idx], y = 52 + i * 24, sel = idx === stageSelectCursor;
@@ -1825,7 +1825,7 @@ function SwipeForceEngine() {
                 drawText(row.label, PLAY_W / 2, y + 2, sel ? `#fff` : `#88ccee`, 9, `center`);
                 drawText(row.sub, PLAY_W / 2, y + 12, `#446677`, 6, `center`);
             }
-            drawText(t(`bag.skipFoot`), PLAY_W / 2, 386, `#335566`, 6, `center`)
+            drawText(translate(`bag.skipFoot`), PLAY_W / 2, 386, `#335566`, 6, `center`)
         }
 
         
@@ -1844,35 +1844,35 @@ function SwipeForceEngine() {
 
         function drawChangelog() {
             fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#000a12`), fillRect(54, 12, 212, 380, `#001018`), ctx.strokeStyle = `#44ffcc`, ctx.strokeRect(54.5, 12.5, 211, 379), drawText(`VERSION HISTORY`, PLAY_W / 2, 20, `#88ffee`, 11, `center`), drawText(`NOW  ${versionShortLabel()}`, PLAY_W / 2, 34, `#ffee88`, 8, `center`), drawText(`Grok Build iOS`, PLAY_W / 2, 46, `#556666`, 6, `center`);
-            let e = buildChangelogRows(VERSION_HISTORY),
-                t = changelogMaxScroll(e.length);
-            changelogScroll > t && (changelogScroll = t);
-            for (let vis of changelogVisibleRows(e, changelogScroll)) {
+            let rows = buildChangelogRows(VERSION_HISTORY),
+                maxScroll = changelogMaxScroll(rows.length);
+            changelogScroll > maxScroll && (changelogScroll = maxScroll);
+            for (let vis of changelogVisibleRows(rows, changelogScroll)) {
                 if (vis.row.kind === `gap`) continue;
-                let a = vis.row.kind === `head` ? 7 : 6;
-                drawText(vis.row.text.slice(0, 34), 62, vis.y, vis.row.color, a)
+                let fontSize = vis.row.kind === `head` ? 7 : 6;
+                drawText(vis.row.text.slice(0, 34), 62, vis.y, vis.row.color, fontSize)
             }
-            changelogScroll > 0 && drawText(`▲`, PLAY_W / 2, 52, `#44aa88`, 7, `center`), changelogScroll < t && drawText(`▼`, PLAY_W / 2, 364, `#44aa88`, 7, `center`), fillRect(60, 370, 200, 18, `#1a3030`), ctx.strokeStyle = `#6688aa`, ctx.strokeRect(60.5, 370.5, 199, 17), drawText(`◀ BACK`, PLAY_W / 2, 375, `#aaccff`, 8, `center`)
+            changelogScroll > 0 && drawText(`▲`, PLAY_W / 2, 52, `#44aa88`, 7, `center`), changelogScroll < maxScroll && drawText(`▼`, PLAY_W / 2, 364, `#44aa88`, 7, `center`), fillRect(60, 370, 200, 18, `#1a3030`), ctx.strokeStyle = `#6688aa`, ctx.strokeRect(60.5, 370.5, 199, 17), drawText(`◀ BACK`, PLAY_W / 2, 375, `#aaccff`, 8, `center`)
         }
 
-        function onChangelogTap(e, t) {
-            changelogDragOn = !0, changelogDragY = t, changelogDragAcc = 0, changelogDragMoved = !1
+        function onChangelogTap(x, y) {
+            changelogDragOn = !0, changelogDragY = y, changelogDragAcc = 0, changelogDragMoved = !1
         }
 
-        function onChangelogDrag(e, t) {
+        function onChangelogDrag(x, y) {
             if (!changelogDragOn || mode !== `changelog`) return;
-            let n = t - changelogDragY;
-            for (changelogDragAcc += n, changelogDragY = t; changelogDragAcc <= -14;) changelogScroll = Math.max(0, changelogScroll - 1), changelogDragAcc += 14, changelogDragMoved = !0, sfx.ui();
+            let dy = y - changelogDragY;
+            for (changelogDragAcc += dy, changelogDragY = y; changelogDragAcc <= -14;) changelogScroll = Math.max(0, changelogScroll - 1), changelogDragAcc += 14, changelogDragMoved = !0, sfx.ui();
             for (; changelogDragAcc >= 14;) changelogScroll = Math.min(getChangelogMaxScroll(), changelogScroll + 1), changelogDragAcc -= 14, changelogDragMoved = !0, sfx.ui()
         }
 
-        function onChangelogPointerUp(e, t) {
+        function onChangelogPointerUp(x, y) {
             if (changelogDragOn) {
                 if (changelogDragOn = !1, changelogDragMoved) {
                     changelogDragMoved = !1;
                     return
                 }
-                changelogBackHit(t, e, RAIL_W, FIELD_RIGHT) && leaveChangelog()
+                changelogBackHit(y, x, RAIL_W, FIELD_RIGHT) && leaveChangelog()
             }
         }
 
@@ -1900,7 +1900,7 @@ function SwipeForceEngine() {
             ctx.strokeRect(68.5, 76.5, 183, 17);
             let coin = continueCoinLine(continueCoins);
             drawText(coin.text, e, 80, coin.color, 9, `center`);
-            sharerId ? drawTitleMissions(e) : drawText(t(`hud.shareHelp`), e, 96, `#558866`, 7, `center`);
+            sharerId ? drawTitleMissions(e) : drawText(translate(`hud.shareHelp`), e, 96, `#558866`, 7, `center`);
             shareToastLife > 0 && drawText(shareToast, e, sharerId ? 148 : 110, `#ffaa00`, 7, `center`);
             drawText(titleSelectLabel(titleSub), e, PLAY_H * .385, `#ffff66`, 7, `center`);
             let adminMenu = !!(account.linked && isPromoAdminPlayer(playerId));
@@ -1974,19 +1974,19 @@ function SwipeForceEngine() {
 
         
         // ── mission progress tick ──
-        function reportMission(e) {
-            if (!canAttemptMission({ sharerId: sharerId, shareId: shareId, alreadyDone: !!missionsDone[e] })) return;
+        function reportMission(missionId) {
+            if (!canAttemptMission({ sharerId: sharerId, shareId: shareId, alreadyDone: !!missionsDone[missionId] })) return;
             let t = missionPlaySeconds(runStartedAt),
-                n = MISSION_DEFS.find(t => t.id === e);
+                n = MISSION_DEFS.find(t => t.id === missionId);
             reportMissionClear({
                 sharerId: sharerId,
                 shareId: shareId,
                 visitorId: playerId,
-                missionId: e,
+                missionId: missionId,
                 playSeconds: t
-            }).then(e => {
+            }).then(missionId => {
                 reloadMissions();
-                if (e.ok && !e.already) {
+                if (missionId.ok && !missionId.already) {
                     let feedback = missionClearFloats({
                         label: n.label,
                         allClearCanMsg: !!(allMissionsClear() && canSendFanmail()),
@@ -1996,7 +1996,7 @@ function SwipeForceEngine() {
                     missionBannerLife = feedback.bannerFrames, missionToast = feedback.toast, missionToastLife = feedback.toastLife, sfx.stageClear();
                     for (let nextEntityId of feedback.floats) floatTexts.push(nextEntityId);
                     refreshCoins()
-                } else if (!e.ok && e.reason === `too_fast`) {
+                } else if (!missionId.ok && missionId.reason === `too_fast`) {
                     let feedback = missionTooFastFloats({ label: n.label, cx: PLAY_W / 2, cy: PLAY_H });
                     missionToast = feedback.toast, missionToastLife = feedback.toastLife;
                     for (let nextEntityId of feedback.floats) floatTexts.push(nextEntityId)
@@ -2140,8 +2140,8 @@ function SwipeForceEngine() {
             bossActive ? bgm.boss(bossForStage(stage).vibe, stage) : bgm.start(`play`, stage)
         }
 
-        function requireAccountLink(e = t(`hud.featDefault`)) {
-            let gate = requireLinked(!!account.linked, e);
+        function requireAccountLink(feature = translate(`hud.featDefault`)) {
+            let gate = requireLinked(!!account.linked, feature);
             if (gate.ok) return !0;
             soundToast = gate.message, soundToastLife = 100, shareToast = soundToast, shareToastLife = 100, sfx.buyFail();
             return !1
@@ -2151,11 +2151,11 @@ function SwipeForceEngine() {
         // ── sound test ──
         function openSoundTest() {
             if (!account.linked) {
-                shareToast = t(`hud.soundLock`), shareToastLife = 90, sfx.buyFail();
+                shareToast = translate(`hud.soundLock`), shareToastLife = 90, sfx.buyFail();
                 return
             }
-            bgm.unlock(), soundListMode = `menu`, soundCursor = 0, trackLabel = ``, mode = `soundtest`, bgm.start(`attract`), soundPlayMode = `title`, soundIndex = 0, trackLabel = `TITLE THEME`, fetchTrackVotes(`title`, playerId).then(e => {
-                ratings = e
+            bgm.unlock(), soundListMode = `menu`, soundCursor = 0, trackLabel = ``, mode = `soundtest`, bgm.start(`attract`), soundPlayMode = `title`, soundIndex = 0, trackLabel = `TITLE THEME`, fetchTrackVotes(`title`, playerId).then(votes => {
+                ratings = votes
             }), sfx.ui()
         }
 
@@ -2179,12 +2179,12 @@ function SwipeForceEngine() {
             })
         }
 
-        function drawTrackCard(e, t) {
+        function drawTrackCard(topY, opts) {
             let n = currentTrackCard(),
                 hasPeriod = !!(n.period && String(n.period).trim()),
                 lay = trackCardLayout({
-                    top: e,
-                    compact: !!t?.compact,
+                    top: topY,
+                    compact: !!opts?.compact,
                     mode: soundPlayMode,
                     index: soundIndex,
                     cat: n.cat,
@@ -2195,7 +2195,7 @@ function SwipeForceEngine() {
             ctx.strokeRect(lay.box.x + .5, lay.box.y + .5, lay.box.w - 1, lay.box.h - 1);
             fillRect(lay.catBadge.x, lay.catBadge.y, lay.catBadge.w, lay.catBadge.h, `#102820`);
             drawText(lay.catBadge.text, lay.catLabelX, lay.catLabelY, n.catColor, 6, `center`);
-            drawText(t(`hud.thisTrack`), lay.metaX, lay.metaY, `#668877`, 6);
+            drawText(translate(`hud.thisTrack`), lay.metaX, lay.metaY, `#668877`, 6);
             // title without period crammed in
             drawText(n.short, 64, lay.titleY, `#ffeeaa`, lay.titleSize);
             if (lay.periodY != null && hasPeriod) {
@@ -2205,17 +2205,17 @@ function SwipeForceEngine() {
             return lay.height
         }
 
-        function playSoundTrack(e, t = 0) {
-            soundPlayMode = e, soundIndex = t, trackLabel = playBgmForMode(e, t), fetchTrackVotes(makeTrackKey(e, t), playerId).then(e => {
-                ratings = e
+        function playSoundTrack(listMode, index = 0) {
+            soundPlayMode = listMode, soundIndex = index, trackLabel = playBgmForMode(listMode, index), fetchTrackVotes(makeTrackKey(listMode, index), playerId).then(votes => {
+                ratings = votes
             })
         }
-        async function voteTrack(e) {
-            if (!requireAccountLink(t(`hud.featRate`))) return;
-            ratings = await castTrackVote(currentTrackKey(), playerId, e), sfx.ui()
+        async function voteTrack(dir) {
+            if (!requireAccountLink(translate(`hud.featRate`))) return;
+            ratings = await castTrackVote(currentTrackKey(), playerId, dir), sfx.ui()
         }
-        async function loadComments(e) {
-            trackKey = e, comments = await fetchTrackComments(e), commentCursor = 0
+        async function loadComments(key) {
+            trackKey = key, comments = await fetchTrackComments(key), commentCursor = 0
         }
 
         function openComments() {
@@ -2225,9 +2225,9 @@ function SwipeForceEngine() {
                 return
             }
             commentsReturn = commentsReturnMode(soundListMode, soundPlayMode);
-            let e = currentTrackKey();
-            Promise.all([loadComments(e), fetchTrackVotes(e, playerId)]).then(([, e]) => {
-                ratings = e, soundListMode = `comments`, commentCursor = 0, sfx.ui()
+            let key = currentTrackKey();
+            Promise.all([loadComments(key), fetchTrackVotes(key, playerId)]).then(([, votes]) => {
+                ratings = votes, soundListMode = `comments`, commentCursor = 0, sfx.ui()
             })
         }
 
@@ -2235,8 +2235,8 @@ function SwipeForceEngine() {
             soundListMode = commentsReturn, sfx.ui()
         }
 
-        function viewComment(e) {
-            openSoundCommentViewer(e, {
+        function viewComment(comment) {
+            openSoundCommentViewer(comment, {
                 trackKey: trackKey || currentTrackKey(),
                 trackCard: currentTrackCard(),
                 mode: soundPlayMode,
@@ -2249,7 +2249,7 @@ function SwipeForceEngine() {
         }
 
         async function writeComment() {
-            if (!requireAccountLink(t(`hud.featPost`)) || composing) return;
+            if (!requireAccountLink(translate(`hud.featPost`)) || composing) return;
             openSoundCommentComposer({
                 trackKey: trackKey || currentTrackKey(),
                 trackCard: currentTrackCard(),
@@ -2268,8 +2268,8 @@ function SwipeForceEngine() {
             return buildSoundTestRootMenu()
         }
 
-        function soundTestListRows(e) {
-            return buildSoundTestTrackList(e, soundCatalogMeta())
+        function soundTestListRows(listMode) {
+            return buildSoundTestTrackList(listMode, soundCatalogMeta())
         }
 
         function activateSoundTestRow() {
@@ -2299,9 +2299,9 @@ function SwipeForceEngine() {
                 let e = drawTrackCard(28, {
                     compact: !0
                 });
-                drawText(t(`hud.comments`, { n: comments.length }), PLAY_W / 2, 28 + e + 4, `#668866`, 6, `center`);
+                drawText(translate(`hud.comments`, { n: comments.length }), PLAY_W / 2, 28 + e + 4, `#668866`, 6, `center`);
                 let listY = 28 + e + 14;
-                if (!comments.length) drawText(t(`hud.noComments`), PLAY_W / 2, 120, `#556666`, 8, `center`), drawText(t(`hud.writeFirst`), PLAY_W / 2, 136, `#445555`, 7, `center`);
+                if (!comments.length) drawText(translate(`hud.noComments`), PLAY_W / 2, 120, `#556666`, 8, `center`), drawText(translate(`hud.writeFirst`), PLAY_W / 2, 136, `#445555`, 7, `center`);
                 else {
                     let { rows } = buildCommentRows({ comments: comments, cursor: commentCursor, baseY: listY });
                     for (let row of rows) {
@@ -2309,7 +2309,7 @@ function SwipeForceEngine() {
                         drawText(row.text, 64, row.y + 4, row.selected ? `#ffffff` : `#99bbaa`, 7)
                     }
                 }
-                drawText(account.linked ? `👍 ${ratings.likes}   👎 ${ratings.dislikes}` : t(`hud.rateNeedLong`), PLAY_W / 2, 348, account.linked ? `#88aa88` : `#aa8844`, 7, `center`);
+                drawText(account.linked ? `👍 ${ratings.likes}   👎 ${ratings.dislikes}` : translate(`hud.rateNeedLong`), PLAY_W / 2, 348, account.linked ? `#88aa88` : `#aa8844`, 7, `center`);
                 for (let entity of commentsFooterButtons({ mine: ratings.mine })) {
                     fillRect(entity.x, entity.y, entity.w, entity.h, entity.fill);
                     ctx.strokeStyle = entity.stroke;
@@ -2319,27 +2319,27 @@ function SwipeForceEngine() {
                 soundToastLife > 0 && drawText(soundToast, PLAY_W / 2, 388, `#ffaa66`, 6, `center`);
                 return
             }
-            drawText(`SOUND TEST`, PLAY_W / 2, 18, `#88ffee`, 11, `center`), drawText(t(`hud.soundPerk`), PLAY_W / 2, 30, `#448866`, 6, `center`);
+            drawText(`SOUND TEST`, PLAY_W / 2, 18, `#88ffee`, 11, `center`), drawText(translate(`hud.soundPerk`), PLAY_W / 2, 30, `#448866`, 6, `center`);
             let playing = !!(trackLabel && !trackLabel.startsWith(`—`)),
                 cardH = 0;
             if (playing) cardH = drawTrackCard(36, { compact: !1 });
             let top = soundTestListTop(playing, cardH);
-            if (playing && top.ratingY != null) drawText(t(`hud.thisRate`, { up: ratings.likes, dn: ratings.dislikes }), PLAY_W / 2, top.ratingY, `#88aa88`, 6, `center`);
-            else if (top.hintY != null) drawText(t(`hud.pickTrack`), PLAY_W / 2, top.hintY, `#556666`, 6, `center`);
+            if (playing && top.ratingY != null) drawText(translate(`hud.thisRate`, { up: ratings.likes, dn: ratings.dislikes }), PLAY_W / 2, top.ratingY, `#88aa88`, 6, `center`);
+            else if (top.hintY != null) drawText(translate(`hud.pickTrack`), PLAY_W / 2, top.hintY, `#556666`, 6, `center`);
             let pageSize = soundTestPageSize(playing),
-                n = top.listTop;
+                listTop = top.listTop;
             if (soundListMode === `menu`) {
-                let e = soundTestMenuRows();
-                soundCursor >= e.length && (soundCursor = e.length - 1);
-                for (let t = 0; t < e.length; t++) {
-                    let r = n + t * 17,
-                        i = t === soundCursor;
-                    i && (fillRect(60, r - 1, 200, 15, `#003322`), ctx.strokeStyle = `#66ffaa`, ctx.strokeRect(60.5, r - .5, 199, 14)), drawText(e[t].label, 66, r + 2, i ? `#ffffff` : `#88ccaa`, 8), e[t].sub && drawText(e[t].sub, 258, r + 3, `#446655`, 6, `right`)
+                let menuRows = soundTestMenuRows();
+                soundCursor >= menuRows.length && (soundCursor = menuRows.length - 1);
+                for (let i = 0; i < menuRows.length; i++) {
+                    let rowY = listTop + i * 17,
+                        selected = i === soundCursor;
+                    selected && (fillRect(60, rowY - 1, 200, 15, `#003322`), ctx.strokeStyle = `#66ffaa`, ctx.strokeRect(60.5, rowY - .5, 199, 14)), drawText(menuRows[i].label, 66, rowY + 2, selected ? `#ffffff` : `#88ccaa`, 8), menuRows[i].sub && drawText(menuRows[i].sub, 258, rowY + 3, `#446655`, 6, `right`)
                 }
             } else {
-                let e = soundTestListRows(soundListMode);
-                soundCursor >= e.length && (soundCursor = e.length - 1);
-                let r = soundTestListWindow(e.length, soundCursor, pageSize);
+                let listRows = soundTestListRows(soundListMode);
+                soundCursor >= listRows.length && (soundCursor = listRows.length - 1);
+                let winStart = soundTestListWindow(listRows.length, soundCursor, pageSize);
                 {
                     // header only when not overlapping the track card
                     if (!playing) {
@@ -2347,15 +2347,15 @@ function SwipeForceEngine() {
                         drawText(hdr.title, PLAY_W / 2, 52, hdr.color, 6, `center`);
                     }
                 }
-                for (let i = 0; i < Math.min(pageSize, e.length); i++) {
-                    let t = i + r,
-                        a = n + 2 + i * 17,
-                        o = t === soundCursor;
-                    o && (fillRect(60, a - 1, 200, 15, `#002233`), ctx.strokeStyle = `#66ccff`, ctx.strokeRect(60.5, a - .5, 199, 14));
-                    let s = e[t].action === `back`;
-                    drawText(e[t].label, 66, a + 2, o ? `#ffffff` : s ? `#888` : `#88aacc`, 8), !s && soundPlayMode === soundListMode && soundIndex === e[t].n && drawText(`▶`, 256, a + 2, `#ffee66`, 7, `right`)
+                for (let i = 0; i < Math.min(pageSize, listRows.length); i++) {
+                    let idx = i + winStart,
+                        rowY = listTop + 2 + i * 17,
+                        selected = idx === soundCursor;
+                    selected && (fillRect(60, rowY - 1, 200, 15, `#002233`), ctx.strokeStyle = `#66ccff`, ctx.strokeRect(60.5, rowY - .5, 199, 14));
+                    let isBack = listRows[idx].action === `back`;
+                    drawText(listRows[idx].label, 66, rowY + 2, selected ? `#ffffff` : isBack ? `#888` : `#88aacc`, 8), !isBack && soundPlayMode === soundListMode && soundIndex === listRows[idx].n && drawText(`▶`, 256, rowY + 2, `#ffee66`, 7, `right`)
                 }
-                r > 0 && drawText(`▲`, PLAY_W / 2, n - 4, `#44aa88`, 7, `center`), r + pageSize < e.length && drawText(`▼`, PLAY_W / 2, 360, `#44aa88`, 7, `center`)
+                winStart > 0 && drawText(`▲`, PLAY_W / 2, listTop - 4, `#44aa88`, 7, `center`), winStart + pageSize < listRows.length && drawText(`▼`, PLAY_W / 2, 360, `#44aa88`, 7, `center`)
             }
             if (trackLabel && !trackLabel.startsWith(`—`)) {
                 for (let entity of playingFooterButtons({ likes: ratings.likes, dislikes: ratings.dislikes, mine: ratings.mine })) {
@@ -2364,13 +2364,13 @@ function SwipeForceEngine() {
                     ctx.strokeRect(entity.x + .5, entity.y + .5, entity.w - 1, entity.h - 1);
                     drawText(entity.label, entity.labelX, entity.labelY, entity.labelColor, 7, `center`);
                 }
-                if (!account.linked) drawText(t(`hud.rateNeed`), PLAY_W / 2, 350, `#aa8844`, 6, `center`);
+                if (!account.linked) drawText(translate(`hud.rateNeed`), PLAY_W / 2, 350, `#aa8844`, 6, `center`);
                 else {
-                    let e = currentTrackCard();
+                    let card = currentTrackCard();
                     let idxPart = soundPlayMode === "title" ? "" : String(soundIndex);
-                    drawText(`対象: ${e.cat}${idxPart} ${e.short.slice(0, 16)}`, PLAY_W / 2, 350, `#668866`, 5, `center`)
+                    drawText(`対象: ${card.cat}${idxPart} ${card.short.slice(0, 16)}`, PLAY_W / 2, 350, `#668866`, 5, `center`)
                 }
-            } else drawText(t(`hud.swipe`), PLAY_W / 2, 366, `#335544`, 6, `center`);
+            } else drawText(translate(`hud.swipe`), PLAY_W / 2, 366, `#335544`, 6, `center`);
             soundToastLife > 0 && drawText(soundToast, PLAY_W / 2, 388, `#ffaa66`, 6, `center`)
         }
 
@@ -2378,9 +2378,9 @@ function SwipeForceEngine() {
             return soundListMode === `comments` ? 70 : trackLabel && !trackLabel.startsWith(`—`) ? 84 : 58
         }
 
-        function soundTestRowIndexAtY(e) {
+        function soundTestRowIndexAtY(y) {
             return soundTestRowAtY({
-                y: e,
+                y: y,
                 mode: soundListMode,
                 menuLen: soundTestMenuRows().length,
                 listLen: soundTestListRows(soundListMode).length,
@@ -2390,10 +2390,10 @@ function SwipeForceEngine() {
             })
         }
 
-        function onSoundTestPointerDown(e, t) {
+        function onSoundTestPointerDown(x, y) {
             let down = soundTestPointerDown({
-                x: e,
-                y: t,
+                x: x,
+                y: y,
                 left: RAIL_W,
                 right: FIELD_RIGHT,
                 mode: soundListMode,
@@ -2401,27 +2401,27 @@ function SwipeForceEngine() {
             });
             if (down.type === `side_back_comments`) { leaveComments(); return }
             if (down.type === `side_back_list`) { leaveSoundTest(); return }
-            soundDragOn = !0, soundDragY = t, soundDragAcc = 0, soundDragged = !1;
+            soundDragOn = !0, soundDragY = y, soundDragAcc = 0, soundDragged = !1;
             if (down.selectRow != null) soundCursor = down.selectRow
         }
 
-        function onSoundTestPointerDrag(e, t) {
+        function onSoundTestPointerDrag(x, y) {
             if (!soundDragOn || mode !== `soundtest`) return;
-            let n = t - soundDragY;
-            let scr = dragScrollSteps(soundDragAcc, n, 15);
-            soundDragAcc = scr.accum, soundDragY = t;
+            let dy = y - soundDragY;
+            let scr = dragScrollSteps(soundDragAcc, dy, 15);
+            soundDragAcc = scr.accum, soundDragY = y;
             if (!scr.steps) return;
             soundDragged = !0;
             if (soundListMode === `comments`) {
-                let e = Math.max(0, comments.length - 1);
-                commentCursor = Math.max(0, Math.min(e, commentCursor + scr.steps)), sfx.ui();
+                let lastComment = Math.max(0, comments.length - 1);
+                commentCursor = Math.max(0, Math.min(lastComment, commentCursor + scr.steps)), sfx.ui();
                 return
             }
-            let r = soundListMode === `menu` ? soundTestMenuRows().length - 1 : soundTestListRows(soundListMode).length - 1;
-            soundCursor = Math.max(0, Math.min(r, soundCursor + scr.steps)), sfx.ui()
+            let lastIndex = soundListMode === `menu` ? soundTestMenuRows().length - 1 : soundTestListRows(soundListMode).length - 1;
+            soundCursor = Math.max(0, Math.min(lastIndex, soundCursor + scr.steps)), sfx.ui()
         }
 
-        function onSoundTestPointerUp(e, t) {
+        function onSoundTestPointerUp(x, y) {
             if (!soundDragOn) return;
             if (soundDragOn = !1, soundDragged) {
                 soundDragged = !1;
@@ -2429,8 +2429,8 @@ function SwipeForceEngine() {
             }
             let pointerUp = soundTestPointerUp({
                 dragged: !1,
-                x: e,
-                y: t,
+                x: x,
+                y: y,
                 left: RAIL_W,
                 right: FIELD_RIGHT,
                 mode: soundListMode,
@@ -2463,7 +2463,7 @@ function SwipeForceEngine() {
                     sfxOk: () => { try { sfx.buy() } catch {} },
                     sfxFail: () => { try { sfx.buyFail() } catch {} },
                     onDenied: () => {
-                        shareToast = t(`hud.adminOnly`), shareToastLife = 90;
+                        shareToast = translate(`hud.adminOnly`), shareToastLife = 90;
                         try { sfx.buyFail() } catch {}
                     },
                     onStaffChange: () => {
@@ -2485,13 +2485,13 @@ function SwipeForceEngine() {
                     },
                 });
                 if (!document.getElementById(`sf-help-root`)) {
-                    shareToast = t(`hud.dataFail`), shareToastLife = 80;
+                    shareToast = translate(`hud.dataFail`), shareToastLife = 80;
                 } else {
                     try { sfx.ui() } catch {}
                 }
             } catch (e) {
                 console.error(`[help]`, e);
-                shareToast = t(`hud.dataFail`), shareToastLife = 80;
+                shareToast = translate(`hud.dataFail`), shareToastLife = 80;
             }
         }
 
@@ -2504,19 +2504,19 @@ function SwipeForceEngine() {
                     sfxFail: () => { try { sfx.buyFail() } catch {} },
                     onCoins: (c) => {
                         continueCoins = Math.max(0, c | 0);
-                        shareToast = t(`hud.watchOpen`, { n: continueCoins }), shareToastLife = 100;
+                        shareToast = translate(`hud.watchOpen`, { n: continueCoins }), shareToastLife = 100;
                     },
                 });
                 // confirm DOM mount (silent fail was hard to debug on touch)
                 if (!document.getElementById(`sf-media-watch-root`)) {
-                    shareToast = t(`hud.watchFail`), shareToastLife = 90;
+                    shareToast = translate(`hud.watchFail`), shareToastLife = 90;
                     try { sfx.buyFail() } catch {}
                 } else {
                     try { sfx.ui() } catch {}
                 }
             } catch (e) {
                 console.error(`[media-watch]`, e);
-                shareToast = t(`hud.watchFail`), shareToastLife = 80;
+                shareToast = translate(`hud.watchFail`), shareToastLife = 80;
                 try { sfx.buyFail() } catch {}
             }
         }
@@ -2524,7 +2524,7 @@ function SwipeForceEngine() {
         function tryOpenPartnerPortal() {
             try {
                 if (!account.linked) {
-                    shareToast = t(`hud.partnerLock`), shareToastLife = 90;
+                    shareToast = translate(`hud.partnerLock`), shareToastLife = 90;
                     try { sfx.buyFail() } catch {}
                     return;
                 }
@@ -2542,14 +2542,14 @@ function SwipeForceEngine() {
                     sfxFail: () => { try { sfx.buyFail() } catch {} },
                 });
                 if (!document.getElementById(`sf-partner-root`)) {
-                    shareToast = t(`hud.partnerFail`), shareToastLife = 90;
+                    shareToast = translate(`hud.partnerFail`), shareToastLife = 90;
                     try { sfx.buyFail() } catch {}
                 } else {
                     try { sfx.ui() } catch {}
                 }
             } catch (e) {
                 console.error("[partner]", e);
-                shareToast = t(`hud.partnerFail`), shareToastLife = 90;
+                shareToast = translate(`hud.partnerFail`), shareToastLife = 90;
                 try { sfx.buyFail() } catch {}
             }
         }
@@ -2570,16 +2570,16 @@ function SwipeForceEngine() {
             shareToast = pack.toast, shareToastLife = 120, sfx.ui()
         }
 
-        function handleAttractTap(e, t) {
+        function handleAttractTap(gx, gy) {
             // mission host profile (before menu resolve)
-            if (titleMissionHit(e, t)) {
+            if (titleMissionHit(gx, gy)) {
                 openSharerProfileView();
                 return
             }
             let adminMenu = !!(account.linked && isPromoAdminPlayer(playerId));
             let res = resolveAttractPointer({
-                x: e,
-                y: t,
+                x: gx,
+                y: gy,
                 Z: PLAY_H,
                 left: RAIL_W,
                 right: FIELD_RIGHT,
@@ -2589,41 +2589,41 @@ function SwipeForceEngine() {
                 isPromoAdmin: adminMenu
             });
             if (res.cursor != null) titleCursor = res.cursor;
-            let a = toAttractDispatch(res.action);
-            if (a.type === `account`) { openAccount(); return }
-            if (a.type === `side_back_extra`) { titleSub = `root`, titleCursor = 4, sfx.ui(); return }
-            if (a.type === `side_back_diff`) { titleSub = `root`, titleCursor = 0, sfx.ui(); return }
-            if (a.type === `side_options`) { openOptions(`attract`); return }
-            if (a.type === `side_extra`) { titleSub = `extra`, titleCursor = 0, sfx.ui(); return }
-            if (a.type === `sound_test`) { openSoundTest(); return }
-            if (a.type === `profile`) {
+            let act = toAttractDispatch(res.action);
+            if (act.type === `account`) { openAccount(); return }
+            if (act.type === `side_back_extra`) { titleSub = `root`, titleCursor = 4, sfx.ui(); return }
+            if (act.type === `side_back_diff`) { titleSub = `root`, titleCursor = 0, sfx.ui(); return }
+            if (act.type === `side_options`) { openOptions(`attract`); return }
+            if (act.type === `side_extra`) { titleSub = `extra`, titleCursor = 0, sfx.ui(); return }
+            if (act.type === `sound_test`) { openSoundTest(); return }
+            if (act.type === `profile`) {
                 if (typeof window.__sfOpenProfile === `function`) window.__sfOpenProfile();
-                else { shareToast = t(`hud.profileFail`), shareToastLife = 80; try { sfx.buyFail() } catch {} }
+                else { shareToast = translate(`hud.profileFail`), shareToastLife = 80; try { sfx.buyFail() } catch {} }
                 return
             }
-            if (a.type === `stats`) {
+            if (act.type === `stats`) {
                 if (typeof window.__sfOpenStats === `function`) window.__sfOpenStats();
-                else { shareToast = t(`hud.dataFail`), shareToastLife = 80; try { sfx.buyFail() } catch {} }
+                else { shareToast = translate(`hud.dataFail`), shareToastLife = 80; try { sfx.buyFail() } catch {} }
                 return
             }
-            if (a.type === `open_bag`) { openBag(`attract`); return }
+            if (act.type === `open_bag`) { openBag(`attract`); return }
             // VIEW BOOST / ADVERTISER: always open (1-tap from EXTRA; do not fall through to noop)
-            if (a.type === `open_media_watch`) { tryOpenMediaWatch(); return }
-            if (a.type === `open_partner`) { tryOpenPartnerPortal(); return }
-            if (a.type === `open_promo_admin`) {
+            if (act.type === `open_media_watch`) { tryOpenMediaWatch(); return }
+            if (act.type === `open_partner`) { tryOpenPartnerPortal(); return }
+            if (act.type === `open_promo_admin`) {
                 tryOpenPromoAdmin();
                 return
             }
-            if (a.type === `back_root`) { titleSub = `root`, titleCursor = a.cursor, sfx.ui(); return }
-            if (a.type === `start_easy`) { tutorialRun = !1, unmountTutorialDock(), difficulty = `easy`, startRun(); return }
-            if (a.type === `start_normal`) { tutorialRun = !1, unmountTutorialDock(), difficulty = `normal`, startRun(); return }
-            if (a.type === `open_diff`) { titleSub = `diff`, titleCursor = a.preferNormal ? 1 : 0, sfx.ui(); return }
-            if (a.type === `share`) { shareProgress(); return }
-            if (a.type === `inbox`) { sharerId && canSendFanmail() ? openFanmail() : openInbox(); return }
-            if (a.type === `options`) { openOptions(`attract`); return }
-            if (a.type === `open_extra`) { titleSub = `extra`, titleCursor = 0, sfx.ui(); return }
-            if (a.type === `changelog`) { openChangelog(); return }
-            if (a.type === `noop` || a.type === `noop_ui`) {
+            if (act.type === `back_root`) { titleSub = `root`, titleCursor = act.cursor, sfx.ui(); return }
+            if (act.type === `start_easy`) { tutorialRun = !1, unmountTutorialDock(), difficulty = `easy`, startRun(); return }
+            if (act.type === `start_normal`) { tutorialRun = !1, unmountTutorialDock(), difficulty = `normal`, startRun(); return }
+            if (act.type === `open_diff`) { titleSub = `diff`, titleCursor = act.preferNormal ? 1 : 0, sfx.ui(); return }
+            if (act.type === `share`) { shareProgress(); return }
+            if (act.type === `inbox`) { sharerId && canSendFanmail() ? openFanmail() : openInbox(); return }
+            if (act.type === `options`) { openOptions(`attract`); return }
+            if (act.type === `open_extra`) { titleSub = `extra`, titleCursor = 0, sfx.ui(); return }
+            if (act.type === `changelog`) { openChangelog(); return }
+            if (act.type === `noop` || act.type === `noop_ui`) {
                 // first tap on a menu row (root): move cursor + select SE
                 if (res.cursor != null) {
                     try { sfx.select() } catch { try { sfx.ui() } catch {} }
@@ -2636,10 +2636,10 @@ function SwipeForceEngine() {
 
         
         // ── main update tick ──
-        function tickGame(e) {
+        function tickGame(dt) {
             try {
               if (mode === `playing` || mode === `ready` || mode === `bossintro`) {
-                window.__sfPlayAcc = (window.__sfPlayAcc || 0) + (typeof e === "number" ? e : 0.016);
+                window.__sfPlayAcc = (window.__sfPlayAcc || 0) + (typeof dt === "number" ? dt : 0.016);
                 if (window.__sfPlayAcc >= 1) { addPlayTime(window.__sfPlayAcc); window.__sfPlayAcc = 0; }
               }
             } catch (err) {}
@@ -2702,13 +2702,13 @@ function SwipeForceEngine() {
                 let ka = normalizeAxis(keyboardAxis(keysDown));
                 // keyboard has priority so WASD/arrows always work mid-run
                 if (ka.x !== 0 || ka.y !== 0) {
-                    player.x += ka.x * speed * e;
-                    player.y += ka.y * speed * e;
+                    player.x += ka.x * speed * dt;
+                    player.y += ka.y * speed * dt;
                     swipeActive = !1;
                 } else if (settings.vstick && vstickActive) {
-                    Math.min(1, Math.hypot(vstickAxisX, vstickAxisY)) > VSTICK_DEADZONE && (player.x += vstickAxisX * speed * e, player.y += vstickAxisY * speed * e);
+                    Math.min(1, Math.hypot(vstickAxisX, vstickAxisY)) > VSTICK_DEADZONE && (player.x += vstickAxisX * speed * dt, player.y += vstickAxisY * speed * dt);
                 } else if (!settings.vstick && swipeActive) {
-                    let t = swipeFollowFactor(upgrades.speed, settings.sense, e);
+                    let t = swipeFollowFactor(upgrades.speed, settings.sense, dt);
                     player.x += (swipeX - player.x) * t, player.y += (swipeY - player.y) * t
                 }
                 if (tutorialRun && (ka.x !== 0 || ka.y !== 0 || swipeActive || (settings.vstick && vstickActive))) {
@@ -2724,7 +2724,7 @@ function SwipeForceEngine() {
                 try {
                     let mdef = getStageMap(stage);
                     let spd = mdef.scrollSpeed * (mode === `bossintro` ? 0.45 : 1);
-                    mapScroll += spd * Math.max(0.5, Math.min(2, e || 1));
+                    mapScroll += spd * Math.max(0.5, Math.min(2, dt || 1));
                 } catch {}
             }
             if (invuln > 0 && invuln--, mode === `playing`) {
@@ -2744,7 +2744,7 @@ function SwipeForceEngine() {
                         shotArmed: isWeaponArmed(`shot`),
                         optionArmed: isWeaponArmed(`option`),
                         linked: !!account.linked
-                    }, e);
+                    }, dt);
                     shotTimer = tick.cds.shot, missileTimer = tick.cds.missile, particleTimer = tick.cds.particle;
                     lockonTimer = tick.cds.lockon, beamTimer = tick.cds.beam, flameTimer = tick.cds.flame;
                     for (let nextEntityId of tick.fire) {
@@ -2770,7 +2770,7 @@ function SwipeForceEngine() {
                 }
                 for (let t = enemies.length - 1; t >= 0; t--) {
                     let n = enemies[t];
-                    stepEnemyMotion(n, e, (loadoutSummaryText) => {
+                    stepEnemyMotion(n, dt, (loadoutSummaryText) => {
                         let meta = bossById(loadoutSummaryText.bossId);
                         stepBossPosition(loadoutSummaryText, meta.move, RAIL_W, FIELD_RIGHT);
                     });
@@ -2866,11 +2866,11 @@ function SwipeForceEngine() {
                     drawText(`GAME OVER`, PLAY_W / 2, PLAY_H / 2 - 48, `#ff2244`, 18, `center`);
                     drawText(gameOverView.scoreText, PLAY_W / 2, PLAY_H / 2 - 24, `#00ff88`, 12, `center`);
                     drawText(gameOverView.coinText, PLAY_W / 2, PLAY_H / 2 - 6, gameOverView.coinColor, 10, `center`);
-                    drawText(t(`hud.goHint`), PLAY_W / 2, 210, `#668866`, 7, `center`);
+                    drawText(translate(`hud.goHint`), PLAY_W / 2, 210, `#668866`, 7, `center`);
                     fillRect(72, 228, 176, 30, gameOverView.continue.fill), ctx.strokeStyle = gameOverView.continue.stroke, ctx.strokeRect(72.5, 228.5, 175, 29);
                     drawText(gameOverView.continue.label, PLAY_W / 2, 237, gameOverView.continue.labelColor, 9, `center`);
                     fillRect(72, 264, 176, 28, `#221100`), ctx.strokeStyle = gameOverView.shareStroke, ctx.strokeRect(72.5, 264.5, 175, 27);
-                    drawText(t(`hud.goShare`), PLAY_W / 2, 272, `#ffcc66`, 9, `center`);
+                    drawText(translate(`hud.goShare`), PLAY_W / 2, 272, `#ffcc66`, 9, `center`);
                     fillRect(88, 298, 144, 22, `#001100`), ctx.strokeStyle = `#335533`, ctx.strokeRect(88.5, 298.5, 143, 21);
                     drawText(`→ TITLE`, PLAY_W / 2, 303, `#668866`, 8, `center`)
                 }
@@ -2888,10 +2888,10 @@ function SwipeForceEngine() {
                 if (mode === `inbox`) {
                     fillRect(56, 24, 208, 360, `#001018`), ctx.strokeStyle = `#66ccff`, ctx.strokeRect(56.5, 24.5, 207, 359);
                     drawText(`INBOX`, PLAY_W / 2, 32, `#88eeff`, 12, `center`);
-                    drawText(t(`hud.inboxHint`), PLAY_W / 2, 46, `#446688`, 7, `center`);
+                    drawText(translate(`hud.inboxHint`), PLAY_W / 2, 46, `#446688`, 7, `center`);
                     if (!inbox.length) {
-                        drawText(t(`hud.inboxEmpty`), PLAY_W / 2, PLAY_H * .45, `#668888`, 8, `center`);
-                        drawText(t(`hud.inboxTap`), PLAY_W / 2, 372, `#556666`, 7, `center`);
+                        drawText(translate(`hud.inboxEmpty`), PLAY_W / 2, PLAY_H * .45, `#668888`, 8, `center`);
+                        drawText(translate(`hud.inboxTap`), PLAY_W / 2, 372, `#556666`, 7, `center`);
                     } else if (inboxDetail) {
                         let e = inbox[inboxCursor];
                         if (!e) inboxDetail = !1;
@@ -2909,9 +2909,9 @@ function SwipeForceEngine() {
                                 drawText(rafId.thanksLabel, PLAY_W / 2, PLAY_H * .55 + 8, `#889988`, 8, `center`);
                             }
                             fillRect(72, PLAY_H * .68, 176, 26, `#220011`), ctx.strokeStyle = `#ff6688`, ctx.strokeRect(72.5, PLAY_H * .68 + .5, 175, 25);
-                            drawText(t(`hud.inboxDel`), PLAY_W / 2, PLAY_H * .68 + 7, `#ff99aa`, 9, `center`);
+                            drawText(translate(`hud.inboxDel`), PLAY_W / 2, PLAY_H * .68 + 7, `#ff99aa`, 9, `center`);
                             fillRect(88, PLAY_H * .8, 144, 22, `#001820`), ctx.strokeStyle = `#446666`, ctx.strokeRect(88.5, PLAY_H * .8 + .5, 143, 21);
-                            drawText(t(`hud.inboxBack`), PLAY_W / 2, PLAY_H * .8 + 5, `#88aaaa`, 8, `center`);
+                            drawText(translate(`hud.inboxBack`), PLAY_W / 2, PLAY_H * .8 + 5, `#88aaaa`, 8, `center`);
                         }
                     } else {
                         let { rows } = buildInboxListRows({
@@ -2926,7 +2926,7 @@ function SwipeForceEngine() {
                             drawText(row.status, 258, row.y + 12, row.statusColor, 7, `right`);
                             drawText(row.sourceTag, 66, row.y + 26, `#445566`, 6);
                         }
-                        drawText(t(`hud.inboxList`), PLAY_W / 2, 372, `#556666`, 7, `center`);
+                        drawText(translate(`hud.inboxList`), PLAY_W / 2, 372, `#556666`, 7, `center`);
                     }
                 }
                 fieldShowsHud(mode) && drawPlayHud()
@@ -2938,11 +2938,11 @@ function SwipeForceEngine() {
         }
         let lastFrameMs = performance.now();
 
-        function frameLoop(e) {
+        function frameLoop(now) {
             if (!running) return;
             try {
-                let t = (e - lastFrameMs) / 1e3;
-                lastFrameMs = e, t > .05 && (t = .05), tickGame(t), drawFrame();
+                let dt = (now - lastFrameMs) / 1e3;
+                lastFrameMs = now, dt > .05 && (dt = .05), tickGame(dt), drawFrame();
             } catch (err) {
                 console.error(`[swipe-force] frame`, err);
             }
@@ -2950,43 +2950,43 @@ function SwipeForceEngine() {
         }
         rafId = requestAnimationFrame(frameLoop);
 
-        function pointerToGameCoords(e, t) {
-            let n = canvas.getBoundingClientRect();
+        function pointerToGameCoords(clientX, clientY) {
+            let rect = canvas.getBoundingClientRect();
             return {
-                x: (e - n.left) / n.width * PLAY_W,
-                y: (t - n.top) / n.height * PLAY_H
+                x: (clientX - rect.left) / rect.width * PLAY_W,
+                y: (clientY - rect.top) / rect.height * PLAY_H
             }
         }
 
-        function stepNameLetter(e) {
-            let t = NAME_CHARSET.indexOf(nameLetters[nameCursor]);
-            nameLetters[nameCursor] = NAME_CHARSET[(t + e + 36) % 36]
+        function stepNameLetter(dir) {
+            let idx = NAME_CHARSET.indexOf(nameLetters[nameCursor]);
+            nameLetters[nameCursor] = NAME_CHARSET[(idx + dir + 36) % 36]
         }
 
-        function onShopPointerUp(e, t) {
+        function onShopPointerUp(x, y) {
             let act = shopPointerUp({
-                x: e,
-                y: t,
+                x: x,
+                y: y,
                 left: RAIL_W,
                 right: FIELD_RIGHT,
                 catalogLen: shopCatalog().length,
                 cursor: shopCursor
             });
-            let n = shopCatalog();
+            let catalog = shopCatalog();
             if (act.type === `side_opt`) { openBag(`shop`); return }
             if (act.type === `side_back`) { closeShop(); return }
-            if (act.type === `header_share` || act.type === `footer_share`) { shopCursor = n.length + 2, shareProgress(); return }
-            if (act.type === `header_opt` || act.type === `footer_opt`) { shopCursor = n.length + 1, openOptions(`shop`); return }
-            if (act.type === `footer_go`) { shopCursor = n.length, closeShop(); return }
-            if (act.type === `buy`) { shopCursor = act.index, buyShopItem(n[act.index]); return }
+            if (act.type === `header_share` || act.type === `footer_share`) { shopCursor = catalog.length + 2, shareProgress(); return }
+            if (act.type === `header_opt` || act.type === `footer_opt`) { shopCursor = catalog.length + 1, openOptions(`shop`); return }
+            if (act.type === `footer_go`) { shopCursor = catalog.length, closeShop(); return }
+            if (act.type === `buy`) { shopCursor = act.index, buyShopItem(catalog[act.index]); return }
             if (act.type === `select`) { shopCursor = act.index, sfx.ui(); return }
             if (act.type === `empty_confirm`) confirmShopSelection()
         }
 
         function confirmShopSelection() {
-            let e = shopCatalog(),
-                act = shopEmptyConfirm(shopCursor, e.length);
-            if (act.type === `buy`) buyShopItem(e[act.index]);
+            let catalog = shopCatalog(),
+                act = shopEmptyConfirm(shopCursor, catalog.length);
+            if (act.type === `buy`) buyShopItem(catalog[act.index]);
             else if (act.type === `gameOverView`) closeShop();
             else if (act.type === `opt`) openOptions(`shop`);
             else if (act.type === `share`) shareProgress()
@@ -2996,14 +2996,14 @@ function SwipeForceEngine() {
             return shopCursorMax(shopCatalog().length)
         }
 
-        function moveShopCursor(e) {
-            shopCursor = shopCursorStep(shopCursor, e, shopCatalog().length), sfx.ui()
+        function moveShopCursor(dir) {
+            shopCursor = shopCursorStep(shopCursor, dir, shopCatalog().length), sfx.ui()
         }
 
-        function onShopPointerDown(e, t) {
+        function onShopPointerDown(x, y) {
             let hit = shopPointerDown({
-                x: e,
-                y: t,
+                x: x,
+                y: y,
                 left: RAIL_W,
                 right: FIELD_RIGHT,
                 catalogLen: shopCatalog().length,
@@ -3013,88 +3013,88 @@ function SwipeForceEngine() {
                 shopPaused && closeShop();
                 return
             }
-            shopDragOn = !0, shopDragX = e, shopDragY = t, shopDragAcc = 0, shopDragged = !1;
+            shopDragOn = !0, shopDragX = x, shopDragY = y, shopDragAcc = 0, shopDragged = !1;
             if (hit.cursor != null) shopCursor = hit.cursor
         }
 
-        function onShopPointerDrag(e, t) {
+        function onShopPointerDrag(x, y) {
             if (!shopDragOn || mode !== `shop`) return;
-            let n = t - shopDragY,
-                r = e - shopDragX;
-            let scr = shopDragScroll({ dx: r, dy: n, accum: shopDragAcc, stepPx: 16 });
+            let dy = y - shopDragY,
+                dx = x - shopDragX;
+            let scr = shopDragScroll({ dx: dx, dy: dy, accum: shopDragAcc, stepPx: 16 });
             if (scr.vertical) {
-                shopDragAcc = scr.accum, shopDragY = t, shopDragX = e;
+                shopDragAcc = scr.accum, shopDragY = y, shopDragX = x;
                 if (scr.steps) moveShopCursor(scr.steps), shopDragged = !0;
                 return
             }
-            shopDragX = e, shopDragY = t
+            shopDragX = x, shopDragY = y
         }
 
-        function finishShopPointer(e, t) {
+        function finishShopPointer(x, y) {
             if (shopDragOn) {
                 if (shopDragOn = !1, shopDragged) {
                     shopDragged = !1;
                     return
                 }
-                onShopPointerUp(e, t)
+                onShopPointerUp(x, y)
             }
         }
 
-        function optionsRowIndexAtY(e) {
-            return optionsRowAtY(e, optionRows().length, optionsCursor)
+        function optionsRowIndexAtY(y) {
+            return optionsRowAtY(y, optionRows().length, optionsCursor)
         }
 
-        function stepOptionsCursor(e, t) {
-            return optionsCursorStep(optionRows(), e, t)
+        function stepOptionsCursor(from, dir) {
+            return optionsCursorStep(optionRows(), from, dir)
         }
 
-        function onOptionsPointerDown(e, t) {
+        function onOptionsPointerDown(x, y) {
             let down = optionsPointerDown({
-                x: e,
-                y: t,
+                x: x,
+                y: y,
                 left: RAIL_W,
                 right: FIELD_RIGHT,
                 rowAtY: optionsRowIndexAtY,
                 rowKind: (i) => optionRows()[i]?.kind
             });
             if (down.sideBack) { closeOptions(); return }
-            optionsDragOn = !0, optionsDragX = e, optionsDragY = t, optionsDragAccX = 0, optionsDragAccY = 0, optionsDragged = !1;
+            optionsDragOn = !0, optionsDragX = x, optionsDragY = y, optionsDragAccX = 0, optionsDragAccY = 0, optionsDragged = !1;
             if (down.selectRow) optionsCursor = down.rowIndex
         }
 
-        function onOptionsPointerDrag(e, t) {
+        function onOptionsPointerDrag(x, y) {
             if (!optionsDragOn || mode !== `options`) return;
-            let n = e - optionsDragX,
-                r = t - optionsDragY;
-            if (Math.abs(r) > Math.abs(n) * .85) {
-                for (optionsDragAccY += r, optionsDragX = e, optionsDragY = t; optionsDragAccY <= -15;) optionsCursor = stepOptionsCursor(optionsCursor, -1), optionsDragAccY += 15, optionsDragged = !0, sfx.ui();
+            let dx = x - optionsDragX,
+                dy = y - optionsDragY;
+            if (Math.abs(dy) > Math.abs(dx) * .85) {
+                for (optionsDragAccY += dy, optionsDragX = x, optionsDragY = y; optionsDragAccY <= -15;) optionsCursor = stepOptionsCursor(optionsCursor, -1), optionsDragAccY += 15, optionsDragged = !0, sfx.ui();
                 for (; optionsDragAccY >= 15;) optionsCursor = stepOptionsCursor(optionsCursor, 1), optionsDragAccY -= 15, optionsDragged = !0, sfx.ui();
                 return
             }
-            let i = optionRows()[optionsCursor];
-            if (!i || i.kind !== `vol` && i.kind !== `sense` && i.kind !== `weapon`) {
-                optionsDragX = e, optionsDragY = t;
+            let row = optionRows()[optionsCursor];
+            if (!row || row.kind !== `vol` && row.kind !== `sense` && row.kind !== `weapon`) {
+                optionsDragX = x, optionsDragY = y;
                 return
             }
-            if (Math.abs(n) < Math.abs(r) * .7) {
-                optionsDragX = e, optionsDragY = t;
+            if (Math.abs(dx) < Math.abs(dy) * .7) {
+                optionsDragX = x, optionsDragY = y;
                 return
             }
-            optionsDragAccX += n, optionsDragX = e, optionsDragY = t;
-            let a = optionsSwipeStep(i.kind);
-            for (; optionsDragAccX >= a;) nudgeOption(1), optionsDragAccX -= a, optionsDragged = !0;
-            for (; optionsDragAccX <= -a;) nudgeOption(-1), optionsDragAccX += a, optionsDragged = !0
+            optionsDragAccX += dx, optionsDragX = x, optionsDragY = y;
+            let stepPx = optionsSwipeStep(row.kind);
+            for (; optionsDragAccX >= stepPx;) nudgeOption(1), optionsDragAccX -= stepPx, optionsDragged = !0;
+            for (; optionsDragAccX <= -stepPx;) nudgeOption(-1), optionsDragAccX += stepPx, optionsDragged = !0
         }
 
-        function activateOptionRow(e) {
-            let t = optionRows();
-            if (!t.length) return;
-            let n = Math.max(0, Math.min(t.length - 1, e));
-            t[n].kind === `header` && (n = stepOptionsCursor(n, 1));
-            let r = t[n];
-            let act = optionsActivate(r);
+        function activateOptionRow(index) {
+            let rows = optionRows();
+            if (!rows.length) return;
+            let idx = Math.max(0, Math.min(rows.length - 1, index));
+            rows[idx].kind === `header` && (idx = stepOptionsCursor(idx, 1));
+            let row = rows[idx];
+            let act = optionsActivate(row);
             if (act.type === `noop`) return;
-            optionsCursor = n;
+            optionsCursor = idx;
             if (act.type === `back`) { closeOptions(); return }
             if (act.type === `title`) { quitToTitle(); return }
             if (act.type === `submenu`) {
@@ -3111,13 +3111,13 @@ function SwipeForceEngine() {
             }
         }
 
-        function onOptionsPointerUp(e, t) {
+        function onOptionsPointerUp(x, y) {
             if (!optionsDragOn) return;
             optionsDragOn = !1;
             let pointerUp = optionsPointerUp({
                 dragged: !!optionsDragged,
-                x: e,
-                y: t,
+                x: x,
+                y: y,
                 left: RAIL_W,
                 right: FIELD_RIGHT,
                 cursor: optionsCursor,
@@ -3130,38 +3130,38 @@ function SwipeForceEngine() {
             if (pointerUp.type === `select`) { optionsCursor = pointerUp.cursor, sfx.ui() }
         }
 
-        function updateVirtualStickAxis(e, t) {
-            let a = virtualStickAxis(e, t, vstickX, vstickY, 30);
+        function updateVirtualStickAxis(x, y) {
+            let a = virtualStickAxis(x, y, vstickX, vstickY, 30);
             vstickAxisX = a.x, vstickAxisY = a.y
         }
 
-        function onPointerDown(e, t) {
-            let n = pointerToGameCoords(e, t);
+        function onPointerDown(clientX, clientY) {
+            let pos = pointerToGameCoords(clientX, clientY);
             bgm.unlock(), applyAudioSettings();
             let route = routePointerDown({
                 mode: mode,
-                x: n.x,
-                y: n.y,
+                x: pos.x,
+                y: pos.y,
                 left: RAIL_W,
                 right: FIELD_RIGHT,
-                muteHit: muteButtonHit(n.x, n.y)
+                muteHit: muteButtonHit(pos.x, pos.y)
             });
             if (route.type === `mute`) {
                 mutedFlag = bgm.toggleMute(), settings.muted = mutedFlag, persistSettings(), mutedFlag || (mode === `bossintro` || mode === `playing` && bossActive ? bgm.boss(bossForStage(stage).vibe, stage) : (mode === `playing` || mode === `ready`) && bgm.start(`play`, stage)), sfx.ui();
                 return
             }
-            if (route.type === `mode` && route.mode === `attract`) { handleAttractTap(n.x, n.y); return }
-            if (route.type === `mode` && route.mode === `changelog`) { onChangelogTap(n.x, n.y); return }
-            if (route.type === `mode` && route.mode === `soundtest`) { onSoundTestPointerDown(n.x, n.y); return }
-            if (route.type === `mode` && route.mode === `options`) { onOptionsPointerDown(n.x, n.y); return }
-            if (route.type === `mode` && route.mode === `shop`) { onShopPointerDown(n.x, n.y); return }
+            if (route.type === `mode` && route.mode === `attract`) { handleAttractTap(pos.x, pos.y); return }
+            if (route.type === `mode` && route.mode === `changelog`) { onChangelogTap(pos.x, pos.y); return }
+            if (route.type === `mode` && route.mode === `soundtest`) { onSoundTestPointerDown(pos.x, pos.y); return }
+            if (route.type === `mode` && route.mode === `options`) { onOptionsPointerDown(pos.x, pos.y); return }
+            if (route.type === `mode` && route.mode === `shop`) { onShopPointerDown(pos.x, pos.y); return }
             if (route.type === `mode` && route.mode === `bag`) {
-                if (n.x < RAIL_W || n.x > FIELD_RIGHT) { closeBag(); return }
+                if (pos.x < RAIL_W || pos.x > FIELD_RIGHT) { closeBag(); return }
                 let rows = bagRows();
                 let win = listWindowStart(rows.length, bagCursor, 12);
                 for (let i = 0; i < Math.min(12, rows.length); i++) {
                     let idx = i + win, y = 50 + i * 24;
-                    if (n.y >= y - 1 && n.y < y + 23) {
+                    if (pos.y >= y - 1 && pos.y < y + 23) {
                         if (bagCursor === idx) useBagRow(rows[idx]);
                         else bagCursor = idx, sfx.ui();
                         return
@@ -3172,13 +3172,13 @@ function SwipeForceEngine() {
                 return
             }
             if (route.type === `mode` && route.mode === `stageselect`) {
-                if (n.x < RAIL_W || n.x > FIELD_RIGHT) { mode = `bag`, sfx.ui(); return }
+                if (pos.x < RAIL_W || pos.x > FIELD_RIGHT) { mode = `bag`, sfx.ui(); return }
                 let maxS = maxClearedForDiff();
                 let rows = buildStageSelectRows(maxS);
                 let win = listWindowStart(rows.length, stageSelectCursor, 12);
                 for (let i = 0; i < Math.min(12, rows.length); i++) {
                     let idx = i + win, y = 52 + i * 24;
-                    if (n.y >= y - 1 && n.y < y + 23) {
+                    if (pos.y >= y - 1 && pos.y < y + 23) {
                         if (stageSelectCursor === idx) confirmStageSelect();
                         else stageSelectCursor = idx, sfx.ui();
                         return
@@ -3188,19 +3188,19 @@ function SwipeForceEngine() {
                 return
             }
             if (route.type === `mode` && route.mode === `gameover`) {
-                let hit = gameOverHit(n.x, n.y, RAIL_W, FIELD_RIGHT);
+                let hit = gameOverHit(pos.x, pos.y, RAIL_W, FIELD_RIGHT);
                 if (hit === `side_share` || hit === `share`) { shareProgress(), refreshCoins(); return }
                 if (hit === `side_title` || hit === `title`) { quitToTitle(); return }
                 if (hit === `continue`) {
                     tutorialRun || difficulty === `tutorial` || continueCoins > 0
                         ? doContinue()
-                        : (sfx.buyFail(), tryOpenMediaWatch(), shareToast = t(`hud.noCoin`), shareToastLife = 100);
+                        : (sfx.buyFail(), tryOpenMediaWatch(), shareToast = translate(`hud.noCoin`), shareToastLife = 100);
                     return
                 }
                 return
             }
             if (route.type === `mode` && route.mode === `name`) {
-                let hit = nameEntryHit(n.x, PLAY_W, RAIL_W, FIELD_RIGHT);
+                let hit = nameEntryHit(pos.x, PLAY_W, RAIL_W, FIELD_RIGHT);
                 if (hit === `side_back`) { mode = `attract`, bgm.start(`attract`), sfx.ui(); return }
                 if (hit === `letter_prev`) stepNameLetter(-1);
                 else if (hit === `letter_next`) stepNameLetter(1);
@@ -3209,8 +3209,8 @@ function SwipeForceEngine() {
             }
             if (route.type === `mode` && route.mode === `inbox`) {
                 let hit = inboxPointerHit({
-                    x: n.x,
-                    y: n.y,
+                    x: pos.x,
+                    y: pos.y,
                     left: RAIL_W,
                     right: FIELD_RIGHT,
                     fieldH: PLAY_H,
@@ -3224,15 +3224,15 @@ function SwipeForceEngine() {
                 }
                 if (hit.type === `open`) { inboxCursor = hit.index, inboxDetail = !0, sfx.ui(); return }
                 if (hit.type === `thanks`) {
-                    let e = inbox[inboxCursor];
-                    if (!e) { inboxDetail = !1; return }
-                    canReplyThanks(e) ? openThanks(e) : sfx.buyFail();
+                    let clientX = inbox[inboxCursor];
+                    if (!clientX) { inboxDetail = !1; return }
+                    canReplyThanks(clientX) ? openThanks(clientX) : sfx.buyFail();
                     return
                 }
                 if (hit.type === `delete`) {
-                    let e = inbox[inboxCursor];
-                    if (!e) { inboxDetail = !1; return }
-                    deleteInboxMessage({ playerId: playerId, messageId: e.id }).then(() => { reloadInbox(), inboxDetail = !1, sfx.ui() });
+                    let clientX = inbox[inboxCursor];
+                    if (!clientX) { inboxDetail = !1; return }
+                    deleteInboxMessage({ playerId: playerId, messageId: clientX.id }).then(() => { reloadInbox(), inboxDetail = !1, sfx.ui() });
                     return
                 }
                 if (hit.type === `to_list`) { inboxDetail = !1, sfx.ui(); return }
@@ -3258,13 +3258,13 @@ function SwipeForceEngine() {
                 return
             }
             if (route.type === `play_move`) {
-                let moveResult = playMoveFromPointer({ x: n.x, y: n.y, vstick: !!settings.vstick });
+                let moveResult = playMoveFromPointer({ x: pos.x, y: pos.y, vstick: !!settings.vstick });
                 if (moveResult.vstick) vstickActive = !0, vstickX = moveResult.stickX, vstickY = moveResult.stickY, vstickAxisX = 0, vstickAxisY = 0;
                 else swipeActive = !0, swipeX = moveResult.followX, swipeY = moveResult.followY
             }
         }
 
-        function onPointerMove(e, t) {
+        function onPointerMove(clientX, clientY) {
             let route = routePointerMove({
                 mode: mode,
                 optionsDragging: !!optionsDragOn,
@@ -3275,15 +3275,15 @@ function SwipeForceEngine() {
                 vstickActive: !!vstickActive,
                 swipeActive: !!swipeActive
             });
-            let n = pointerToGameCoords(e, t);
-            if (route.type === `options_drag`) { onOptionsPointerDrag(n.x, n.y); return }
-            if (route.type === `shop_drag`) { onShopPointerDrag(n.x, n.y); return }
-            if (route.type === `soundtest_drag`) { onSoundTestPointerDrag(n.x, n.y); return }
-            if (route.type === `changelog_drag`) { onChangelogDrag(n.x, n.y); return }
-            if (route.type === `vstick`) { updateVirtualStickAxis(n.x, n.y); return }
+            let pos = pointerToGameCoords(clientX, clientY);
+            if (route.type === `options_drag`) { onOptionsPointerDrag(pos.x, pos.y); return }
+            if (route.type === `shop_drag`) { onShopPointerDrag(pos.x, pos.y); return }
+            if (route.type === `soundtest_drag`) { onSoundTestPointerDrag(pos.x, pos.y); return }
+            if (route.type === `changelog_drag`) { onChangelogDrag(pos.x, pos.y); return }
+            if (route.type === `vstick`) { updateVirtualStickAxis(pos.x, pos.y); return }
             if (route.type === `swipe_follow`) {
-                let pos = clampSwipeFollow(n.x, n.y);
-                swipeX = pos.x, swipeY = pos.y
+                let follow = clampSwipeFollow(pos.x, pos.y);
+                swipeX = follow.x, swipeY = follow.y
             }
         }
         let onTouchStart = e => {

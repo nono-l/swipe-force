@@ -12,7 +12,7 @@ import {
   type StripTextPreset,
   upsertLocalTextPreset,
 } from "@/lib/strip-text-presets";
-import { t } from "@/lib/i18n";
+import { translate } from "@/lib/i18n";
 
 export type BannerEditorOpts = {
   onSave: (dataUrl: string, meta: { width: number; height: number; ratio: number }) => void;
@@ -61,13 +61,13 @@ type Layer = ImageLayer | TextLayer;
 var STAGE_W = 640;
 var STAGE_H = 360;
 var FONTS = [
-  { id: "system", label: t("editor.fontSystem"), stack: "system-ui,Segoe UI,sans-serif" },
-  { id: "sans", label: t("editor.fontSans"), stack: '"Hiragino Sans","Noto Sans JP",Meiryo,sans-serif' },
-  { id: "serif", label: t("editor.fontSerif"), stack: '"Hiragino Mincho ProN","Noto Serif JP",serif' },
-  { id: "mono", label: t("editor.fontMono"), stack: "ui-monospace,Consolas,monospace" },
-  { id: "impact", label: t("editor.fontImpact"), stack: "Impact,Haettenschweiler,Arial Black,sans-serif" },
-  { id: "rounded", label: t("editor.fontRound"), stack: '"M PLUS Rounded 1c","Hiragino Maru Gothic ProN",sans-serif' },
-  { id: "pixel", label: t("editor.fontPixel"), stack: '"Courier New",monospace' }
+  { id: "system", label: translate("editor.fontSystem"), stack: "system-ui,Segoe UI,sans-serif" },
+  { id: "sans", label: translate("editor.fontSans"), stack: '"Hiragino Sans","Noto Sans JP",Meiryo,sans-serif' },
+  { id: "serif", label: translate("editor.fontSerif"), stack: '"Hiragino Mincho ProN","Noto Serif JP",serif' },
+  { id: "mono", label: translate("editor.fontMono"), stack: "ui-monospace,Consolas,monospace" },
+  { id: "impact", label: translate("editor.fontImpact"), stack: "Impact,Haettenschweiler,Arial Black,sans-serif" },
+  { id: "rounded", label: translate("editor.fontRound"), stack: '"M PLUS Rounded 1c","Hiragino Maru Gothic ProN",sans-serif' },
+  { id: "pixel", label: translate("editor.fontPixel"), stack: '"Courier New",monospace' }
 ];
 
 function clampOpacity(n: unknown): number {
@@ -304,9 +304,9 @@ export function openBannerEditor(opts: BannerEditorOpts) {
   head.style.cssText = "display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px";
   head.innerHTML = `
     <div>
-      <div style="font-size:15px;font-weight:800;color:#9ef">${t("editor.title")}</div>
+      <div style="font-size:15px;font-weight:800;color:#9ef">${translate("editor.title")}</div>
       <div style="font-size:10px;color:#8ab;margin-top:2px;line-height:1.4">
-        ${t("editor.lead", { h: maxH, min: minRatio, max: maxRatio })}
+        ${translate("editor.lead", { h: maxH, min: minRatio, max: maxRatio })}
       </div>
     </div>
     <button type="button" id="sf-be-x" style="border:0;background:transparent;color:#9ab;font-size:22px;cursor:pointer;line-height:1">\xD7</button>
@@ -320,121 +320,121 @@ export function openBannerEditor(opts: BannerEditorOpts) {
   controls.innerHTML = `
     <div style="grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px">
       <label style="flex:1;min-width:100px;padding:8px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-size:12px;font-weight:700;text-align:center;cursor:pointer">
-        ${t("editor.addImg")}
+        ${translate("editor.addImg")}
         <input id="sf-be-file" type="file" accept="image/*" multiple style="display:none" />
       </label>
-      <button type="button" id="sf-be-add-text" style="flex:1;min-width:100px;padding:8px;border-radius:8px;border:1px solid #8c4;background:#1a4028;color:#dfe;font-size:12px;font-weight:700;cursor:pointer">${t("editor.addText")}</button>
-      <button type="button" id="sf-be-clear" style="padding:8px 10px;border-radius:8px;border:1px solid #a44;background:#301018;color:#fcc;font-size:12px;cursor:pointer">${t("editor.clear")}</button>
-      <button type="button" id="sf-be-fit" style="padding:8px 10px;border-radius:8px;border:1px solid #456;background:#122028;color:#bcd;font-size:12px;cursor:pointer">${t("editor.fit")}</button>
+      <button type="button" id="sf-be-add-text" style="flex:1;min-width:100px;padding:8px;border-radius:8px;border:1px solid #8c4;background:#1a4028;color:#dfe;font-size:12px;font-weight:700;cursor:pointer">${translate("editor.addText")}</button>
+      <button type="button" id="sf-be-clear" style="padding:8px 10px;border-radius:8px;border:1px solid #a44;background:#301018;color:#fcc;font-size:12px;cursor:pointer">${translate("editor.clear")}</button>
+      <button type="button" id="sf-be-fit" style="padding:8px 10px;border-radius:8px;border:1px solid #456;background:#122028;color:#bcd;font-size:12px;cursor:pointer">${translate("editor.fit")}</button>
     </div>
     <div>
-      <label style="font-size:10px;color:#8ab">${t("editor.height")} <span id="sf-be-h-val">${cropH}</span>px</label>
+      <label style="font-size:10px;color:#8ab">${translate("editor.height")} <span id="sf-be-h-val">${cropH}</span>px</label>
       <input id="sf-be-h" type="range" min="40" max="${maxH}" value="${cropH}" step="1" style="width:100%" />
     </div>
     <div>
-      <label style="font-size:10px;color:#8ab">${t("editor.ratio")} <span id="sf-be-r-val">${ratio.toFixed(2)}</span>（${t("editor.width")} <span id="sf-be-w-val">${cropW}</span>px）</label>
+      <label style="font-size:10px;color:#8ab">${translate("editor.ratio")} <span id="sf-be-r-val">${ratio.toFixed(2)}</span>（${translate("editor.width")} <span id="sf-be-w-val">${cropW}</span>px）</label>
       <input id="sf-be-r" type="range" min="${minRatio}" max="${maxRatio}" value="${ratio}" step="0.05" style="width:100%" />
     </div>
     <div style="grid-column:1/-1;background:#0a1820;border:1px solid #264;border-radius:10px;padding:8px">
-      <div style="font-size:10px;font-weight:700;color:#9ec;margin-bottom:6px">${t("editor.layers")}</div>
-      <label style="font-size:10px;color:#8ab">${t("editor.select")}</label>
+      <div style="font-size:10px;font-weight:700;color:#9ec;margin-bottom:6px">${translate("editor.layers")}</div>
+      <label style="font-size:10px;color:#8ab">${translate("editor.select")}</label>
       <select id="sf-be-layer" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid #456;background:#0a1520;color:#eef;font-size:12px;margin:2px 0 8px">
-        <option value="-1">${t("editor.noLayer")}</option>
+        <option value="-1">${translate("editor.noLayer")}</option>
       </select>
       <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
-        <button type="button" id="sf-be-z-bot" title="${t("editor.zBot")}" style="flex:1;min-width:56px;padding:8px;border-radius:8px;border:1px solid #456;background:#122;color:#cde;font-size:11px;cursor:pointer">${t("editor.zBot")}</button>
-        <button type="button" id="sf-be-z-down" title="${t("editor.zDown")}" style="flex:1;min-width:56px;padding:8px;border-radius:8px;border:1px solid #456;background:#122;color:#cde;font-size:11px;cursor:pointer">${t("editor.zDown")}</button>
-        <button type="button" id="sf-be-z-up" title="${t("editor.zUp")}" style="flex:1;min-width:56px;padding:8px;border-radius:8px;border:1px solid #456;background:#122;color:#cde;font-size:11px;cursor:pointer">${t("editor.zUp")}</button>
-        <button type="button" id="sf-be-z-top" title="${t("editor.zTop")}" style="flex:1;min-width:56px;padding:8px;border-radius:8px;border:1px solid #456;background:#122;color:#cde;font-size:11px;cursor:pointer">${t("editor.zTop")}</button>
+        <button type="button" id="sf-be-z-bot" title="${translate("editor.zBot")}" style="flex:1;min-width:56px;padding:8px;border-radius:8px;border:1px solid #456;background:#122;color:#cde;font-size:11px;cursor:pointer">${translate("editor.zBot")}</button>
+        <button type="button" id="sf-be-z-down" title="${translate("editor.zDown")}" style="flex:1;min-width:56px;padding:8px;border-radius:8px;border:1px solid #456;background:#122;color:#cde;font-size:11px;cursor:pointer">${translate("editor.zDown")}</button>
+        <button type="button" id="sf-be-z-up" title="${translate("editor.zUp")}" style="flex:1;min-width:56px;padding:8px;border-radius:8px;border:1px solid #456;background:#122;color:#cde;font-size:11px;cursor:pointer">${translate("editor.zUp")}</button>
+        <button type="button" id="sf-be-z-top" title="${translate("editor.zTop")}" style="flex:1;min-width:56px;padding:8px;border-radius:8px;border:1px solid #456;background:#122;color:#cde;font-size:11px;cursor:pointer">${translate("editor.zTop")}</button>
       </div>
-      <div style="font-size:10px;font-weight:700;color:#9ec;margin-bottom:6px">${t("editor.layerOps")}</div>
+      <div style="font-size:10px;font-weight:700;color:#9ec;margin-bottom:6px">${translate("editor.layerOps")}</div>
       <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
         <button type="button" id="sf-be-zm-out" style="flex:1;min-width:48px;padding:8px;border-radius:8px;border:1px solid #456;background:#122;color:#cde;cursor:pointer">−</button>
         <button type="button" id="sf-be-zm-in" style="flex:1;min-width:48px;padding:8px;border-radius:8px;border:1px solid #456;background:#122;color:#cde;cursor:pointer">＋</button>
         <button type="button" id="sf-be-rot-l" style="flex:1;min-width:48px;padding:8px;border-radius:8px;border:1px solid #456;background:#122;color:#cde;cursor:pointer">↺</button>
         <button type="button" id="sf-be-rot-r" style="flex:1;min-width:48px;padding:8px;border-radius:8px;border:1px solid #456;background:#122;color:#cde;cursor:pointer">↻</button>
-        <button type="button" id="sf-be-del" style="flex:1;min-width:48px;padding:8px;border-radius:8px;border:1px solid #a44;background:#301018;color:#fcc;cursor:pointer">${t("editor.del")}</button>
+        <button type="button" id="sf-be-del" style="flex:1;min-width:48px;padding:8px;border-radius:8px;border:1px solid #a44;background:#301018;color:#fcc;cursor:pointer">${translate("editor.del")}</button>
       </div>
-      <label style="font-size:10px;color:#8ab">${t("editor.rot")} <span id="sf-be-rot-val">0</span>\xB0</label>
+      <label style="font-size:10px;color:#8ab">${translate("editor.rot")} <span id="sf-be-rot-val">0</span>\xB0</label>
       <input id="sf-be-rot" type="range" min="-180" max="180" value="0" step="1" style="width:100%;margin-bottom:6px" />
       <div id="sf-be-text-panel" style="display:none">
-        <label style="font-size:10px;color:#8ab">${t("editor.text")}</label>
+        <label style="font-size:10px;color:#8ab">${translate("editor.text")}</label>
         <input id="sf-be-text" type="text" value="" maxlength="80" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid #456;background:#0a1520;color:#eef;font-size:13px;margin:2px 0 6px" />
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
           <div>
-            <label style="font-size:10px;color:#8ab">${t("editor.font")}</label>
+            <label style="font-size:10px;color:#8ab">${translate("editor.font")}</label>
             <select id="sf-be-font" style="width:100%;padding:8px;border-radius:8px;border:1px solid #456;background:#0a1520;color:#eef;font-size:12px">${fontOpts}</select>
           </div>
           <div>
-            <label style="font-size:10px;color:#8ab">${t("editor.color")}</label>
+            <label style="font-size:10px;color:#8ab">${translate("editor.color")}</label>
             <div style="display:flex;gap:6px;align-items:center">
               <input id="sf-be-color" type="color" value="#ffffff" style="width:44px;height:32px;border:0;background:transparent;cursor:pointer;flex-shrink:0" />
               <input id="sf-be-color-hex" type="text" value="#ffffff" maxlength="7" spellcheck="false" style="flex:1;min-width:0;padding:6px;border-radius:8px;border:1px solid #456;background:#0a1520;color:#eef;font-size:12px;font-family:ui-monospace,monospace" />
             </div>
           </div>
           <div>
-            <label style="font-size:10px;color:#8ab">${t("editor.size")} <span id="sf-be-fs-val">28</span></label>
+            <label style="font-size:10px;color:#8ab">${translate("editor.size")} <span id="sf-be-fs-val">28</span></label>
             <input id="sf-be-fs" type="range" min="10" max="96" value="28" step="1" style="width:100%" />
           </div>
           <div style="display:flex;align-items:flex-end;padding-bottom:4px">
             <label style="display:inline-flex;gap:6px;align-items:center;font-size:12px;cursor:pointer">
-              <input type="checkbox" id="sf-be-bold" checked /> ${t("editor.bold")}
+              <input type="checkbox" id="sf-be-bold" checked /> ${translate("editor.bold")}
             </label>
           </div>
           <div style="grid-column:1/-1">
-            <label style="font-size:10px;color:#8ab">${t("editor.opacity")} <span id="sf-be-op-val">100</span>%</label>
+            <label style="font-size:10px;color:#8ab">${translate("editor.opacity")} <span id="sf-be-op-val">100</span>%</label>
             <input id="sf-be-op" type="range" min="0" max="100" value="100" step="1" style="width:100%" />
           </div>
           <div style="grid-column:1/-1;padding:8px;border-radius:8px;border:1px solid #345;background:#081018">
             <label style="display:inline-flex;gap:6px;align-items:center;font-size:12px;cursor:pointer;margin-bottom:6px">
-              <input type="checkbox" id="sf-be-shadow" checked /> ${t("editor.shadow")}
+              <input type="checkbox" id="sf-be-shadow" checked /> ${translate("editor.shadow")}
             </label>
-            <div style="font-size:10px;color:#8ab;margin-bottom:4px">${t("editor.shadowC")}</div>
+            <div style="font-size:10px;color:#8ab;margin-bottom:4px">${translate("editor.shadowC")}</div>
             <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
               <input id="sf-be-shadow-c" type="color" value="#000000" title="影の色" style="width:44px;height:32px;border:0;background:transparent;cursor:pointer;flex-shrink:0" />
               <input id="sf-be-shadow-hex" type="text" value="#000000" maxlength="7" spellcheck="false" style="flex:1;min-width:0;padding:6px;border-radius:8px;border:1px solid #456;background:#0a1520;color:#eef;font-size:12px;font-family:ui-monospace,monospace" />
             </div>
-            <label style="font-size:10px;color:#8ab">${t("editor.blur")} <span id="sf-be-sb-val">6</span></label>
+            <label style="font-size:10px;color:#8ab">${translate("editor.blur")} <span id="sf-be-sb-val">6</span></label>
             <input id="sf-be-sb" type="range" min="0" max="24" value="6" step="1" style="width:100%" />
           </div>
           <div style="grid-column:1/-1;padding:8px;border-radius:8px;border:1px solid #345;background:#081018">
             <label style="display:inline-flex;gap:6px;align-items:center;font-size:12px;cursor:pointer;margin-bottom:6px">
-              <input type="checkbox" id="sf-be-outline" checked /> ${t("editor.outline")}
+              <input type="checkbox" id="sf-be-outline" checked /> ${translate("editor.outline")}
             </label>
-            <div style="font-size:10px;color:#8ab;margin-bottom:4px">${t("editor.outlineC")}</div>
+            <div style="font-size:10px;color:#8ab;margin-bottom:4px">${translate("editor.outlineC")}</div>
             <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
               <input id="sf-be-outline-c" type="color" value="#000000" title="縁取りの色" style="width:44px;height:32px;border:0;background:transparent;cursor:pointer;flex-shrink:0" />
               <input id="sf-be-outline-hex" type="text" value="#000000" maxlength="7" spellcheck="false" style="flex:1;min-width:0;padding:6px;border-radius:8px;border:1px solid #456;background:#0a1520;color:#eef;font-size:12px;font-family:ui-monospace,monospace" />
             </div>
-            <label style="font-size:10px;color:#8ab">${t("editor.thick")} <span id="sf-be-ow-val">3</span></label>
+            <label style="font-size:10px;color:#8ab">${translate("editor.thick")} <span id="sf-be-ow-val">3</span></label>
             <input id="sf-be-ow" type="range" min="1" max="12" value="3" step="1" style="width:100%" />
           </div>
           <div style="grid-column:1/-1;margin-top:8px;padding-top:8px;border-top:1px solid #234">
-            <div style="font-size:10px;font-weight:700;color:#9ec;margin-bottom:6px">${t("editor.presets")}</div>
+            <div style="font-size:10px;font-weight:700;color:#9ec;margin-bottom:6px">${translate("editor.presets")}</div>
             <select id="sf-be-preset" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid #456;background:#0a1520;color:#eef;font-size:12px;margin-bottom:6px">
-              <option value="">${t("editor.noPreset")}</option>
+              <option value="">${translate("editor.noPreset")}</option>
             </select>
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
-              <button type="button" id="sf-be-preset-apply" style="flex:1;min-width:70px;padding:8px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-size:11px;font-weight:700;cursor:pointer">${t("editor.apply")}</button>
-              <button type="button" id="sf-be-preset-del" style="flex:1;min-width:70px;padding:8px;border-radius:8px;border:1px solid #a44;background:#301018;color:#fcc;font-size:11px;cursor:pointer">${t("editor.del")}</button>
+              <button type="button" id="sf-be-preset-apply" style="flex:1;min-width:70px;padding:8px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-size:11px;font-weight:700;cursor:pointer">${translate("editor.apply")}</button>
+              <button type="button" id="sf-be-preset-del" style="flex:1;min-width:70px;padding:8px;border-radius:8px;border:1px solid #a44;background:#301018;color:#fcc;font-size:11px;cursor:pointer">${translate("editor.del")}</button>
             </div>
-            <label style="font-size:10px;color:#8ab">${t("editor.saveNamed")}</label>
+            <label style="font-size:10px;color:#8ab">${translate("editor.saveNamed")}</label>
             <div style="display:flex;gap:6px;margin-top:2px">
-              <input id="sf-be-preset-name" type="text" maxlength="40" placeholder="${t("editor.namePh")}" style="flex:1;min-width:0;padding:8px;border-radius:8px;border:1px solid #456;background:#0a1520;color:#eef;font-size:12px" />
-              <button type="button" id="sf-be-preset-save" style="padding:8px 10px;border-radius:8px;border:1px solid #8c4;background:#1a4028;color:#dfe;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">${t("editor.save")}</button>
+              <input id="sf-be-preset-name" type="text" maxlength="40" placeholder="${translate("editor.namePh")}" style="flex:1;min-width:0;padding:8px;border-radius:8px;border:1px solid #456;background:#0a1520;color:#eef;font-size:12px" />
+              <button type="button" id="sf-be-preset-save" style="padding:8px 10px;border-radius:8px;border:1px solid #8c4;background:#1a4028;color:#dfe;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">${translate("editor.save")}</button>
             </div>
-            <div id="sf-be-preset-hint" style="font-size:9px;color:#678;margin-top:4px;line-height:1.35">${t("editor.presetHint")}</div>
+            <div id="sf-be-preset-hint" style="font-size:9px;color:#678;margin-top:4px;line-height:1.35">${translate("editor.presetHint")}</div>
           </div>
         </div>
       </div>
     </div>
     <div style="grid-column:1/-1">
-      <label style="font-size:10px;color:#8ab">${t("editor.bg")}</label>
+      <label style="font-size:10px;color:#8ab">${translate("editor.bg")}</label>
       <div style="display:flex;gap:6px;align-items:center">
         <input id="sf-be-bg" type="color" value="${bg}" style="width:48px;height:32px;border:0;background:transparent;cursor:pointer" />
-        <button type="button" data-bg="#000000" class="sf-be-bgp" style="flex:1;padding:6px;border-radius:6px;border:1px solid #345;background:#000;color:#888;font-size:10px;cursor:pointer">${t("editor.bgBlack")}</button>
-        <button type="button" data-bg="#0a1810" class="sf-be-bgp" style="flex:1;padding:6px;border-radius:6px;border:1px solid #345;background:#0a1810;color:#6a8;font-size:10px;cursor:pointer">${t("editor.bgGreen")}</button>
-        <button type="button" data-bg="#ffffff" class="sf-be-bgp" style="flex:1;padding:6px;border-radius:6px;border:1px solid #345;background:#fff;color:#333;font-size:10px;cursor:pointer">${t("editor.bgWhite")}</button>
+        <button type="button" data-bg="#000000" class="sf-be-bgp" style="flex:1;padding:6px;border-radius:6px;border:1px solid #345;background:#000;color:#888;font-size:10px;cursor:pointer">${translate("editor.bgBlack")}</button>
+        <button type="button" data-bg="#0a1810" class="sf-be-bgp" style="flex:1;padding:6px;border-radius:6px;border:1px solid #345;background:#0a1810;color:#6a8;font-size:10px;cursor:pointer">${translate("editor.bgGreen")}</button>
+        <button type="button" data-bg="#ffffff" class="sf-be-bgp" style="flex:1;padding:6px;border-radius:6px;border:1px solid #345;background:#fff;color:#333;font-size:10px;cursor:pointer">${translate("editor.bgWhite")}</button>
       </div>
     </div>
   `;
@@ -443,7 +443,7 @@ export function openBannerEditor(opts: BannerEditorOpts) {
   const stageHint = document.createElement("div");
   stageHint.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px";
   stageHint.innerHTML = `
-    <div style="font-size:10px;color:#8cf;font-weight:700">${t("editor.canvas")}</div>
+    <div style="font-size:10px;color:#8cf;font-weight:700">${translate("editor.canvas")}</div>
     <div id="sf-be-dock-meta" style="font-size:9px;color:#8ab;font-variant-numeric:tabular-nums">${cropW}\xD7${cropH}</div>
   `;
   stageDock.appendChild(stageHint);
@@ -458,9 +458,9 @@ export function openBannerEditor(opts: BannerEditorOpts) {
   const previewRow = document.createElement("div");
   previewRow.style.cssText = "display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap";
   previewRow.innerHTML = `
-    <div style="font-size:9px;color:#8ab;white-space:nowrap">${t("editor.export")}</div>
+    <div style="font-size:9px;color:#8ab;white-space:nowrap">${translate("editor.export")}</div>
     <canvas id="sf-be-prev" width="${cropW}" height="${cropH}" style="border:1px solid #456;border-radius:4px;image-rendering:auto;max-height:36px;width:auto;background:#000"></canvas>
-    <div id="sf-be-status" style="font-size:10px;color:#9ab;flex:1;min-width:100px;line-height:1.3">${t("editor.status")}</div>
+    <div id="sf-be-status" style="font-size:10px;color:#9ab;flex:1;min-width:100px;line-height:1.3">${translate("editor.status")}</div>
   `;
   stageDock.appendChild(previewRow);
   card.appendChild(stageDock);
@@ -472,8 +472,8 @@ export function openBannerEditor(opts: BannerEditorOpts) {
   const foot = document.createElement("div");
   foot.style.cssText = "flex-shrink:0;display:flex;gap:8px;padding:10px 12px 12px;border-top:1px solid #234;background:#0a1218;z-index:4";
   foot.innerHTML = `
-    <button type="button" id="sf-be-cancel" style="flex:1;padding:12px;border-radius:8px;border:1px solid #456;background:#122028;color:#bcd;font-weight:700;cursor:pointer">${t("editor.cancel")}</button>
-    <button type="button" id="sf-be-save" style="flex:2;padding:12px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-weight:800;cursor:pointer">${t("editor.saveDl")}</button>
+    <button type="button" id="sf-be-cancel" style="flex:1;padding:12px;border-radius:8px;border:1px solid #456;background:#122028;color:#bcd;font-weight:700;cursor:pointer">${translate("editor.cancel")}</button>
+    <button type="button" id="sf-be-save" style="flex:2;padding:12px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-weight:800;cursor:pointer">${translate("editor.saveDl")}</button>
   `;
   card.appendChild(foot);
   const ctx = canvas.getContext("2d");
@@ -571,7 +571,7 @@ export function openBannerEditor(opts: BannerEditorOpts) {
     }
     if (cur && textPresets.some((p) => p.id === cur)) selEl.value = cur;
     if (hint) {
-      hint.textContent = playerId ? t("editor.cloud") : t("editor.local");
+      hint.textContent = playerId ? translate("editor.cloud") : translate("editor.local");
     }
   };
   const reloadPresets = async () => {
@@ -775,7 +775,7 @@ export function openBannerEditor(opts: BannerEditorOpts) {
       setStatus(`画像追加: ${file.name || "image"}`);
       draw();
     } catch {
-      setStatus(t("editor.addImgFail"));
+      setStatus(translate("editor.addImgFail"));
     }
   };
   const addText = () => {
@@ -800,7 +800,7 @@ export function openBannerEditor(opts: BannerEditorOpts) {
       outlineColor: "#000000"
     });
     selected = layers.length - 1;
-    setStatus(t("editor.addTextOk"));
+    setStatus(translate("editor.addTextOk"));
     draw();
   };
   const fitSelectedToCrop = () => {
@@ -819,7 +819,7 @@ export function openBannerEditor(opts: BannerEditorOpts) {
       L.fontSize = Math.max(12, Math.min(64, Math.round(cropH * 0.55)));
       L.rot = 0;
     }
-    setStatus(t("editor.fitted"));
+    setStatus(translate("editor.fitted"));
     draw();
   };
   const exportCanvas = () => {
@@ -843,18 +843,18 @@ export function openBannerEditor(opts: BannerEditorOpts) {
     panel.style.cssText = "position:fixed;inset:0;z-index:10060;background:#000d;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box";
     panel.innerHTML = `
       <div style="width:min(420px,100%);background:#0c141c;border:1px solid #3a6a8a;border-radius:14px;padding:14px;color:#def;font-family:system-ui,sans-serif">
-        <div style="font-size:15px;font-weight:800;color:#9ef;margin-bottom:8px">${t("editor.doneTitle")}</div>
+        <div style="font-size:15px;font-weight:800;color:#9ef;margin-bottom:8px">${translate("editor.doneTitle")}</div>
         <div style="font-size:11px;color:#8ab;margin-bottom:10px">${width}\xD7${height}px \xB7 ${Math.max(1, Math.round(bytes / 1024))}KB</div>
         <div style="background:#000;border:1px solid #345;border-radius:8px;padding:8px;margin-bottom:12px;text-align:center">
           <img id="sf-be-result-img" alt="preview" src="${dataUrl.replace(/"/g, "")}" style="max-width:100%;height:auto;image-rendering:auto;border-radius:4px" />
         </div>
         <div style="font-size:10px;color:#9ab;margin-bottom:10px;line-height:1.4">
-          ${t("editor.doneHint")}
+          ${translate("editor.doneHint")}
         </div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          <button type="button" id="sf-be-dl" style="padding:12px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-weight:800;cursor:pointer">${t("editor.dl")}</button>
-          <button type="button" id="sf-be-done" style="padding:12px;border-radius:8px;border:1px solid #8c4;background:#1a4028;color:#dfe;font-weight:800;cursor:pointer">${t("editor.done")}</button>
-          <button type="button" id="sf-be-back" style="padding:10px;border-radius:8px;border:1px solid #456;background:#122028;color:#bcd;cursor:pointer">${t("editor.backEdit")}</button>
+          <button type="button" id="sf-be-dl" style="padding:12px;border-radius:8px;border:1px solid #6af;background:#1a4060;color:#dff;font-weight:800;cursor:pointer">${translate("editor.dl")}</button>
+          <button type="button" id="sf-be-done" style="padding:12px;border-radius:8px;border:1px solid #8c4;background:#1a4028;color:#dfe;font-weight:800;cursor:pointer">${translate("editor.done")}</button>
+          <button type="button" id="sf-be-back" style="padding:10px;border-radius:8px;border:1px solid #456;background:#122028;color:#bcd;cursor:pointer">${translate("editor.backEdit")}</button>
         </div>
         <div id="sf-be-result-msg" style="font-size:11px;color:#fc8;margin-top:8px;min-height:1.2em"></div>
       </div>
@@ -886,7 +886,7 @@ export function openBannerEditor(opts: BannerEditorOpts) {
   controls.querySelector("#sf-be-clear")?.addEventListener("click", () => {
     layers = [];
     selected = -1;
-    setStatus(t("editor.cleared"));
+    setStatus(translate("editor.cleared"));
     draw();
     opts.sfxUi?.();
   });
@@ -956,7 +956,7 @@ export function openBannerEditor(opts: BannerEditorOpts) {
     if (selected < 0) return;
     layers.splice(selected, 1);
     selected = layers.length ? Math.min(selected, layers.length - 1) : -1;
-    setStatus(t("editor.deleted"));
+    setStatus(translate("editor.deleted"));
     draw();
     opts.sfxUi?.();
   });
