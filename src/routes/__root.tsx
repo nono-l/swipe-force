@@ -2,6 +2,8 @@
  * JPDOC: ルートレイアウト。i18n と認証プロバイダ。
  */
 import { HeadContent, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
+import { AuthProvider } from "@/lib/auth/provider";
+import { CreatedWithGrokBanner } from "@/components/created-with-grok-banner";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "SWIPE FORCE";
@@ -24,6 +26,7 @@ export const Route = createRootRoute({
       { name: "theme-color", content: "#00ff00" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: APP_NAME },
       // Open Graph
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: APP_NAME },
@@ -43,6 +46,9 @@ export const Route = createRootRoute({
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "image_src", href: OG_IMAGE },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "manifest", href: "/__grok/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
     ],
   }),
   component: RootComponent,
@@ -55,7 +61,10 @@ function RootComponent() {
         <HeadContent />
       </head>
       <body className="m-0 min-h-dvh overflow-hidden bg-black text-white antialiased">
-        <Outlet />
+        <CreatedWithGrokBanner />
+        <AuthProvider>
+          <Outlet />
+        </AuthProvider>
         <Scripts />
       </body>
     </html>

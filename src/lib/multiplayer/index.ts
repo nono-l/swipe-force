@@ -12,10 +12,7 @@ export type {
 } from "./p2p";
 export { P2PSync, makeEventId } from "./sync";
 export type { SyncRole, SyncWire, P2PSyncOptions } from "./sync";
-export {
-  buildSpectatorFrame,
-  isSpectatorFrame,
-} from "./spectator-frame";
+export { buildSpectatorFrame, isSpectatorFrame } from "./spectator-frame";
 export type {
   SpectatorFrame,
   SpectatorEnemy,

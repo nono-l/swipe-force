@@ -14,6 +14,7 @@ import { Route as BannerRouteImport } from './routes/banner'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PartnerRouteImport } from './routes/partner'
 import { Route as TitleBgmRouteImport } from './routes/title-bgm'
+import { Route as ApiRtcRouteImport } from './routes/api/rtc'
 import { Route as ApiAccountLinkRouteImport } from './routes/api/account/link'
 import { Route as ApiAccountProfileRouteImport } from './routes/api/account/profile'
 import { Route as ApiAdminPromoRouteImport } from './routes/api/admin/promo'
@@ -62,6 +63,11 @@ const PartnerRoute = PartnerRouteImport.update({
 const TitleBgmRoute = TitleBgmRouteImport.update({
   id: '/title-bgm',
   path: '/title-bgm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRtcRoute = ApiRtcRouteImport.update({
+  id: '/api/rtc',
+  path: '/api/rtc',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAccountLinkRoute = ApiAccountLinkRouteImport.update({
@@ -191,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/partner': typeof PartnerRoute
   '/title-bgm': typeof TitleBgmRoute
+  '/api/rtc': typeof ApiRtcRoute
   '/api/account/link': typeof ApiAccountLinkRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
   '/api/admin/promo': typeof ApiAdminPromoRoute
@@ -222,6 +229,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/partner': typeof PartnerRoute
   '/title-bgm': typeof TitleBgmRoute
+  '/api/rtc': typeof ApiRtcRoute
   '/api/account/link': typeof ApiAccountLinkRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
   '/api/admin/promo': typeof ApiAdminPromoRoute
@@ -254,6 +262,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/partner': typeof PartnerRoute
   '/title-bgm': typeof TitleBgmRoute
+  '/api/rtc': typeof ApiRtcRoute
   '/api/account/link': typeof ApiAccountLinkRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
   '/api/admin/promo': typeof ApiAdminPromoRoute
@@ -287,6 +296,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/partner'
     | '/title-bgm'
+    | '/api/rtc'
     | '/api/account/link'
     | '/api/account/profile'
     | '/api/admin/promo'
@@ -318,6 +328,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/partner'
     | '/title-bgm'
+    | '/api/rtc'
     | '/api/account/link'
     | '/api/account/profile'
     | '/api/admin/promo'
@@ -349,6 +360,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/partner'
     | '/title-bgm'
+    | '/api/rtc'
     | '/api/account/link'
     | '/api/account/profile'
     | '/api/admin/promo'
@@ -381,6 +393,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PartnerRoute: typeof PartnerRoute
   TitleBgmRoute: typeof TitleBgmRoute
+  ApiRtcRoute: typeof ApiRtcRoute
   ApiAccountLinkRoute: typeof ApiAccountLinkRoute
   ApiAccountProfileRoute: typeof ApiAccountProfileRoute
   ApiAdminPromoRoute: typeof ApiAdminPromoRoute
@@ -442,6 +455,13 @@ declare module '@tanstack/react-router' {
       path: '/title-bgm'
       fullPath: '/title-bgm'
       preLoaderRoute: typeof TitleBgmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/rtc': {
+      id: '/api/rtc'
+      path: '/api/rtc'
+      fullPath: '/api/rtc'
+      preLoaderRoute: typeof ApiRtcRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/account/link': {
@@ -621,6 +641,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PartnerRoute: PartnerRoute,
   TitleBgmRoute: TitleBgmRoute,
+  ApiRtcRoute: ApiRtcRoute,
   ApiAccountLinkRoute: ApiAccountLinkRoute,
   ApiAccountProfileRoute: ApiAccountProfileRoute,
   ApiAdminPromoRoute: ApiAdminPromoRoute,
