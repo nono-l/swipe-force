@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 自機の発射。
+ */
+/**
  * Named player/enemy fire entrypoints (thin wrappers over projectile builders).
  */
 

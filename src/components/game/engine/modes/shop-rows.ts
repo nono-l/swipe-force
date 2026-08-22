@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ショップの行。
+ */
+/**
  * Power shop list row view-model (pure).
  */
 

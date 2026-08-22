@@ -1,4 +1,7 @@
 /**
+ * JPDOC: タイトル余白バナーのゲーム側フック。
+ */
+/**
  * Title-screen random media banner (bottom-left).
  * Uses catalog videos; thumbnail from YouTube (no heavy embed on title).
  */

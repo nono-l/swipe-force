@@ -1,5 +1,8 @@
 // @ts-nocheck
 /**
+ * JPDOC: 面・モードごとの BGM キュー。
+ */
+/**
  * Music / BGM (procedural chiptune). Implementation: ./engine.ts
  *
  * Readable public API + internal helpers used by the scheduler.

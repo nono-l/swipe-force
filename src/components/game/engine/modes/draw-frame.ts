@@ -1,4 +1,7 @@
 /**
+ * JPDOC: フレーム描画の部品関数。
+ */
+/**
  * Top-level draw mode routing (recovered qi).
  */
 

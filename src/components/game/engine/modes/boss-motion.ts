@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ボスの移動パターン。
+ */
+/**
  * Boss / grunt motion step (pure position update).
  */
 

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: プレビュー用認証。
+ */
+/**
  * Shared LIVE-PREVIEW OAuth client (server-only — NEVER import from the client).
  *
  * The sandbox serves each live preview on a dynamic `https://*.grok-sandbox.com`

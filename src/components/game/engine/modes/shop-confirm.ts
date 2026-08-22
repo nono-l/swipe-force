@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 購入確認。
+ */
+/**
  * Shop pointer-up / empty-tap confirm (recovered Qi / $i).
  */
 

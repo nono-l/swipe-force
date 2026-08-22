@@ -1,3 +1,6 @@
+/**
+ * JPDOC: Postgres / PGLite の接続口。ホスト側の正。
+ */
 /** Which database backend is active. */
 export type DbSource = "neon" | "pglite";
 

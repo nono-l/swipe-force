@@ -1,3 +1,6 @@
+/**
+ * JPDOC: ブラウザ側の認証。Bearer をゲームAPIへ載せる。
+ */
 import { genericOAuthClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import { GROK_PROVIDERS } from "./providers";

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: タイトルメニュー構造。Extra の Esc は1段戻る。
+ */
+/**
  * Title attract menu rows (root / difficulty / extra).
  * Pure data — recovered-game draws and handles input.
  */

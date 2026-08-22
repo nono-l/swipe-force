@@ -1,4 +1,7 @@
 /**
+ * JPDOC: タイトル描画。
+ */
+/**
  * Title screen menu row colors / link button styles (pure).
  */
 

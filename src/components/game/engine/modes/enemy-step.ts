@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 敵の1フレーム更新。
+ */
+/**
  * Grunt / boss entity per-frame motion (recovered Ki enemy loop pure bits).
  */
 

@@ -1,5 +1,8 @@
 // @ts-nocheck
 /**
+ * JPDOC: クラウドセーブの送受信。プレイ時間を含める。
+ */
+/**
  * Account link + cloud save (continue coins / easy ups / inbox / play stats).
  * Storage keys + GET/POST /api/account/link helpers.
  */

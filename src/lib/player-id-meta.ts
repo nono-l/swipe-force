@@ -1,3 +1,6 @@
+/**
+ * JPDOC: 短いプレイヤーIDの正規化。
+ */
 /** Local metadata for game player IDs (creation time). */
 
 const META_KEY = "swipe_force_id_meta_v1";

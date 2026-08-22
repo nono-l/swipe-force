@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 受信箱の描画。
+ */
+/**
  * Inbox list / detail view-models (pure).
  */
 

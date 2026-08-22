@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ボス定義。曲の雰囲気タグを含む。
+ */
+/**
  * @deprecated Prefer `@/lib/stages` — kept for existing imports.
  * Re-exports the 64-stage boss roster.
  */

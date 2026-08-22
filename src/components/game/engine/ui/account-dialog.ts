@@ -1,4 +1,7 @@
 /**
+ * JPDOC: アカウント連携ダイアログ。
+ */
+/**
  * Account link dialog DOM (title LINK button).
  * Behavior callbacks injected — no game state imports.
  */

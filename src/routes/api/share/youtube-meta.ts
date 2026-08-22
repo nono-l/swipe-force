@@ -1,4 +1,7 @@
 /**
+ * JPDOC: oEmbed でタイトルとチャンネルを取る。クライアントのCORS回避。
+ */
+/**
  * Server-side YouTube metadata (title) via oEmbed — no API key.
  * Client uses this to avoid CORS issues with youtube.com/oembed.
  */

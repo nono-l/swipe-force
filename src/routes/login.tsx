@@ -1,3 +1,6 @@
+/**
+ * JPDOC: ログイン。
+ */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { GROK_PROVIDERS, authEnabled, signIn } from "@/lib/auth/client";
 

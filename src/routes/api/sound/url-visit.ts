@@ -1,3 +1,6 @@
+/**
+ * JPDOC: コメント内URLを本当に開いた記録。
+ */
 import { createFileRoute } from "@tanstack/react-router";
 import { getSql } from "@/lib/db";
 import { getLinkedPlayerId, unlinkedJson } from "@/lib/require-linked";

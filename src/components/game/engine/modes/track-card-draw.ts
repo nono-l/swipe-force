@@ -1,4 +1,7 @@
 /**
+ * JPDOC: トラックカード描画。
+ */
+/**
  * Sound-test track card layout (recovered Di).
  */
 

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 視聴ミッションUI。停止中はカウントしない。ミュート解除でノルマ2倍速。
+ */
+/**
  * GrokBuild-Promotion snapshot
  * layer: KERNEL
  * origin: src/lib/media-watch-ui.ts

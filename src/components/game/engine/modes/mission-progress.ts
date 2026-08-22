@@ -1,4 +1,7 @@
 /**
+ * JPDOC: シェアミッションの進捗。
+ */
+/**
  * Share-mission stage triggers (recovered hi / gi).
  */
 

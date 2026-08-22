@@ -1,4 +1,7 @@
 /**
+ * JPDOC: コメント投稿の流れ。
+ */
+/**
  * Sound-test comments open / return mode (recovered ji / Xe).
  */
 

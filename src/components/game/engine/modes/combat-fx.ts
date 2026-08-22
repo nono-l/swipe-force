@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 撃破エフェクト。
+ */
+/**
  * Particle FX descriptors (recovered Pr).
  */
 

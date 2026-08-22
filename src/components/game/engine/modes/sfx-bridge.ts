@@ -1,4 +1,7 @@
 /**
+ * JPDOC: SE 呼び出しの橋。
+ */
+/**
  * Readable SFX bridge over recovered audio short names.
  */
 

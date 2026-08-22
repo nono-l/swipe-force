@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ロックオン対象の選定。
+ */
+/**
  * Target selection for missiles / lock-hasVisitedUrl (recovered Ir).
  */
 

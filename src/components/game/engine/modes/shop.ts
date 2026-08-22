@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ショップ状態。
+ */
+/**
  * Power shop — catalog bgmSetBgmVol-exports + pricing helpers.
  */
 export {

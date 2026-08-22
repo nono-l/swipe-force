@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 設定の localStorage。
+ */
+/**
  * Default settings + localStorage merge (recovered getLocalTrackComments / cacheLocalComment / load).
  */
 

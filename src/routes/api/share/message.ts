@@ -1,3 +1,6 @@
+/**
+ * JPDOC: ファンレター／お礼。
+ */
 import { createFileRoute } from "@tanstack/react-router";
 import { getSql } from "@/lib/db";
 import { sanitizeFanMessage } from "@/lib/sanitize-message";

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ユーザー入力のサニタイズ。XSSをここに閉じる。
+ */
+/**
  * Strict text sanitizer (client + server).
  * Blocks null/control codes, HTML/SQL metacharacters, bidi tricks, etc.
  * Allowlists JP/EN text, safe punctuation, and standard emoji.

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ステージ定義。
+ */
+/**
  * SWIPE FORCE — 64 stages (wrap forever after FINAL SWIPE).
  *
  * Single source of truth for stage/boss roster used by gameplay,

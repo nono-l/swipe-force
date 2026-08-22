@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 曲リストと旧曲枠。
+ */
+/**
  * Sound-test menu lists (pure data).
  * Recovered `Fi` / `Ii` + comment list formatting.
  */

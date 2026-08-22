@@ -1,4 +1,7 @@
 /**
+ * JPDOC: リストの窓（カーソルが見える範囲）。
+ */
+/**
  * Shared list windowing (shop / options / sound comments).
  * Pure: given cursor + page size → first visible index.
  */

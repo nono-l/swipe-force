@@ -1,4 +1,7 @@
 /**
+ * JPDOC: オプションの階層ナビ。
+ */
+/**
  * Options list cursor navigation (recovered oa / la decisions).
  */
 

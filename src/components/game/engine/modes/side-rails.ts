@@ -1,4 +1,7 @@
 /**
+ * JPDOC: レールボタン定義。
+ */
+/**
  * Left/right convenience rail button layouts.
  * Pure config — recovered-game draws and hits against these.
  */

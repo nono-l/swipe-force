@@ -1,3 +1,6 @@
+/**
+ * JPDOC: シェアミッション達成の記録。
+ */
 import { createFileRoute } from "@tanstack/react-router";
 import { getSql } from "@/lib/db";
 

@@ -1,3 +1,6 @@
+/**
+ * JPDOC: 表示名・プロフィール。
+ */
 import { createFileRoute } from "@tanstack/react-router";
 import { getSql } from "@/lib/db";
 import { auth, authConfigured } from "@/lib/auth/server";

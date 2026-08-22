@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 与ダメージと撃破。
+ */
+/**
  * Enemy damage / kill outcomes (recovered Lr pure).
  */
 

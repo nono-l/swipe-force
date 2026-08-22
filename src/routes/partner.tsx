@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 広告主ポータルの単独ページ。/advertiser は広告ブロッカーに消されるので使わない。
+ */
+/**
  * Direct URL for linked advertisers: /partner
  * Requires external account link. Guests are sent to /login?next=/partner
  */

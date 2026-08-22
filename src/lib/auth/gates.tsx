@@ -1,3 +1,6 @@
+/**
+ * JPDOC: 未ログインの門。
+ */
 import type { ReactNode } from "react";
 import { Navigate } from "@tanstack/react-router";
 import { authEnabled, signOut } from "./client";

@@ -1,5 +1,8 @@
 // @ts-nocheck
 /**
+ * JPDOC: サウンドコメント投稿。
+ */
+/**
  * Sound-test comment composer (write form).
  * Recovered `Pi` — gate (link required / busy) stays in game.
  */

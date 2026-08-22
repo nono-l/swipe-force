@@ -1,4 +1,7 @@
 /**
+ * JPDOC: エンジン側ボス参照。
+ */
+/**
  * Recovered-game API for the 64-stage boss roster.
  * Data lives in `@/lib/stages` — readable re-exports only.
  */

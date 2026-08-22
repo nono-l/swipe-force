@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 敵の生成と一覧。
+ */
+/**
  * Pure enemy / boss entity builders (recovered zr / Br).
  */
 

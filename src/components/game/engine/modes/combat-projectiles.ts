@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 弾の移動と寿命。
+ */
+/**
  * Pure projectile / bullet descriptors for player & enemy fire.
  * Callers push onto the bullet array and play SFX.
  */

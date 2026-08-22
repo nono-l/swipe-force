@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 出撃ロードアウト。
+ */
+/**
  * Weapon loadout levels: owned vs armed (recovered saveVotesStore / q / loadUrlReportsStore / saveUrlReportsStore).
  */
 

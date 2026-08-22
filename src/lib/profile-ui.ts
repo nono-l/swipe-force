@@ -1,3 +1,6 @@
+/**
+ * JPDOC: プロフィール表示。カスタムドメインと通常ドメインで同じIDを共有する前提。
+ */
 /** DOM dialogs for profile + player status (link perks / meta UI). */
 
 import {

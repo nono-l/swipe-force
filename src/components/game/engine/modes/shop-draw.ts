@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ショップ描画。
+ */
+/**
  * Power shop chrome: header chips, footer buttons, tier banner (pure).
  */
 

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 視聴の請求。時が変われば時間上限リセット。1秒=1クレジット。
+ */
+/**
  * Ad-watch continue-coin claims + advertiser credit billing.
  *
  * 1 watched second = 1 ad credit (owner ads only; platform free).

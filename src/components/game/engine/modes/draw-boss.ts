@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ボス描画の部品。
+ */
+/**
  * Boss body + HP bar draw specs (recovered Zr).
  */
 

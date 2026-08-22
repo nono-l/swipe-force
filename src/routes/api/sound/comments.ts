@@ -1,3 +1,6 @@
+/**
+ * JPDOC: サウンドコメント。
+ */
 import { createFileRoute } from "@tanstack/react-router";
 import { getSql } from "@/lib/db";
 import { getLinkedPlayerId, unlinkedJson } from "@/lib/require-linked";

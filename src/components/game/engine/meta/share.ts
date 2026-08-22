@@ -1,5 +1,8 @@
 // @ts-nocheck
 /**
+ * JPDOC: シェアパラメータ。
+ */
+/**
  * Share / coins / missions barrel.
  *   player-local.ts  — localStorage player, coins, missions
  *   share-net.ts     — Twitter intent + /api/share/*

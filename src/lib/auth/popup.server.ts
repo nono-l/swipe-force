@@ -1,4 +1,7 @@
 /**
+ * JPDOC: OAuth ポップアップ完了。
+ */
+/**
  * Live-preview sign-in popup — server-only (NEVER import from the client).
  *
  * The sandbox preview runs the app in a partitioned iframe, so OAuth must happen

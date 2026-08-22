@@ -1,3 +1,6 @@
+/**
+ * JPDOC: 視聴カタログの管理。チャンネルリンクの出否はデフォルトオフ。
+ */
 import { partnerPortalUrl, openPartnerPortal } from "@/lib/partner-portal-url";
 /**
  * Dedicated Ad management UI (admin only).

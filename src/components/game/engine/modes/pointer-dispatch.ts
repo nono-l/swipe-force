@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ポインタをモード別に振る。
+ */
+/**
  * Pointer-down mode routing (recovered fa pure decisions).
  */
 

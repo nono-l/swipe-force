@@ -1,3 +1,6 @@
+/**
+ * JPDOC: シェア文面。本文・ハッシュタグ・URL を空行で分ける。
+ */
 /** Client helpers for share-referral continue coins + missions. */
 
 import { sanitizeFanMessage } from "@/lib/sanitize-message";

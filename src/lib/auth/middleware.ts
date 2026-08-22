@@ -1,3 +1,6 @@
+/**
+ * JPDOC: 認証ミドルウェア。
+ */
 import { createMiddleware } from "@tanstack/react-start";
 
 /**

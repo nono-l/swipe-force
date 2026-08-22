@@ -1,7 +1,8 @@
 /**
- * Display i18n.
- * ja if the browser is Japanese, otherwise English.
- * Add a language: copy ja.ts, register in locales.ts + DICTS below.
+ * JPDOC: 翻訳関数 translate()。1文字の t は圧縮後の引数と衝突するので使わない。
+ *
+ * ブラウザが日本語なら ja、それ以外は en。
+ * 言語を足すときは ja.ts をコピーし、locales.ts と DICTS に登録する。
  */
 
 import { useEffect, useState } from "react";

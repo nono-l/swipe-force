@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 自機描画。
+ */
+/**
  * Player ship + option pods draw specs.
  */
 

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ミッションHUD。
+ */
+/**
  * Share-mission HUD strips (title ti + in-play ei).
  */
 

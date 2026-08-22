@@ -1,4 +1,7 @@
 /**
+ * JPDOC: p2p。SWIPE FORCE のソース。意図が分かるよう日本語で残す。
+ */
+/**
  * Full-mesh WebRTC rooms: one RTCPeerConnection per remote peer, signaled
  * through /api/rtc (see signaling.server.ts), game data flowing directly
  * browser-to-browser afterwards. Client-authoritative by construction — see

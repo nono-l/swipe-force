@@ -1,4 +1,7 @@
 /**
+ * JPDOC: チュートリアルの左下ドック。受け取った報酬は二度出さない。
+ */
+/**
  * Bottom-left tutorial dock (same shape as the ad-watch coin history).
  * Only mounted during a How-To-launched Easy run.
  */

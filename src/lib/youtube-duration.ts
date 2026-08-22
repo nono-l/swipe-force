@@ -1,4 +1,7 @@
 /**
+ * JPDOC: YouTube URL から動画IDと尺を取る。APIキーなし。
+ */
+/**
  * Fetch YouTube video duration (seconds) via IFrame API — no Data API key.
  * Spins up a temporary off-screen player, reads getDuration(), destroys it.
  * Title via oEmbed (server proxy + noembed fallback).

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: HUD の小さなチップ。
+ */
+/**
  * canSendFanmailTo-play HUD weapon chips + life pips (recovered $r pure data).
  */
 

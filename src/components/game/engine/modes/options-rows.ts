@@ -1,4 +1,7 @@
 /**
+ * JPDOC: オプションの行定義。
+ */
+/**
  * Pure builders for the OPTIONS menu rows.
  * Recovered game calls these with local unlock/level accessors — behavior frozen.
  */

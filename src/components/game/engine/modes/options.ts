@@ -1,4 +1,7 @@
 /**
+ * JPDOC: オプション状態。
+ */
+/**
  * Options mode map (recovered-game).
  *
  * Entry: mergeEasyUpgrades(from)  from = "attract" | "shop"

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ミッション達成のトースト。
+ */
+/**
  * Mission clear / reject float texts (recovered mi).
  */
 

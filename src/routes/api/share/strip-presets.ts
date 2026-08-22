@@ -1,4 +1,7 @@
 /**
+ * JPDOC: バナー文字プリセットのクラウド。
+ */
+/**
  * Text style presets for strip editor.
  * Path avoids "banner"/"ad" for ad-blockers.
  */

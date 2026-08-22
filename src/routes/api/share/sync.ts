@@ -1,3 +1,6 @@
+/**
+ * JPDOC: 連携セーブの同期。
+ */
 import { createFileRoute } from "@tanstack/react-router";
 import { getSql } from "@/lib/db";
 

@@ -1,3 +1,6 @@
+/**
+ * JPDOC: TanStack Router の生成ルート接続。
+ */
 import { createRouter } from "@tanstack/react-router";
 import { AppErrorComponent } from "@/lib/error-component";
 import { routeTree } from "./routeTree.gen";

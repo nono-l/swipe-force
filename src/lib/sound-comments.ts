@@ -1,3 +1,6 @@
+/**
+ * JPDOC: サウンドテストコメントのクライアント。
+ */
 /** Sound-test comments, votes, URL reports/visits (local + API). */
 
 import {

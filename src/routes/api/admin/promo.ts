@@ -1,4 +1,7 @@
 /**
+ * JPDOC: プロモCRUD。管理者だけ。使用回数はユニークプレイヤー。
+ */
+/**
  * Admin promo codes (DB-backed).
  * GET    — list builtins + custom (auth staff)
  * POST   — upsert custom code

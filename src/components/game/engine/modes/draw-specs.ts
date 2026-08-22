@@ -1,4 +1,7 @@
 /**
+ * JPDOC: スペック表示。
+ */
+/**
  * Canvas-free draw specs for bullets / grunts / shake.
  * Game loop applies Q/l with these values.
  */

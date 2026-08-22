@@ -1,3 +1,6 @@
+/**
+ * JPDOC: 認証 React プロバイダ。
+ */
 import type { ReactNode } from "react";
 
 /**

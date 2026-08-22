@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 武器クールダウン。
+ */
+/**
  * Weapon cooldown ticks + fire decisions (recovered Ki playing block).
  */
 

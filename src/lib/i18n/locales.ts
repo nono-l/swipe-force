@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 対応言語の登録。ブラウザが日本語でなければ英語。後から言語を足せる形。
+ */
+/**
  * Locale registry.
  * To add a language later:
  *   1. Copy ja.ts → <id>.ts and translate

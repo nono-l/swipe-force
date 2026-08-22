@@ -1,4 +1,7 @@
 /**
+ * JPDOC: メール／パスワード認証。
+ */
+/**
  * Local email/password sign-in (this app's Better Auth DB — not the broker).
  *
  * Off by default. To enable: set `emailAndPasswordEnabled` to `true` below,

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: チュートリアル進行。説明画面からのリンク限定。コンティニュー必要枚数は 0。
+ */
+/**
  * Tutorial-run missions (Easy, launched only from the How-To page).
  * Rewards grant once per player — replay does not pay again.
  */

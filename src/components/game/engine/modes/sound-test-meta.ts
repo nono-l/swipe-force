@@ -1,4 +1,7 @@
 /**
+ * JPDOC: トラックカードのメタ。
+ */
+/**
  * Sound-test track card metadata (pure).
  * Drawing / network stay in recovered-game.
  */

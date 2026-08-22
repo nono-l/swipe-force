@@ -1,4 +1,7 @@
 /**
+ * JPDOC: modes をエンジンへ渡す公開バレル。
+ */
+/**
  * Aggregated pure helpers for recovered-game wiring.
  */
 

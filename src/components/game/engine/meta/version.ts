@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 表示用バージョン。
+ */
+/**
  * App version / changelog — re-export from `@/lib/version-history`.
  */
 export {

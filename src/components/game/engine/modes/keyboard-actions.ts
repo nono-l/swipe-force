@@ -1,4 +1,7 @@
 /**
+ * JPDOC: キーボード。Esc は1段戻る。
+ */
+/**
  * Keyboard → high-level action ids by game mode (recovered ba pure core).
  * Side effects stay in the game loop.
  */

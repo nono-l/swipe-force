@@ -1,3 +1,6 @@
+/**
+ * JPDOC: プレビュー隔離。
+ */
 import { getRequest } from "@tanstack/react-start/server";
 
 /**

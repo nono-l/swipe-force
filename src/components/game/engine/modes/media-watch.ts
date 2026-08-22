@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 視聴のはしご計算。数字は変えてよいが形は核。
+ */
+/**
  * "Ad watch" continue-coin mission — YouTube embed.
  *
  * Videos come from admin config (server).

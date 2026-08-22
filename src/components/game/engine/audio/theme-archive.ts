@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 差し替え前の旧BGM。サウンドテストの「旧曲」枠。使用期間の日付を残す。
+ */
+/**
  * Theme archive — old arrangements kept for Sound Test after replacements.
  *
  * Workflow when swapping a track:

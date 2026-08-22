@@ -1,4 +1,7 @@
 /**
+ * JPDOC: モードごとの時間経過。面クリア→ショップもここ。
+ */
+/**
  * Non-playing mode transitions each frame (recovered Ki early branches).
  */
 

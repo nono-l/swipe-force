@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 連携必須の入口ロック。
+ */
+/**
  * Account-link gate messages (recovered Si).
  */
 

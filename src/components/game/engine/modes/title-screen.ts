@@ -1,4 +1,7 @@
 /**
+ * JPDOC: タイトル画面状態。
+ */
+/**
  * Title attract layout bits (recovered fi pure).
  */
 

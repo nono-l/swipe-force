@@ -1,4 +1,7 @@
 /**
+ * JPDOC: modes / meta / audio をエンジンへ渡す実行時バレル。短い別名の衝突をここで止める。
+ */
+/**
  * Named runtime bindings for recovered-game (split by source module).
  * Readable names after deobfuscation of the minified production bundle.
  */

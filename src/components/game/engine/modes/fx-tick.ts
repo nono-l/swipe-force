@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 粒子と浮動テキストの寿命。
+ */
+/**
  * Ambient FX lifetimes each frame (stars, floats, particles).
  */
 

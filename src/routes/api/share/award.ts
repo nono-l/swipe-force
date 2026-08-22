@@ -1,3 +1,6 @@
+/**
+ * JPDOC: シェア報酬（コンティニューコイン）の付与。
+ */
 import { createFileRoute } from "@tanstack/react-router";
 import { getSql } from "@/lib/db";
 

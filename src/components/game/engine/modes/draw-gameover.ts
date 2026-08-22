@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ゲームオーバー画面。
+ */
+/**
  * Game over screen layout / styles (pure).
  */
 

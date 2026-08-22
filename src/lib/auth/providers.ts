@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 外部プロバイダ一覧。
+ */
+/**
  * The upstream identity providers this app offers for sign-in (via the broker).
  *
  * Source of truth for BOTH the server (`server.ts`, one `genericOAuth` provider

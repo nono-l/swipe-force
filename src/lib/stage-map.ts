@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 64面マップチップの並べとスクロール方向。
+ */
+/**
  * SWIPE FORCE — Xevious-style map chips for all 64 stages.
  * Tiles are procedural 16×16 chips (atlas), layouts are seeded tilemaps.
  * Draw under stars/entities in the playfield.

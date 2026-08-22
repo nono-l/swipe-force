@@ -1,4 +1,7 @@
 /**
+ * JPDOC: サウンドテストのポインタ。
+ */
+/**
  * Sound-test pointer down / drag / up (recovered Vi / Hi / Ui).
  */
 

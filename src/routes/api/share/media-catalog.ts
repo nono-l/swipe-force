@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 視聴カタログ。show_channel / claim_once を含む。
+ */
+/**
  * Ad video admin + public list.
  *
  * GET  — list videos (+ stats). Query admin=1&playerId= for full admin fields + per-ID watch.

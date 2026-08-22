@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ショップの当たり。
+ */
+/**
  * Power shop pointer hit testing (pure).
  */
 

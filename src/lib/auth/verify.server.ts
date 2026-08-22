@@ -1,3 +1,6 @@
+/**
+ * JPDOC: トークン検証。
+ */
 import { getRequest } from "@tanstack/react-start/server";
 import { auth, authConfigured } from "./server";
 

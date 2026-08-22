@@ -1,3 +1,6 @@
+/**
+ * JPDOC: 外部ID連携。プレイ時間と作成日時も保存。
+ */
 import { createFileRoute } from "@tanstack/react-router";
 import { getSql } from "@/lib/db";
 import { auth, authConfigured } from "@/lib/auth/server";

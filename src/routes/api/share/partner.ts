@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 広告主の動画と統計。
+ */
+/**
  * Advertiser portal API — manage own ad videos with prepaid credit.
  *
  * GET  ?playerId=

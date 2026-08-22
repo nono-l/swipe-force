@@ -1,4 +1,7 @@
 /**
+ * JPDOC: バッグ消耗品の効果。倍率券は重複しない。PTSパックは何個でも。
+ */
+/**
  * Gift-only bag grants: daily login bonus + promo URL codes.
  * Built-in defs + custom promos (local admin UI).
  * unlocks lives as grant.unlocks string (e.g. "beam,flame") — no extra DB cols.

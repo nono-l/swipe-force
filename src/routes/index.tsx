@@ -1,3 +1,6 @@
+/**
+ * JPDOC: トップ。ゲームキャンバスを載せる。
+ */
 import { createFileRoute } from "@tanstack/react-router";
 import { SwipeForceGame } from "@/components/game/SwipeForceGame";
 import { bootLocale } from "@/lib/i18n";

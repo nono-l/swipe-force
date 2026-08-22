@@ -1,4 +1,7 @@
 /**
+ * JPDOC: レール描画。
+ */
+/**
  * Side rail button paint styles (pure).
  */
 

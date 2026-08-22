@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 1プレイのセッション。
+ */
+/**
  * New-run / new-stage pure state seeds (recovered authHeaders / setLinkedPlayerId).
  */
 

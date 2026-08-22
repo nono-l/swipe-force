@@ -1,4 +1,7 @@
 /**
+ * JPDOC: バナーエディタの単独ページ。ログインなしで使える。
+ */
+/**
  * Direct URL for banner editor: /banner
  * Guest OK — edit & download anytime.
  * Linked accounts can also publish to the title banner (weekly limit).

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: READY やボス名などのオーバーレイ。
+ */
+/**
  * canSendFanmailTo-field overlay draw specs: stage banners (recovered qi).
  */
 

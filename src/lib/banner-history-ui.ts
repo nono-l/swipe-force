@@ -1,4 +1,7 @@
 /**
+ * JPDOC: バナーの表示履歴と、外部へ飛んだクリック履歴。
+ */
+/**
  * Partner banner display / click history popup.
  */
 

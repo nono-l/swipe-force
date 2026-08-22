@@ -1,4 +1,7 @@
 /**
+ * JPDOC: PGLite 方言。
+ */
+/**
  * Kysely dialect for Better Auth over the app's embedded PGLite instance.
  * Lazy: resolves `getClient` on first connection so migrations can finish first.
  */

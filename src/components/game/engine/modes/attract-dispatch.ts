@@ -1,4 +1,7 @@
 /**
+ * JPDOC: タイトル入力を行動へ振り分ける。
+ */
+/**
  * Attract menu pointer action routing labels (recovered Gi).
  * Pure decision only — side effects stay in the game loop.
  */

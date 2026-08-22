@@ -1,4 +1,7 @@
 /**
+ * JPDOC: SE 合成（オシレータ）。ファイルを持たない。
+ */
+/**
  * Procedural chiptune BGM/SFX — Konami-ish punch + keygen arps.
  * Square/triangle/noise only, no audio files.
  * iOS: call unlockAudio() on first gesture.

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: プリペイドコードと広告クレジット台帳。
+ */
+/**
  * Prepaid codes for advertisers (admin issues, anyone with code redeems).
  *
  * GET  ?playerId= &admin=1  — admin: list codes / player: my balance

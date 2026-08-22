@@ -1,4 +1,7 @@
 /**
+ * JPDOC: シェアURLの ref/sid。
+ */
+/**
  * X share context label from current game mode (recovered Wi).
  */
 

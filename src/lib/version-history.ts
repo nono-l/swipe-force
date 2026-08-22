@@ -1,3 +1,6 @@
+/**
+ * JPDOC: バージョン履歴データ。サウンドテストと Extra が読む。
+ */
 /** SWIPE FORCE version & changelog (newest first). */
 
 export const APP_VERSION = "1.9.0";

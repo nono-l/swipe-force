@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 価格とティア解禁。
+ */
+/**
  * Pure shop pricing / unlock tier helpers.
  * State (upgrades, pts, linked) is passed in — no DOM.
  */

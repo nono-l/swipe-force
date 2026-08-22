@@ -1,4 +1,7 @@
 /**
+ * JPDOC: エンジンから BGM へ渡す薄い橋。
+ */
+/**
  * Readable BGM bridge over recovered audio short names.
  */
 

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 視聴カタログの取得クライアント。
+ */
+/**
  * Client helpers for admin ad-video management + player pool.
  */
 

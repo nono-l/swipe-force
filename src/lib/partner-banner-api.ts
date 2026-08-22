@@ -1,3 +1,6 @@
+/**
+ * JPDOC: スポンサーバナーの一覧・有効化・履歴。
+ */
 /** Client helpers for partner title-banner images */
 
 export type PartnerBanner = {

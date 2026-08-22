@@ -1,3 +1,6 @@
+/**
+ * JPDOC: ルートレイアウト。i18n と認証プロバイダ。
+ */
 import { HeadContent, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 

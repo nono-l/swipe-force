@@ -1,4 +1,7 @@
 /**
+ * JPDOC: サウンドテスト入力。
+ */
+/**
  * Sound-test list hit / scroll / activate (pure).
  */
 

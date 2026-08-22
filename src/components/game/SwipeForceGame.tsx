@@ -1,4 +1,7 @@
 /**
+ * JPDOC: SWIPE FORCE の公開エントリ。キャンバスエンジンだけを外へ出す。
+ */
+/**
  * SWIPE FORCE — main game component.
  *
  * Layout:

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: バナー画像・有効フラグ・表示/クリック課金。
+ */
+/**
  * Partner title-banner image upload (provisional).
  *
  * - Max 200 KB

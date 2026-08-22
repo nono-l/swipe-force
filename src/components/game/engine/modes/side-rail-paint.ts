@@ -1,4 +1,7 @@
 /**
+ * JPDOC: レールの色とラベル。
+ */
+/**
  * Side-rail paint model (recovered Qr pure).
  */
 

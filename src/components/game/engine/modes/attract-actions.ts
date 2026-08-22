@@ -1,4 +1,7 @@
 /**
+ * JPDOC: タイトルメニューの行動解決。空き地タップでは決定しない。
+ */
+/**
  * Title attract menu action resolution (pure).
  * Game maps action ids → side effects.
  */

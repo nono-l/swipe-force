@@ -1,4 +1,7 @@
 /**
+ * JPDOC: コンティニューの可否。チュートリアルは0枚。
+ */
+/**
  * Continue-from-gameover pure state (recovered xi success branch).
  */
 

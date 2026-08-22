@@ -1,4 +1,7 @@
 // @ts-nocheck
+/**
+ * JPDOC: 端末のプレイヤーID。
+ */
 /** Player id, continue coins, missions (localStorage). */
 
 export var KEY_PLAYER_ID = `swipe_force_player_v1`,

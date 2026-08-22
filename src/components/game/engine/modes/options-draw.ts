@@ -1,4 +1,7 @@
 /**
+ * JPDOC: オプション描画。
+ */
+/**
  * Options screen title / row colors (recovered ii pure bits).
  */
 

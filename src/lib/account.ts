@@ -1,3 +1,6 @@
+/**
+ * JPDOC: アカウント連携とクラウドセーブ。プレイ時間や作成日時も含める。
+ */
 /** Client helpers for Better Auth account link + cloud save. */
 
 import { getBearerToken } from "@/lib/auth/client";

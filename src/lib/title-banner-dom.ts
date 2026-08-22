@@ -1,4 +1,7 @@
 /**
+ * JPDOC: タイトル余白のバナーDOM。右上はスポンサ、左下は動画サムネ。
+ */
+/**
  * Title-screen sponsor strips in leftover black around the canvas:
  *  - bottom-left — YouTube ad video thumbnail + label only
  *  - top-right — partner custom image (or "広告募集中" placeholder)

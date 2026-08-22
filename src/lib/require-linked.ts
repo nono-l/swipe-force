@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 連携必須APIの共通ガード。
+ */
+/**
  * Server helper: sound-test social features require linked account session.
  */
 import { auth, authConfigured } from "@/lib/auth/server";

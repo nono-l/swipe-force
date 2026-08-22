@@ -1,4 +1,7 @@
 /**
+ * JPDOC: サーバー側 better-auth。
+ */
+/**
  * Self-hosted Better Auth for THIS app (server-only).
  *
  * Pre-wired for live preview + deploy — do not rewrite this file. To enable

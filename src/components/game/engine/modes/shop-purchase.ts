@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 購入処理。
+ */
+/**
  * Shop purchase pure application (recovered EMPTY_EASY_UPGRADES core).
  */
 

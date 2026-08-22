@@ -1,4 +1,7 @@
 // @ts-nocheck
+/**
+ * JPDOC: シェアAPIの通信。
+ */
 /** X share intent + continue-coin / mission / inbox network API. */
 import { sanitizeUserText } from "./sanitize";
 import {

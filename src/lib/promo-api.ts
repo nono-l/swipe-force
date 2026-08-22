@@ -1,3 +1,6 @@
+/**
+ * JPDOC: プロモ請求・一覧のクライアント。
+ */
 /** Client helpers for DB-backed promo codes. */
 
 import { getBearerToken } from "@/lib/auth/client";

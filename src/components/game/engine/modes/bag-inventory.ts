@@ -1,4 +1,7 @@
 /**
+ * JPDOC: バッグ在庫の読み書き。
+ */
+/**
  * Gift-only consumable bag (local). Stage ticket, PTS mult tickets, PTS packs.
  * Obtained via login bonus / promo links — not sold in shop.
  */

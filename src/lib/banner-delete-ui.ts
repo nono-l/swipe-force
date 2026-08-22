@@ -1,3 +1,6 @@
+/**
+ * JPDOC: バナー削除の3段確認。クレジットもアップロード枠も戻らない。
+ */
 /** 3-step last-resort confirm before deleting a partner banner. */
 
 import { translate } from "@/lib/i18n";

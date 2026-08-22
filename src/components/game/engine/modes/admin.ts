@@ -1,4 +1,7 @@
 /**
+ * JPDOC: スタッフACL。根管理者IDはコード定数で、DB行にしない。
+ */
+/**
  * Game admin / staff checks.
  * - SUPER_ADMIN_PLAYER_ID is hard-coded and never removable
  * - Extra admins come from /api/admin/staff (cached in localStorage)

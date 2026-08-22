@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ファンレター作成。
+ */
+/**
  * Fan-mail dialog to sharer (recovered yi DOM).
  */
 

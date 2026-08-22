@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 矩形当たり判定。
+ */
+/**
  * Simple AABB / proximity hits used by combat.
  */
 

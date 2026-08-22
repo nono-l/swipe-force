@@ -1,3 +1,6 @@
+/**
+ * JPDOC: 広告主ポータルの直リンク。管理画面からコピーできる。
+ */
 /** Canonical partner portal URL helpers */
 
 export function partnerPortalPath(): string {

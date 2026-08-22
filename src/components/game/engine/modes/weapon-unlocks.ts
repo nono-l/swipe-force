@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 武器解禁フラグ。
+ */
+/**
  * Promo / gift special weapon unlocks (local).
  * Stored as a single string of comma-separated ids — no extra DB columns.
  * grant_json.unlocks = "beam,flame"

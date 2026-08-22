@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ショップスクロール。
+ */
+/**
  * Shop list cursor scroll (recovered ra / ta / ea).
  */
 

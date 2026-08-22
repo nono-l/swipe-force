@@ -1,4 +1,7 @@
 /**
+ * JPDOC: MUTEボタン等の固定ヒット領域。
+ */
+/**
  * Shared pointer / tap hit zones (pure geometry).
  */
 

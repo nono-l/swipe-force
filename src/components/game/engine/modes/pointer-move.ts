@@ -1,4 +1,7 @@
 /**
+ * JPDOC: スワイプ追従。
+ */
+/**
  * Pointer-move mode routing (recovered pa).
  */
 

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 説明ページ。ここからのみチュートリアル付きイージーへ入れる。
+ */
+/**
  * How-to / explanation overlay. Tutorial Easy starts only from here.
  */
 

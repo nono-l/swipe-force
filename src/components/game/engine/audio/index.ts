@@ -1,4 +1,7 @@
 /**
+ * JPDOC: audio モジュールの公開面。
+ */
+/**
  * Audio public surface.
  * - ./sfx  — sound effects
  * - ./bgm  — music

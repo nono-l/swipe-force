@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 自機移動。A は左。反転禁止。
+ */
+/**
  * Keyboard / virtual stick axis (pure).
  */
 

@@ -1,4 +1,8 @@
-/** Shared promo helpers for API routes (built-ins + grant sanitize). */
+/**
+ * JPDOC: プロモコードの核。付与は grant_json の文字列1本。カラムを種類ごとに増やさない。
+ *
+ * カーネルは中身の意味を知らない。期限・回数・二度渡ししない、だけを見る。
+ */
 
 export type GrantBundle = {
   stageTicket?: number;
@@ -6,8 +10,8 @@ export type GrantBundle = {
   ptsX10?: number;
   ptsPack?: number;
   /**
-   * Special weapon unlocks as one string (DB stays grant_json only).
-   * e.g. "beam,flame" — whitelist: beam (OPT-LASER), flame (FLAME)
+   * 特殊武器の解禁。カンマ区切り1文字列（DBは grant_json のみ）。
+   * 例: "beam,flame" — 許可: beam (OPT-LASER), flame (FLAME)
    */
   unlocks?: string;
 };
@@ -21,19 +25,19 @@ export type PromoDefServer = {
   createdBy?: string;
   createdAt?: string;
   updatedAt?: string;
-  /** how many players claimed (unique player_id) */
+  /** 使ったユニークプレイヤー数 */
   claimCount?: number;
-  /** ISO date/time or '' = no expiry */
+  /** ISO 日時。空なら無期限 */
   expiresAt?: string;
-  /** 0 = unlimited */
+  /** 0 なら無制限 */
   maxClaims?: number;
 };
 
-/** Normalize expires_at: empty / invalid → ''; else ISO string end-of-day if date-only. */
+/** 期限を正規化。空・不正は ''。日付のみならその日の終端（UTC）。 */
 export function normalizeExpiresAt(raw: unknown): string {
   const s = String(raw || "").trim();
   if (!s) return "";
-  // YYYY-MM-DD → end of that day UTC
+  // YYYY-MM-DD → その日の終わり UTC
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
     const t = Date.parse(s + "T23:59:59.999Z");
     if (!Number.isFinite(t)) return "";
@@ -44,7 +48,7 @@ export function normalizeExpiresAt(raw: unknown): string {
   return new Date(t).toISOString();
 }
 
-/** 0 = unlimited, max 1_000_000 */
+/** 0 は無制限。上限 1_000_000 */
 export function normalizeMaxClaims(raw: unknown): number {
   const n = Math.floor(Number(raw) || 0);
   if (!Number.isFinite(n) || n <= 0) return 0;

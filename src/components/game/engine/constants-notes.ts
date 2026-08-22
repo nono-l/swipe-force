@@ -1,4 +1,7 @@
 /**
+ * JPDOC: プレイ領域・レール幅など、描画と当たり判定が共有する定数。
+ */
+/**
  * Documented storage keys / constants used by the recovered engine.
  * Values must stay in sync with recovered-support / recovered-game.
  * (This file is documentation + bgmSetBgmVol-exports for new code; the recovered

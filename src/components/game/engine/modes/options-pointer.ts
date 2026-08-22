@@ -1,4 +1,7 @@
 /**
+ * JPDOC: オプションのポインタ。
+ */
+/**
  * Options pointer down/up pure decisions (recovered sa / ua).
  */
 

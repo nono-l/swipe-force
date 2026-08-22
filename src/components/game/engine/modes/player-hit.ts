@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 自機被弾。
+ */
+/**
  * Player hit / death (recovered Rr pure).
  */
 

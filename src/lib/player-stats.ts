@@ -1,3 +1,6 @@
+/**
+ * JPDOC: プレイ統計。武器所持などの判定。
+ */
 /** Persistent player stats (local + cloud merge helpers). */
 
 import {

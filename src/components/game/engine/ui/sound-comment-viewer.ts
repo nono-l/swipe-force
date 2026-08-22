@@ -1,5 +1,8 @@
 // @ts-nocheck
 /**
+ * JPDOC: サウンドコメント閲覧。
+ */
+/**
  * Sound-test comment viewer (cushion URL UI).
  * Recovered `Ni` — behavior preserved via opts injection.
  */

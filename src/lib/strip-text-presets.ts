@@ -1,4 +1,7 @@
 /**
+ * JPDOC: バナー文字プリセット。ローカルまたはクラウド。
+ */
+/**
  * Reusable text styles for the strip/banner editor.
  * - Always: localStorage
  * - Linked: also Postgres (per player)

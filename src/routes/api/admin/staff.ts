@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 追加管理者の任命。根管理者はこの表に入れない。
+ */
+/**
  * Game staff (appointed admins). Super admin is hard-coded client+server.
  * GET  — list (auth optional; returns super + appointed)
  * POST — appoint (caller must be admin)

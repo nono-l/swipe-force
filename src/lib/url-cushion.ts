@@ -1,3 +1,6 @@
+/**
+ * JPDOC: 外部URLの2段クッション。開くこと自体は未連携可。評価だけ連携必須。
+ */
 /** Shared 2-step outbound-link cushion (sound-test / profile / banners). */
 
 import {

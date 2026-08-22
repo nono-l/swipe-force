@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 連射間隔・移動速度・スワイプ追従。
+ */
+/**
  * Weapon fire intervals & spawn cadence (pure formulas from recovered Ki).
  * Levels come from unlocked+armed counts (`q(key)`).
  */

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: プレイヤーのプロモ請求。grant_json をホストの持ち物へ渡す。
+ */
+/**
  * Claim a promo code for a player (guest or linked).
  * POST { code, playerId }
  * - resolves built-in or DB custom codes

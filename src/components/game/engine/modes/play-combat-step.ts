@@ -1,4 +1,7 @@
 /**
+ * JPDOC: プレイ中の戦闘1ステップ。
+ */
+/**
  * Playing-mode combat step orchestration helpers (recovered Ki).
  * Pure decision bits only — side effects stay in the loop.
  */

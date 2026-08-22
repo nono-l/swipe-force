@@ -1,4 +1,7 @@
 /**
+ * JPDOC: バージョン履歴の行とスクロール。
+ */
+/**
  * Version history flat rows for changelog mode.
  */
 

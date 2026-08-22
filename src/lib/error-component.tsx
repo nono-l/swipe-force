@@ -1,3 +1,6 @@
+/**
+ * JPDOC: error-component。SWIPE FORCE のソース。意図が分かるよう日本語で残す。
+ */
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { TriangleAlert } from "lucide-react";
 

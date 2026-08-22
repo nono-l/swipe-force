@@ -1,4 +1,7 @@
 /**
+ * JPDOC: タイトルBGMの試聴ページ。
+ */
+/**
  * Title BGM sample player — KEYGEN-style attract theme (~2 min form).
  * Open /title-bgm to audition without navigating the in-game menu.
  */

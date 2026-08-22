@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 画面スタック。
+ */
+/**
  * Shop / options open-close pure seeds (recovered loadEasyUpgradesCloud / saveEasyUpgradesCloud / mergeEasyUpgrades).
  */
 

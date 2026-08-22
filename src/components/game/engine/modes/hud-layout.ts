@@ -1,4 +1,7 @@
 /**
+ * JPDOC: HUD の座標。
+ */
+/**
  * canSendFanmailTo-play HUD text lines (recovered $r pure).
  */
 

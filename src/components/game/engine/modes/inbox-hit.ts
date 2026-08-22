@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 受信箱の当たり判定。
+ */
+/**
  * Inbox pointer hit testing (recovered fa inbox branch).
  */
 

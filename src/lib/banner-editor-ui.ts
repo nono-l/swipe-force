@@ -1,4 +1,7 @@
 /**
+ * JPDOC: バナーキャンバス編集。未ログインでも使える。文字プリセットは連携時クラウド。
+ */
+/**
  * Banner crop editor for non-designers.
  * Place images + movable text, crop frame H≤85 / W=H×(1.5…5.0), export JPEG.
  */

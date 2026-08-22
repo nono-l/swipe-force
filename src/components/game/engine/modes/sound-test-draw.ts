@@ -1,4 +1,7 @@
 /**
+ * JPDOC: サウンドテスト描画。
+ */
+/**
  * Sound-test footer / vote button paint specs (recovered Ri).
  */
 

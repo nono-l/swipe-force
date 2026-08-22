@@ -1,4 +1,7 @@
 // @ts-nocheck
+/**
+ * JPDOC: サウンドコメントの通信。
+ */
 /** Sound-test comments, votes, URL reports & visits (recovered). */
 
 // ── Sound test comments & votes ──

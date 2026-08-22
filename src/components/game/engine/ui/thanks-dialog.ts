@@ -1,4 +1,7 @@
 /**
+ * JPDOC: お礼の返信。
+ */
+/**
  * Thanks-reply dialog for inbox mission messages (recovered loadLocalCommentsStore DOM).
  */
 

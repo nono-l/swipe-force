@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 広告主ポータル。自分の動画だけ。管理者は全部見える。
+ */
+/**
  * Advertiser portal UI (prepaid redeem + own ad videos).
  * Separate from platform media-admin.
  */

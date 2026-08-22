@@ -1,5 +1,8 @@
 // @ts-nocheck
 /**
+ * JPDOC: 復元エンジンが使うサポート関数の寄せ集め（旧経路）。
+ */
+/**
  * Recovered support barrel.
  *
  *   audio/     sfx + bgm + engine

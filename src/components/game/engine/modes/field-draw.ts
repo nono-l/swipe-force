@@ -1,4 +1,7 @@
 /**
+ * JPDOC: プレイフィールドの背景と弾。
+ */
+/**
  * canSendFanmailTo-playfield draw decisions (recovered qi field branch).
  */
 

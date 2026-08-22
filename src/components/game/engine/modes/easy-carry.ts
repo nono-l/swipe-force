@@ -1,4 +1,7 @@
 /**
+ * JPDOC: イージーの装備持ち越し。
+ */
+/**
  * EASY mode power-up carry (localStorage) pure helpers.
  */
 

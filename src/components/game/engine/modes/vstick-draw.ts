@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 仮想スティック描画。
+ */
+/**
  * Virtual stick canvas paint ops (recovered ni).
  */
 

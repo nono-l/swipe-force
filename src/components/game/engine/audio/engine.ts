@@ -1,4 +1,7 @@
 // @ts-nocheck
+/**
+ * JPDOC: WebAudio の BGM/SE エンジン。曲の差し替え時は旧版をサウンドテストへ残す。
+ */
 import { bossThemeMeta, BOSS_ACTS } from "./boss-themes";
 import {
   themeArchiveAt,

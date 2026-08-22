@@ -1,4 +1,7 @@
 /**
+ * JPDOC: オプション値の増減。
+ */
+/**
  * Options row delta application (recovered inner Nr(e)).
  * Pure settings mutation + feedback strings; no audio/DOM.
  */

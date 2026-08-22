@@ -1,3 +1,6 @@
+/**
+ * JPDOC: 広告主ポータルの API クライアント。
+ */
 /** Client helpers for advertiser portal + prepaid codes */
 
 export type PrepaidCode = {

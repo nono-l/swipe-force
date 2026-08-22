@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ボス曲。深海のバスはオルゴール風三和音。
+ */
+/**
  * 64 boss BGM story titles / acts (display + sound-test labels).
  * Playback synthesis stays in engine.ts — this is metadata only.
  */

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: プロモ管理画面。期限・回数上限・武器アンロック文字列。
+ */
+/**
  * DOM admin UI: promo codes + staff (appointed admins).
  * Promo codes are stored in the server DB (not localStorage-only).
  */

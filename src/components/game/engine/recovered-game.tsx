@@ -1,7 +1,13 @@
 // @ts-nocheck
 /**
- * Recovered canvas game loop (production bundle decompiled).
- * Readable renames applied — behavior preserved.
+ * SWIPE FORCE 本体キャンバス。
+ *
+ * 本番バンドルを復元したゲームループです。読みやすい名前へ戻してありますが、
+ * 挙動は変えないでください。状態は SwipeForceEngine のクロージャに閉じます。
+ *
+ * 名前の約束:
+ * - 翻訳は translate()。1文字の t は圧縮後の引数と衝突して落ちます。
+ * - ポインタ座標の再代入で let を重ねない（TDZ）。
  */
 import * as React from "react";
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
@@ -371,22 +377,23 @@ import {
   stripPromoFromUrl,
 } from "./modes/game-api";
 
-// Auth bindings (readable names; openAccountDialog may still expect short aliases via props)
+// 認証の別名。ダイアログ側が短い名前を期待する場合に備える。
 const authProviders = GROK_PROVIDERS;
 const authSignIn = signIn;
 const authSignOut = signOut;
 const authGetBearer = getBearerToken;
 
 /*
-  MODE / HANDLER MAP
+  画面と主な入口
   -----------------------------------
   startRun / openShop / openOptions
   openSoundTest / openChangelog / openAccount
   shareProgress / openInbox / openFanmail
   tickGame / resetRun / startStage
-  state: mode, score, pts, lives, stage, titleCursor
+  状態: mode, score, pts, lives, stage, titleCursor
 */
 
+/** キャンバス本体。useEffect 内のクロージャがゲーム状態そのもの。 */
 function SwipeForceEngine() {
     let hostRef = React.useRef(null),
         canvasRef = React.useRef(null);
@@ -509,6 +516,7 @@ function SwipeForceEngine() {
             inboxCursor = 0,
             inboxDetail = !1;
 
+        /** 受信箱をサーバーから取り直す。未連携なら空のまま。 */
         function reloadInbox() {
             fetchInboxMessages(playerId).then(list => {
                 inbox = list, inboxCursor >= inbox.length && (inboxCursor = Math.max(0, inbox.length - 1))
@@ -557,6 +565,7 @@ function SwipeForceEngine() {
                 hasProfile: !1
             },
             sharerProfileLoaded = !1;
+        /** シェア主のプロフィールを再取得する。ミッション画面の依頼主表示用。 */
         function refreshSharerProfile() {
             if (!sharerId) {
                 sharerProfile = { displayName: ``, bio: ``, shareBlurb: ``, hasProfile: !1 };
@@ -572,6 +581,7 @@ function SwipeForceEngine() {
             }).catch(() => { sharerProfileLoaded = !0 })
         }
         refreshSharerProfile();
+        /** シェア主のプロフダイアログを開く。連携済みのときだけ実データを載せる。 */
         function openSharerProfileView() {
             if (!sharerId) return;
             openViewProfileDialog({
@@ -594,24 +604,29 @@ function SwipeForceEngine() {
             missionToastLife = 0,
             missionsDone = shareId ? loadMissionsDone(shareId) : {};
 
+        /** このシェアセッションのミッション達成状況を読み直す。 */
         function reloadMissions() {
             missionsDone = shareId ? loadMissionsDone(shareId) : {}
         }
 
+        /** シェアミッションが全部終わっているか。ファンレター解禁の条件。 */
         function allMissionsClear() {
             return !!shareId && allMissionsDoneFor(shareId)
         }
 
+        /** ファンレターを送れるか。ミッション完了かつ未送信。 */
         function canSendFanmail() {
             return !!sharerId && !!shareId && canSendFanmailTo(shareId, sharerId, playerId)
         }
 
+        /** 同じシェア主へファンレターを既に送ったか。 */
         function alreadySentFanmail() {
             return !!shareId && alreadySentFanmailTo(shareId, playerId)
         }
         reloadInbox();
         let mailBusy = !1;
 
+        /** お礼メッセージの返信ダイアログを開く。 */
         function openThanks(message) {
             if (!canReplyThanks(message)) {
                 sfx.buyFail(), shareToast = thanksBlockedMessage(message), shareToastLife = 80;
@@ -636,6 +651,7 @@ function SwipeForceEngine() {
             })
         }
 
+        /** コンティニューコイン残高をサーバーから同期する。 */
         function refreshCoins() {
             fetchCoinBalance(playerId).then(coins => {
                 continueCoins = coins
@@ -644,10 +660,12 @@ function SwipeForceEngine() {
         refreshCoins();
         let settings = mergeSettingsFromStorage(localStorage.getItem(SETTINGS_KEY));
 
+        /** BGM/SE の音量とミュートを現在の設定に合わせる。 */
         function applyAudioSettings() {
             bgm.setMasterVol(settings.master / 10), bgm.setBgmVol(settings.bgm / 10), bgm.setSfxVol(settings.sfx / 10), bgm.setMuted(settings.muted), mutedFlag = settings.muted
         }
 
+        /** 操作・音量などの設定を localStorage に書く。端末ごとの保存。 */
         function persistSettings() {
             try {
                 localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
@@ -656,30 +674,37 @@ function SwipeForceEngine() {
         }
         applyAudioSettings();
 
+        /** その武器のレベル上限。所持していなければ 0。 */
         function weaponLevelCap(weaponId) {
             return ownedLevel(weaponId, upgrades)
         }
 
+        /** ショップで買った、またはプロモでアンロックした武器か。 */
         function isWeaponOwned(weaponId) {
             return weaponLevelCap(weaponId) > 0
         }
 
+        /** ロードアウトに載せている武器の実レベル。未装備は 0。 */
         function armedLevelOf(weaponId) {
             return armedLevel(weaponId, upgrades, settings.wepLv)
         }
 
+        /** 今の出撃ロードアウトにその武器が入っているか。 */
         function isWeaponArmed(weaponId) {
             return isArmed(weaponId, upgrades, settings.wepLv)
         }
 
+        /** 同時装備している武器の本数。枠の上限判定に使う。 */
         function armedWeaponCount() {
             return countArmedWeapons(LOADOUT_COUNT_KEYS, upgrades, settings.wepLv)
         }
 
+        /** オプション画面用の装備概要テキスト。 */
         function loadoutSummaryText() {
             return formatLoadoutSummary(armedWeaponCount());
         }
 
+        /** ショット系統の内訳テキスト。 */
         function shotSubSummaryText() {
             const detailOn = SHOT_SUMMARY_KEYS.filter(e => isWeaponArmed(e)).length;
             return formatShotSubSummary({
@@ -689,6 +714,7 @@ function SwipeForceEngine() {
             });
         }
 
+        /** オプション画面の行一覧。画面サブ状態に応じて組む。 */
         function optionRows() {
             return buildOptionRows(optionsSub, isWeaponOwned);
         }
@@ -721,11 +747,13 @@ function SwipeForceEngine() {
             vstickAxisY = 0,
             keysDown = new Set;
 
+        /** キーと仮想スティックの入力を捨てる。画面遷移の誤操作防止。 */
         function clearInput() {
             vstickActive = !1, vstickAxisX = 0, vstickAxisY = 0, swipeActive = !1;
             try { keysDown.clear() } catch {}
         }
 
+        /** ホストサイズに合わせてキャンバスを引き伸ばす。レターボックスを維持。 */
         function layoutCanvas() {
             let rect = hostEl.getBoundingClientRect();
             let availW = Math.max(rect.width, window.innerWidth || 0, 160);
@@ -789,59 +817,73 @@ function SwipeForceEngine() {
             console.warn(`[title-banner]`, e);
         }
 
+        /** プロモ等で解禁した特殊武器 ID の集合。 */
         function specialUnlocks() {
             try { return loadPromoUnlocks() } catch { return [] }
         }
 
+        /** 特殊武器（ビーム・フレイム等）が解禁済みか。 */
         function hasSpecial(id) {
             return hasSpecialWeaponAccess(id, !!account.linked, specialUnlocks());
         }
 
+        /** 武器ショップの第2ティアが開いているか。 */
         function tier2Unlocked() {
             return upgrades.shot >= 3 && upgrades.rate >= 3 && upgrades.speed >= 3 && upgrades.power >= 3 && upgrades.option >= 2
         }
 
+        /** 武器ショップの第3ティアが開いているか。 */
         function tier3Unlocked() {
             return upgrades.lockon >= 3 && upgrades.missile >= 3 && upgrades.particle >= 3
         }
 
+        /** いま買えるショップ階層。クリア状況から決まる。 */
         function currentShopTier() {
             const u = specialUnlocks();
             return shopUnlockTier(!!account.linked, tier3Unlocked(), tier2Unlocked(), u.length > 0);
         }
 
+        /** その商品の所持上限。 */
         function itemMaxOf(item) {
             return shopItemMax(item, !!account.linked, LINKED_ITEM_IDS, specialUnlocks());
         }
 
+        /** いまの難易度・ティアで見える商品だけに絞ったカタログ。 */
         function shopCatalog() {
             return filterShopCatalog(SHOP_ITEMS, currentShopTier(), !!account.linked, specialUnlocks());
         }
 
+        /** ショップリストのスクロール窓。カーソルが常に見える範囲。 */
         function shopListWindow(rows, pageSize) {
             return listWindowStart(rows.length, shopCursor, pageSize)
         }
 
+        /** ハイスコアを localStorage へ。下回っても消さない。 */
         function saveHighScore() {
             return scoreHpThresholds();
         }
 
+        /** スコア帯に応じた敵HP倍率。 */
         function scoreHpMult() {
             return enemyHpMultiplier(score);
         }
 
+        /** 難易度とスコアを合成した敵の耐久。 */
         function enemyHpScale() {
             return totalHpScale(difficulty, score)
         }
 
+        /** ノーマルの価格スケール。イージーは掛けない。 */
         function normalCostMult(item) {
             return normalCostScale(item, difficulty);
         }
 
+        /** 表示・購入に使う実価格。 */
         function itemCostOf(item) {
             return shopItemCost(item, upgrades, difficulty);
         }
 
+        /** 所持金・上限・解禁条件をすべて満たすか。 */
         function canBuyItem(item) {
             if (item.stockable) {
                 return bagStockOfId(item.id) < itemMaxOf(item) && pts >= itemCostOf(item)
@@ -849,6 +891,7 @@ function SwipeForceEngine() {
             return item.consumable ? item.id === `life` && lives >= 5 || item.id === `shield` && shield > 0 ? !1 : pts >= itemCostOf(item) : (item.linkOnly || item.tier >= 4) && !hasSpecial(item.id) || upgrades[item.id] >= itemMaxOf(item) ? !1 : pts >= itemCostOf(item)
         }
 
+        /** イージーの持ち越し装備を今のアップグレードへ反映する。 */
         function syncEasyCarry() {
             if (difficulty === `easy` || difficulty === `tutorial`) {
                 try {
@@ -858,6 +901,7 @@ function SwipeForceEngine() {
             }
         }
 
+        /** イージー持ち越しの保存データを読む。 */
         function loadEasyCarryState() {
             try {
                 return loadEasyCarry(localStorage.getItem(EASY_UP_KEY), DEFAULT_UPGRADES)
@@ -866,22 +910,26 @@ function SwipeForceEngine() {
             }
         }
 
+        /** イージーで持ち越している武器レベル。 */
         function easyCarryLevelOf(weaponId) {
             return Object.keys(DEFAULT_UPGRADES).reduce((t, n) => t + weaponId[n], 0)
         }
 
+        /** バッグ在庫を localStorage に書く。 */
         function persistBag() {
             try {
                 localStorage.setItem(BAG_KEY, serializeBag(bagStock))
             } catch {}
         }
 
+        /** 未適用のバッグ効果（倍率など）を保存する。 */
         function persistPending() {
             try {
                 localStorage.setItem(BAG_PENDING_KEY, serializePending(bagPending))
             } catch {}
         }
 
+        /** バッグとログイン日・プロモ使用履歴をディスクから読み直す。 */
         function reloadBag() {
             try {
                 bagStock = loadBag(localStorage.getItem(BAG_KEY));
@@ -894,6 +942,7 @@ function SwipeForceEngine() {
             }
         }
 
+        /** ログインボーナスを受け取った日付を残す。同じ日は二度出さない。 */
         function persistLoginDate(d) {
             loginLastDate = d;
             try {
@@ -901,6 +950,7 @@ function SwipeForceEngine() {
             } catch {}
         }
 
+        /** 使ったプロモコード一覧を端末に残す。 */
         function persistPromoClaimed(list) {
             promoClaimed = list;
             try {
@@ -908,6 +958,7 @@ function SwipeForceEngine() {
             } catch {}
         }
 
+        /** 日付が変わっていればログインボーナスを付与する。 */
         function tryClaimLoginBonus(silent) {
             let res = claimLoginBonus(bagStock, loginLastDate);
             if (!res.ok) {
@@ -926,6 +977,7 @@ function SwipeForceEngine() {
             return !0
         }
 
+        /** URL のプロモコードを一度だけ請求する。失敗してもゲームは止めない。 */
         function tryClaimPromoFromUrl() {
             let code = parsePromoFromUrl();
             if (!code) return;
@@ -964,11 +1016,13 @@ function SwipeForceEngine() {
         } catch {}
 
 
+        /** バッグ内のそのアイテムの残り個数。 */
         function bagStockOfId(id) {
             let f = bagFieldForShopId(id);
             return f ? bagStock[f] || 0 : 0
         }
 
+        /** この難易度でクリア済みの最奥ステージ。スキップ上限。 */
         function maxClearedForDiff() {
             try {
                 let st = readStats();
@@ -979,10 +1033,12 @@ function SwipeForceEngine() {
             }
         }
 
+        /** ゲーム中バッグか、タイトルからのバッグか。使える項目が変わる。 */
         function bagInRunContext() {
             return bagFrom === `shop` || bagFrom === `play`
         }
 
+        /** バッグ画面に出す行。個数0は出さない。 */
         function bagRows() {
             let ready = canClaimLoginBonus(loginLastDate);
             return buildBagRows({
@@ -997,6 +1053,7 @@ function SwipeForceEngine() {
             })
         }
 
+        /** バッグを開く。どこから開いたかを覚えて戻れるようにする。 */
         function openBag(from) {
             reloadBag();
             bagFrom = from || (mode === `shop` ? `shop` : `attract`);
@@ -1004,6 +1061,7 @@ function SwipeForceEngine() {
             mode = `bag`, bagCursor = 0, bagToast = ``, bagToastLife = 0, clearInput(), sfx.ui()
         }
 
+        /** バッグを閉じて元の画面へ戻す。 */
         function closeBag() {
             if (bagFrom === `shop`) mode = `shop`, bgm.start(`attract`);
             else if (bagFrom === `play`) mode = `playing`, invuln = Math.max(invuln, 45), bossActive ? bgm.boss(bossForStage(stage).vibe, stage) : bgm.start(`play`, stage);
@@ -1011,6 +1069,7 @@ function SwipeForceEngine() {
             sfx.ui()
         }
 
+        /** ステージセレクト券の行き先を選ぶ画面。 */
         function openStageSelect() {
             let maxS = maxClearedForDiff();
             if (maxS < 1) {
@@ -1021,6 +1080,7 @@ function SwipeForceEngine() {
             mode = `stageselect`, sfx.ui()
         }
 
+        /** バッグの1行を使う。消耗品は在庫を減らし、即時効果を掛ける。 */
         function useBagRow(row) {
             if (!row || row.kind === `header` || row.kind === `status`) return;
             if (row.kind === `back`) {
@@ -1088,6 +1148,7 @@ function SwipeForceEngine() {
             }
         }
 
+        /** 選んだ面へスキップしてプレイ開始。クリア済みまでしか選べない。 */
         function confirmStageSelect() {
             let maxS = maxClearedForDiff();
             let rows = buildStageSelectRows(maxS);
@@ -1117,6 +1178,7 @@ function SwipeForceEngine() {
             mode = `attract`, titleSub = `extra`, titleCursor = 3, sfx.buy()
         }
 
+        /** PTS を払って買う。上限と解禁を再確認してから在庫を足す。 */
         function buyShopItem(item) {
             let before = { ...upgrades };
             let result = applyShopPurchase({
@@ -1160,6 +1222,7 @@ function SwipeForceEngine() {
 
         
         // ── reset run state ──
+        /** 1プレイ分の状態を初期化する。ハイスコアとバッグは残す。 */
         function resetRun() {
             let seed = buildNewRunSeed({
                 difficulty: difficulty,
@@ -1175,6 +1238,7 @@ function SwipeForceEngine() {
 
         
         // ── begin stage ──
+        /** 面の開始。マップスクロールとスポーン、BGM を面番号に合わせる。 */
         function startStage() {
             let seed = buildStageSeed(stage);
             kills = seed.kills, killsForBoss = seed.killTarget, bossActive = seed.bossActive, bossName = seed.bossName;
@@ -1188,6 +1252,7 @@ function SwipeForceEngine() {
 
         
         // ── open shop ──
+        /** ショップを開く。paused=true はゲーム中一時停止ショップ。 */
         function openShop(paused = !1) {
             let seed = openShopSeed(!!paused);
             mode = seed.mode, shopPaused = seed.paused, shopCursor = seed.cursor, shopToast = seed.toast, shopToastLife = seed.toastLife;
@@ -1197,6 +1262,7 @@ function SwipeForceEngine() {
             if (tutorialRun) noteTutorialEvent(`shop`);
         }
 
+        /** ショップを閉じる。ボス後なら次面へ、ポーズならプレイ再開。 */
         function closeShop() {
             let seed = closeShopSeed(!!shopPaused);
             if (seed.type === `resume_play`) {
@@ -1210,12 +1276,14 @@ function SwipeForceEngine() {
 
         
         // ── open options ──
+        /** オプション。戻り先（ショップ/タイトル/プレイ）を保持する。 */
         function openOptions(from) {
             let seed = openOptionsSeed(from);
             optionsFrom = seed.from, mode = seed.mode, optionsSub = seed.submenu, optionsCursor = seed.cursor;
             optionsToast = ``, optionsToastLife = 0, swipeActive = !1, clearInput(), sfx.ui(), bgm.start(`attract`)
         }
 
+        /** オプションを閉じて戻り先の画面へ。 */
         function closeOptions() {
             if (persistSettings(), sfx.ui(), optionsSub === `shot` || optionsSub === `weapons`) {
                 let nav = optionsBackTarget(optionsSub);
@@ -1269,10 +1337,12 @@ function SwipeForceEngine() {
             shareToast = translate(`hud.titleBack`), shareToastLife = 70;
         }
 
+        /** タイトル側から音量などを仮変更するときのヘルパ。 */
         function nudgeOptionFromMenu(value) {
             return formatVolumeBar(value);
         }
 
+        /** オプション行の現在値を表示用文字列にする。 */
         function formatOptionValueForRow(row) {
             return formatOptionValue(row, {
                 options: settings,
@@ -1283,6 +1353,7 @@ function SwipeForceEngine() {
             });
         }
 
+        /** 左右で値を変える。保存はここではせず、確定時に persist する行もある。 */
         function nudgeOption(delta) {
             let rows = optionRows();
             (optionsCursor < 0 || optionsCursor >= rows.length) && (optionsCursor = 0);
@@ -1318,18 +1389,22 @@ function SwipeForceEngine() {
             }
         }
 
+        /** 敵撃破などの粒子バースト。 */
         function spawnBurst(x, y, color, count = 14) {
             for (let particle of buildBurstParticles(x, y, color, count)) fxParticles.push(particle)
         }
 
+        /** ロックオンやミサイルが追う敵を ID で探す。 */
         function findEnemyById(id) {
             return enemies.find(en => en.id === id)
         }
 
+        /** 自機から近い敵を最大 count 体。ホーミング用。 */
         function nearestEnemies(count) {
             return pickNearestEnemies(enemies, player.x, player.y, count)
         }
 
+        /** ダメージを通す。0以下なら撃破処理とスコア・PTS。 */
         function damageEnemy(enemy, dmg, srcX, srcY) {
             let out = applyEnemyDamage(enemy, dmg, srcX, srcY);
             sfx.hit();
@@ -1380,6 +1455,7 @@ function SwipeForceEngine() {
             idx >= 0 && enemies.splice(idx, 1)
         }
 
+        /** 被弾。無敵中は無視。シールドがあればそれを消費する。 */
         function playerTakeHit() {
             let out = resolvePlayerHit({
                 invulnFrames: invuln,
@@ -1405,6 +1481,7 @@ function SwipeForceEngine() {
             }
         }
 
+        /** 雑魚を1機出す。出現位置はスクロールに合わせる。 */
         function spawnGruntEnemy() {
             enemies.push(spawnGrunt({
                 id: nextEntityId++,
@@ -1413,6 +1490,7 @@ function SwipeForceEngine() {
             }))
         }
 
+        /** その面のボスを出す。BGM をボス曲へ切り替える。 */
         function spawnBossEnemy() {
             let e = bossForStage(stage);
             bossName = e.name, bossActive = !0, mode = `bossintro`, readyTimer = 120, sfx.bossWarn(), missionFirstBoss(), bgm.boss(e.vibe, stage);
@@ -1425,11 +1503,13 @@ function SwipeForceEngine() {
             }))
         }
 
+        /** 敵の弾を1発。弾種は敵データに従う。 */
         function enemyShoot(enemy) {
             let atk = enemy.boss ? bossById(enemy.bossId).atk : 0;
             for (let entity of createEnemyVolley(enemy, player.x, player.y, atk)) bullets.push(entity)
         }
 
+        /** 通常ショット。連射間隔は装備レベルで縮む。 */
         function firePlayerShots() {
             let shots = createPlayerShots(player.x, player.y, {
                 shot: armedLevelOf(`shot`),
@@ -1443,6 +1523,7 @@ function SwipeForceEngine() {
             }
         }
 
+        /** ビーム。特殊解禁が必要。 */
         function fireBeam() {
             let e = armedLevelOf(`beam`);
             if (e <= 0 || !hasSpecial(`beam`)) return;
@@ -1456,6 +1537,7 @@ function SwipeForceEngine() {
             })) bullets.push(entity)
         }
 
+        /** 火炎放射。近距離・持続。 */
         function fireFlame() {
             let e = armedLevelOf(`flame`);
             if (e <= 0 || !hasSpecial(`flame`)) return;
@@ -1467,6 +1549,7 @@ function SwipeForceEngine() {
             })) bullets.push(entity)
         }
 
+        /** 誘導ミサイル。近い敵を割り当てる。 */
         function fireMissiles() {
             let e = armedLevelOf(`missile`);
             if (e <= 0) return;
@@ -1483,6 +1566,7 @@ function SwipeForceEngine() {
             })) bullets.push(entity)
         }
 
+        /** 拡散パーティクル弾。 */
         function fireParticles() {
             let e = armedLevelOf(`particle`);
             if (e <= 0) return;
@@ -1497,6 +1581,7 @@ function SwipeForceEngine() {
             spawnBurst(player.x, player.y - 16, `#66ccff`, 6)
         }
 
+        /** ロックオンレーザー。対象が消えたら打ち切る。 */
         function fireLockon() {
             let e = armedLevelOf(`lockon`);
             if (e <= 0) return;
@@ -1514,14 +1599,17 @@ function SwipeForceEngine() {
             }
         }
 
+        /** 整数座標で塗る。キャンバスのぼやけ防止。 */
         function fillRect(x, y, w, h, color) {
             ctx.fillStyle = color, ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h))
         }
 
+        /** HUD/メニュー用の小さいビットマップ風テキスト。 */
         function drawText(text, x, y, color, size = 8, align = `left`) {
             ctx.fillStyle = color, ctx.font = `bold ${size}px "Courier New", monospace`, ctx.textAlign = align, ctx.textBaseline = `top`, ctx.fillText(text, x, y)
         }
 
+        /** 自機。無敵点滅中は間引き描画。 */
         function drawPlayerShip(x, y, _flash, blinking) {
             if (blinking) return;
             ctx.save(), ctx.translate(Math.round(x), Math.round(y));
@@ -1534,10 +1622,12 @@ function SwipeForceEngine() {
             ctx.restore()
         }
 
+        /** オプションポッドの位置と弾口。 */
         function drawOptionPods() {
             for (let r of optionPodRects(player.x, player.y, armedLevelOf(`option`))) fillRect(r.x, r.y, r.w, r.h, r.color)
         }
 
+        /** 雑魚のスプライト。 */
         function drawEnemy(enemy) {
             if (enemy.boss) {
                 drawBoss(enemy);
@@ -1549,6 +1639,7 @@ function SwipeForceEngine() {
             ctx.restore()
         }
 
+        /** ボス。体の部位と弱点の見た目。 */
         function drawBoss(enemy) {
             let t = bossById(enemy.bossId);
             ctx.save(), ctx.translate(Math.round(enemy.x), Math.round(enemy.y));
@@ -1561,6 +1652,7 @@ function SwipeForceEngine() {
             drawText(t.name, PLAY_W / 2, 18, `#ff66aa`, 8, `center`)
         }
 
+        /** 左右レール（MUTE・PAUSE・バッグなど）。 */
         function drawSideRails() {
             let paint = buildSideRailPaint({
                 mode: mode,
@@ -1590,6 +1682,7 @@ function SwipeForceEngine() {
             drawText(paint.mute.text, paint.mute.x, paint.mute.y, paint.mute.color, 7);
         }
 
+        /** スコア・残機・PTS・武器HUD。 */
         function drawPlayHud() {
             let top = buildHudTop({ score: score, high: highScore, pts: pts, coins: continueCoins, stage: stage });
             drawText(top.score, 52, 4, `#00ff88`, 8);
@@ -1625,6 +1718,7 @@ function SwipeForceEngine() {
             drawText(flags.controlLabel, 268, 376, `#448866`, 6, `right`), drawMissionHud()
         }
 
+        /** シェアミッションの進捗帯。 */
         function drawMissionHud() {
             if (!sharerId) return;
             fillRect(52, 24, 216, 28, `#001a22`), ctx.strokeStyle = allMissionsClear() ? `#ffee66` : frame % 40 < 28 ? `#44ddaa` : `#228866`, ctx.strokeRect(52.5, 24.5, 215, 27), drawText(`MISSION`, 56, 27, `#66ffcc`, 7);
@@ -1637,6 +1731,7 @@ function SwipeForceEngine() {
             missionToastLife > 0 && drawText(missionToast, 264, 39, `#aaffff`, 6, `right`)
         }
 
+        /** タイトルに出すシェア依頼の要約。 */
         function drawTitleMissions(cx) {
             if (!sharerId) return;
             reloadMissions(), fillRect(58, 90, 204, 82, `#001820`), ctx.strokeStyle = allMissionsClear() ? `#ffee66` : `#44ffcc`, ctx.lineWidth = 2, ctx.strokeRect(58.5, 90.5, 203, 81), ctx.lineWidth = 1;
@@ -1656,10 +1751,12 @@ function SwipeForceEngine() {
             drawText(translate(`hud.tapProfile`), cx, 173, `#5588aa`, 6, `center`);
         }
 
+        /** タイトルのミッション帯がタップされたか。 */
         function titleMissionHit(x, y) {
             return !!sharerId && x >= 58 && x <= 262 && y >= 90 && y <= 174
         }
 
+        /** タッチ用仮想スティック。キーボード操作時は出さないこともある。 */
         function drawVirtualStick() {
             if (!vstickVisible(!!settings.vstick, mode)) return;
             let lay = virtualStickLayout({
@@ -1689,6 +1786,7 @@ function SwipeForceEngine() {
             }
         }
 
+        /** 武器ショップ画面。 */
         function drawShop() {
             let e = shopCatalog(),
                 winStart = shopListWindow(e, 10);
@@ -1738,6 +1836,7 @@ function SwipeForceEngine() {
             shopToastLife > 0 ? drawText(shopToast, PLAY_W / 2, 388, `#ffaa00`, 6, `center`) : drawText(shopPaused ? translate(`hud.shopHelpPause`) : translate(`hud.shopHelp`), PLAY_W / 2, 388, `#335544`, 6, `center`)
         }
 
+        /** オプション画面。 */
         function drawOptions() {
             let e = optionRows();
             optionsCursor >= e.length && (optionsCursor = Math.max(0, e.length - 1));
@@ -1770,6 +1869,7 @@ function SwipeForceEngine() {
             drawText(hint, PLAY_W / 2, 386, optionsToastLife > 0 ? `#ffaa00` : `#446666`, 6, `center`)
         }
 
+        /** バッグ画面。個数と効果説明。 */
         function drawBag() {
             let rows = bagRows();
             bagCursor = Math.max(0, Math.min(rows.length - 1, bagCursor));
@@ -1811,6 +1911,7 @@ function SwipeForceEngine() {
             bagToastLife > 0 ? drawText(bagToast, PLAY_W / 2, 386, `#ffaa00`, 6, `center`) : drawText(translate(`bag.foot`), PLAY_W / 2, 386, `#554422`, 6, `center`)
         }
 
+        /** スキップ先の面番号リスト。 */
         function drawStageSelect() {
             let maxS = maxClearedForDiff();
             let rows = buildStageSelectRows(maxS);
@@ -1830,18 +1931,22 @@ function SwipeForceEngine() {
 
         
         // ── version changelog mode ──
+        /** バージョン履歴を開く。 */
         function openChangelog() {
             mode = `changelog`, changelogScroll = 0, sfx.ui()
         }
 
+        /** 履歴から1つ上のメニューへ戻る。 */
         function leaveChangelog() {
             mode = `attract`, sfx.ui()
         }
 
+        /** 履歴のスクロール上限。 */
         function getChangelogMaxScroll() {
             return changelogMaxScroll(buildChangelogRows(VERSION_HISTORY).length)
         }
 
+        /** バージョン履歴の描画。 */
         function drawChangelog() {
             fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#000a12`), fillRect(54, 12, 212, 380, `#001018`), ctx.strokeStyle = `#44ffcc`, ctx.strokeRect(54.5, 12.5, 211, 379), drawText(`VERSION HISTORY`, PLAY_W / 2, 20, `#88ffee`, 11, `center`), drawText(`NOW  ${versionShortLabel()}`, PLAY_W / 2, 34, `#ffee88`, 8, `center`), drawText(`Grok Build iOS`, PLAY_W / 2, 46, `#556666`, 6, `center`);
             let rows = buildChangelogRows(VERSION_HISTORY),
@@ -1855,10 +1960,12 @@ function SwipeForceEngine() {
             changelogScroll > 0 && drawText(`▲`, PLAY_W / 2, 52, `#44aa88`, 7, `center`), changelogScroll < maxScroll && drawText(`▼`, PLAY_W / 2, 364, `#44aa88`, 7, `center`), fillRect(60, 370, 200, 18, `#1a3030`), ctx.strokeStyle = `#6688aa`, ctx.strokeRect(60.5, 370.5, 199, 17), drawText(`◀ BACK`, PLAY_W / 2, 375, `#aaccff`, 8, `center`)
         }
 
+        /** 履歴のタップ。戻る／行選択。 */
         function onChangelogTap(x, y) {
             changelogDragOn = !0, changelogDragY = y, changelogDragAcc = 0, changelogDragMoved = !1
         }
 
+        /** 履歴のドラッグスクロール。 */
         function onChangelogDrag(x, y) {
             if (!changelogDragOn || mode !== `changelog`) return;
             let dy = y - changelogDragY;
@@ -1866,6 +1973,7 @@ function SwipeForceEngine() {
             for (; changelogDragAcc >= 14;) changelogScroll = Math.min(getChangelogMaxScroll(), changelogScroll + 1), changelogDragAcc -= 14, changelogDragMoved = !0, sfx.ui()
         }
 
+        /** 履歴ドラッグ終了。微小移動はタップ扱いに戻す。 */
         function onChangelogPointerUp(x, y) {
             if (changelogDragOn) {
                 if (changelogDragOn = !1, changelogDragMoved) {
@@ -1876,6 +1984,7 @@ function SwipeForceEngine() {
             }
         }
 
+        /** タイトル（アトラクト）。メニュー・バナー余白・ミッション。 */
         function drawAttract() {
             ctx.fillStyle = `#001100`, ctx.fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H);
             for (let i = 0; i < 400; i++) {
@@ -1931,6 +2040,7 @@ function SwipeForceEngine() {
 
         
         // ── start run ──
+        /** ゲーム開始。チュートリアルならコイン0・専用ミッション。 */
         function startRun() {
             reloadBag();
             resetRun();
@@ -1974,6 +2084,7 @@ function SwipeForceEngine() {
 
         
         // ── mission progress tick ──
+        /** シェアミッション達成をサーバーへ。二重報告しない。 */
         function reportMission(missionId) {
             if (!canAttemptMission({ sharerId: sharerId, shareId: shareId, alreadyDone: !!missionsDone[missionId] })) return;
             let t = missionPlaySeconds(runStartedAt),
@@ -2006,6 +2117,7 @@ function SwipeForceEngine() {
 
         
         // ── award / continue coin refresh ──
+        /** 1面目ボス到達ミッション。 */
         function missionFirstBoss() {
             if (firstBossFlagged) return;
             let mid = firstBossMissionId(stage, firstBossFlagged);
@@ -2013,6 +2125,7 @@ function SwipeForceEngine() {
             if (tutorialRun && stage === 1) noteTutorialEvent(`boss_reach`);
         }
 
+        /** 各面ボス撃破ミッション。 */
         function missionBossClear() {
             let mid = bossClearMissionId(stage);
             mid && reportMission(mid)
@@ -2021,6 +2134,7 @@ function SwipeForceEngine() {
 
         
         // ── account link dialog ──
+        /** アカウント連携ダイアログ。 */
         function openAccount() {
             openAccountDialog(hostEl, {
                 linked: !!account.linked,
@@ -2070,6 +2184,7 @@ function SwipeForceEngine() {
             bgm.unlock();
         }
 
+        /** ファンレター／お礼ダイアログを閉じる。 */
         function closeMailDialog() {
             let e = hostEl.querySelector(`#sf-mail-dlg`);
             e && e.remove(), mailBusy = !1
@@ -2077,6 +2192,7 @@ function SwipeForceEngine() {
 
         
         // ── fan mail to sharer ──
+        /** ファンレター作成。連携必須。 */
         function openFanmail() {
             let gate = fanmailGate({
                 sharerId: sharerId,
@@ -2110,6 +2226,7 @@ function SwipeForceEngine() {
 
         
         // ── inbox ──
+        /** 受信箱。連携必須。 */
         function openInbox() {
             reloadInbox(), syncAccountCloud(), mode = `inbox`, inboxCursor = 0, inboxDetail = !1, sfx.ui()
         }
@@ -2140,6 +2257,7 @@ function SwipeForceEngine() {
             bossActive ? bgm.boss(bossForStage(stage).vibe, stage) : bgm.start(`play`, stage)
         }
 
+        /** 未連携なら案内して false。連携済みなら true。 */
         function requireAccountLink(feature = translate(`hud.featDefault`)) {
             let gate = requireLinked(!!account.linked, feature);
             if (gate.ok) return !0;
@@ -2149,6 +2267,7 @@ function SwipeForceEngine() {
 
         
         // ── sound test ──
+        /** サウンドテスト。旧曲バックアップ枠も含む。 */
         function openSoundTest() {
             if (!account.linked) {
                 shareToast = translate(`hud.soundLock`), shareToastLife = 90, sfx.buyFail();
@@ -2159,14 +2278,17 @@ function SwipeForceEngine() {
             }), sfx.ui()
         }
 
+        /** サウンドテストを閉じてタイトルへ。 */
         function leaveSoundTest() {
             mode = `attract`, titleSub = `extra`, titleCursor = 0, bgm.start(`attract`), trackLabel = ``, sfx.ui()
         }
 
+        /** 再生中トラックの識別キー。コメント紐付け用。 */
         function currentTrackKey() {
             return makeTrackKey(soundPlayMode, soundIndex)
         }
 
+        /** 再生中トラックの表示カード。 */
         function currentTrackCard() {
             let e = currentTrackKey(),
                 r = soundCatalogMeta();
@@ -2179,6 +2301,7 @@ function SwipeForceEngine() {
             })
         }
 
+        /** 「いまの曲」カード。i18n は translate()。引数名を短くしないこと。 */
         function drawTrackCard(topY, opts) {
             let n = currentTrackCard(),
                 hasPeriod = !!(n.period && String(n.period).trim()),
@@ -2205,6 +2328,7 @@ function SwipeForceEngine() {
             return lay.height
         }
 
+        /** 指定リストの曲を再生。BGM エンジンへ委譲。 */
         function playSoundTrack(listMode, index = 0) {
             soundPlayMode = listMode, soundIndex = index, trackLabel = playBgmForMode(listMode, index), fetchTrackVotes(makeTrackKey(listMode, index), playerId).then(votes => {
                 ratings = votes
@@ -2218,6 +2342,7 @@ function SwipeForceEngine() {
             trackKey = key, comments = await fetchTrackComments(key), commentCursor = 0
         }
 
+        /** トラックへのファンコメント一覧。 */
         function openComments() {
             let can = canOpenComments(trackLabel);
             if (!can.ok) {
@@ -2231,10 +2356,12 @@ function SwipeForceEngine() {
             })
         }
 
+        /** コメント画面からサウンドテストへ戻る。 */
         function leaveComments() {
             soundListMode = commentsReturn, sfx.ui()
         }
 
+        /** 1件のコメントを開く。URL はクッション経由。 */
         function viewComment(comment) {
             openSoundCommentViewer(comment, {
                 trackKey: trackKey || currentTrackKey(),
@@ -2264,14 +2391,17 @@ function SwipeForceEngine() {
             })
         }
 
+        /** サウンドテストのルートメニュー行。 */
         function soundTestMenuRows() {
             return buildSoundTestRootMenu()
         }
 
+        /** 曲リストの行。旧版は日付付き。 */
         function soundTestListRows(listMode) {
             return buildSoundTestTrackList(listMode, soundCatalogMeta())
         }
 
+        /** サウンドテストの決定。再生またはサブ画面へ。 */
         function activateSoundTestRow() {
             if (bgm.unlock(), soundListMode === `menu`) {
                 let e = soundTestMenuRows()[soundCursor];
@@ -2293,6 +2423,7 @@ function SwipeForceEngine() {
             else if (act.type === `play`) playSoundTrack(act.list, act.index), sfx.ui()
         }
 
+        /** サウンドテスト全体の描画。 */
         function drawSoundTest() {
             if (fillRect(RAIL_W, 0, FIELD_INNER_W, PLAY_H, `#000a12`), fillRect(54, 14, 212, 376, `#001018`), ctx.strokeStyle = `#44ffcc`, ctx.strokeRect(54.5, 14.5, 211, 375), soundListMode === `comments`) {
                 drawText(`COMMENTS`, PLAY_W / 2, 18, `#88ffee`, 10, `center`);
@@ -2374,10 +2505,12 @@ function SwipeForceEngine() {
             soundToastLife > 0 && drawText(soundToast, PLAY_W / 2, 388, `#ffaa66`, 6, `center`)
         }
 
+        /** 曲リスト先頭の Y。ヒット判定と揃える。 */
         function soundListTopY() {
             return soundListMode === `comments` ? 70 : trackLabel && !trackLabel.startsWith(`—`) ? 84 : 58
         }
 
+        /** Y座標から行番号へ。 */
         function soundTestRowIndexAtY(y) {
             return soundTestRowAtY({
                 y: y,
@@ -2390,6 +2523,7 @@ function SwipeForceEngine() {
             })
         }
 
+        /** サウンドテストの押し下げ。ドラッグ開始もここで。 */
         function onSoundTestPointerDown(x, y) {
             let down = soundTestPointerDown({
                 x: x,
@@ -2405,6 +2539,7 @@ function SwipeForceEngine() {
             if (down.selectRow != null) soundCursor = down.selectRow
         }
 
+        /** サウンドテストのスクロール。 */
         function onSoundTestPointerDrag(x, y) {
             if (!soundDragOn || mode !== `soundtest`) return;
             let dy = y - soundDragY;
@@ -2421,6 +2556,7 @@ function SwipeForceEngine() {
             soundCursor = Math.max(0, Math.min(lastIndex, soundCursor + scr.steps)), sfx.ui()
         }
 
+        /** サウンドテストの離し。移動が小さければ決定。 */
         function onSoundTestPointerUp(x, y) {
             if (!soundDragOn) return;
             if (soundDragOn = !1, soundDragged) {
@@ -2455,6 +2591,7 @@ function SwipeForceEngine() {
 
         
         // ── share (PLAY_W) ──
+        /** 管理者だけプロモ管理を開く。 */
         function tryOpenPromoAdmin() {
             try {
                 openPromoAdminDialog({
@@ -2473,6 +2610,7 @@ function SwipeForceEngine() {
             } catch {}
         }
 
+        /** 説明（ヘルプ）。チュートリアルへの入口もある。 */
         function tryOpenHelp() {
             try {
                 openHelpDialog({
@@ -2495,6 +2633,7 @@ function SwipeForceEngine() {
             }
         }
 
+        /** 視聴ミッション。カタログが空なら「ありません」。 */
         function tryOpenMediaWatch() {
             try {
                 openMediaWatchDialog({
@@ -2521,6 +2660,7 @@ function SwipeForceEngine() {
             }
         }
 
+        /** 広告主ポータル。未連携ならロック。 */
         function tryOpenPartnerPortal() {
             try {
                 if (!account.linked) {
@@ -2554,6 +2694,7 @@ function SwipeForceEngine() {
             }
         }
 
+        /** 進捗シェア文面を組んでシートを開く。ハッシュタグは末尾に1回。 */
         function shareProgress() {
             let pack = buildSharePayload({
                 playerId: playerId,
@@ -2570,6 +2711,7 @@ function SwipeForceEngine() {
             shareToast = pack.toast, shareToastLife = 120, sfx.ui()
         }
 
+        /** タイトルのタップ。空き地の誤爆決定はしない。1回目は選択音のみ。 */
         function handleAttractTap(gx, gy) {
             // mission host profile (before menu resolve)
             if (titleMissionHit(gx, gy)) {
@@ -2636,6 +2778,7 @@ function SwipeForceEngine() {
 
         
         // ── main update tick ──
+        /** 1フレーム分の更新。モード分岐の心臓。チュートリアルの割り込みもここ。 */
         function tickGame(dt) {
             try {
               if (mode === `playing` || mode === `ready` || mode === `bossintro`) {
@@ -2815,6 +2958,7 @@ function SwipeForceEngine() {
             }
         }
 
+        /** 1フレーム分の描画。更新とは分離してチラつきを避ける。 */
         function drawFrame() {
             ctx.fillStyle = `#000`, ctx.fillRect(0, 0, PLAY_W, PLAY_H);
             let shakeOff = screenShakeOffset(shake),
@@ -2938,6 +3082,7 @@ function SwipeForceEngine() {
         }
         let lastFrameMs = performance.now();
 
+        /** requestAnimationFrame の入口。停止中は回さない。 */
         function frameLoop(now) {
             if (!running) return;
             try {
@@ -2950,6 +3095,7 @@ function SwipeForceEngine() {
         }
         rafId = requestAnimationFrame(frameLoop);
 
+        /** 画面ピクセルをゲーム内座標へ。レターボックスを考慮。 */
         function pointerToGameCoords(clientX, clientY) {
             let rect = canvas.getBoundingClientRect();
             return {
@@ -2958,11 +3104,13 @@ function SwipeForceEngine() {
             }
         }
 
+        /** ネームエントリの1文字を前後させる。 */
         function stepNameLetter(dir) {
             let idx = NAME_CHARSET.indexOf(nameLetters[nameCursor]);
             nameLetters[nameCursor] = NAME_CHARSET[(idx + dir + 36) % 36]
         }
 
+        /** ショップの離し。 */
         function onShopPointerUp(x, y) {
             let act = shopPointerUp({
                 x: x,
@@ -2983,6 +3131,7 @@ function SwipeForceEngine() {
             if (act.type === `empty_confirm`) confirmShopSelection()
         }
 
+        /** ショップの決定。買うか戻るか。 */
         function confirmShopSelection() {
             let catalog = shopCatalog(),
                 act = shopEmptyConfirm(shopCursor, catalog.length);
@@ -2992,14 +3141,17 @@ function SwipeForceEngine() {
             else if (act.type === `share`) shareProgress()
         }
 
+        /** ショップカーソルの最大値。 */
         function shopCursorLimit() {
             return shopCursorMax(shopCatalog().length)
         }
 
+        /** ショップカーソルを上下。 */
         function moveShopCursor(dir) {
             shopCursor = shopCursorStep(shopCursor, dir, shopCatalog().length), sfx.ui()
         }
 
+        /** ショップの押し下げ。スクロール開始。 */
         function onShopPointerDown(x, y) {
             let hit = shopPointerDown({
                 x: x,
@@ -3017,6 +3169,7 @@ function SwipeForceEngine() {
             if (hit.cursor != null) shopCursor = hit.cursor
         }
 
+        /** ショップのドラッグスクロール。 */
         function onShopPointerDrag(x, y) {
             if (!shopDragOn || mode !== `shop`) return;
             let dy = y - shopDragY,
@@ -3030,6 +3183,7 @@ function SwipeForceEngine() {
             shopDragX = x, shopDragY = y
         }
 
+        /** ショップポインタ終了の共通処理。 */
         function finishShopPointer(x, y) {
             if (shopDragOn) {
                 if (shopDragOn = !1, shopDragged) {
@@ -3040,14 +3194,17 @@ function SwipeForceEngine() {
             }
         }
 
+        /** オプションの Y から行番号。 */
         function optionsRowIndexAtY(y) {
             return optionsRowAtY(y, optionRows().length, optionsCursor)
         }
 
+        /** オプションカーソル移動。サブ画面の境界をまたがない。 */
         function stepOptionsCursor(from, dir) {
             return optionsCursorStep(optionRows(), from, dir)
         }
 
+        /** オプションの押し下げ。 */
         function onOptionsPointerDown(x, y) {
             let down = optionsPointerDown({
                 x: x,
@@ -3062,6 +3219,7 @@ function SwipeForceEngine() {
             if (down.selectRow) optionsCursor = down.rowIndex
         }
 
+        /** オプションのドラッグ（音量スライダ含む）。 */
         function onOptionsPointerDrag(x, y) {
             if (!optionsDragOn || mode !== `options`) return;
             let dx = x - optionsDragX,
@@ -3086,6 +3244,7 @@ function SwipeForceEngine() {
             for (; optionsDragAccX <= -stepPx;) nudgeOption(-1), optionsDragAccX += stepPx, optionsDragged = !0
         }
 
+        /** オプション行の決定。タイトルへ戻るも含む。 */
         function activateOptionRow(index) {
             let rows = optionRows();
             if (!rows.length) return;
@@ -3111,6 +3270,7 @@ function SwipeForceEngine() {
             }
         }
 
+        /** オプションの離し。 */
         function onOptionsPointerUp(x, y) {
             if (!optionsDragOn) return;
             optionsDragOn = !1;
@@ -3130,11 +3290,13 @@ function SwipeForceEngine() {
             if (pointerUp.type === `select`) { optionsCursor = pointerUp.cursor, sfx.ui() }
         }
 
+        /** 仮想スティックの軸値を -1..1 に正規化する。 */
         function updateVirtualStickAxis(x, y) {
             let a = virtualStickAxis(x, y, vstickX, vstickY, 30);
             vstickAxisX = a.x, vstickAxisY = a.y
         }
 
+        /** ポインタ押し下げの総入口。モードごとに委譲する。 */
         function onPointerDown(clientX, clientY) {
             let pos = pointerToGameCoords(clientX, clientY);
             bgm.unlock(), applyAudioSettings();
@@ -3264,6 +3426,7 @@ function SwipeForceEngine() {
             }
         }
 
+        /** ポインタ移動。スワイプ追従はここ。座標の再代入に注意（TDZ禁止）。 */
         function onPointerMove(clientX, clientY) {
             let route = routePointerMove({
                 mode: mode,
@@ -3607,11 +3770,12 @@ function SwipeForceEngine() {
     })
 }
 
+/** エンジンをホスト要素に載せる薄いラッパ。 */
 function SwipeForceGameRoot() {
     return (0, jsxRuntime.jsx)(SwipeForceEngine, {})
 }
 
-/** React entry used by the route */
+/** ルートから載せる公開エントリ。 */
 export function SwipeForceGameCanvas() {
   return SwipeForceGameRoot();
 }

@@ -1,4 +1,7 @@
 /**
+ * JPDOC: オプションの当たり。
+ */
+/**
  * Options list hit testing (pure).
  */
 

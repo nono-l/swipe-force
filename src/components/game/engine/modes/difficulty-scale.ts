@@ -1,4 +1,7 @@
 /**
+ * JPDOC: 難易度による数値スケール。
+ */
+/**
  * Enemy HP scaling (recovered loadLocalInbox / saveIdSet).
  */
 

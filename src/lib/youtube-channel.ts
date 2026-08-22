@@ -1,3 +1,6 @@
+/**
+ * JPDOC: oEmbed の author_url からチャンネルURLを安全に取り出す。
+ */
 /** YouTube channel URL from oEmbed author_url. Safe on server and client. */
 
 export function sanitizeYoutubeChannelUrl(raw: unknown): string {

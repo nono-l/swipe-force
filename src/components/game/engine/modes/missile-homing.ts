@@ -1,4 +1,7 @@
 /**
+ * JPDOC: ミサイルの誘導。
+ */
+/**
  * Homing missile turn (recovered Ki missile branch).
  */
 

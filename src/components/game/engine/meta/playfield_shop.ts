@@ -1,4 +1,7 @@
 // @ts-nocheck
+/**
+ * JPDOC: ショップとプレイフィールドの共有定数。
+ */
 /** Playfield sizes, shop catalog, upgrade defaults, storage keys. */
 import { jsx, jsxs } from "react/jsx-runtime";
 const t = () => ({ jsx, jsxs });

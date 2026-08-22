@@ -1,4 +1,7 @@
 // @ts-nocheck
+/**
+ * JPDOC: 表示用テキストの掃除。
+ */
 /** Message / profile text sanitizers (recovered). */
 
 export var SHARE_TEXT_MAX = 40,
