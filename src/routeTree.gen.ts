@@ -20,6 +20,7 @@ import { Route as ApiAdminPromoRouteImport } from './routes/api/admin/promo'
 import { Route as ApiAdminStaffRouteImport } from './routes/api/admin/staff'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiPromoClaimRouteImport } from './routes/api/promo/claim'
+import { Route as ApiRtcRouteImport } from './routes/api/rtc'
 import { Route as ApiShareAwardRouteImport } from './routes/api/share/award'
 import { Route as ApiShareBalanceRouteImport } from './routes/api/share/balance'
 import { Route as ApiShareMediaCatalogRouteImport } from './routes/api/share/media-catalog'
@@ -91,6 +92,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 const ApiPromoClaimRoute = ApiPromoClaimRouteImport.update({
   id: '/api/promo/claim',
   path: '/api/promo/claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRtcRoute = ApiRtcRouteImport.update({
+  id: '/api/rtc',
+  path: '/api/rtc',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiShareAwardRoute = ApiShareAwardRouteImport.update({
@@ -191,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/staff': typeof ApiAdminStaffRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/promo/claim': typeof ApiPromoClaimRoute
+  '/api/rtc': typeof ApiRtcRoute
   '/api/share/award': typeof ApiShareAwardRoute
   '/api/share/balance': typeof ApiShareBalanceRoute
   '/api/share/media-catalog': typeof ApiShareMediaCatalogRoute
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/api/admin/staff': typeof ApiAdminStaffRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/promo/claim': typeof ApiPromoClaimRoute
+  '/api/rtc': typeof ApiRtcRoute
   '/api/share/award': typeof ApiShareAwardRoute
   '/api/share/balance': typeof ApiShareBalanceRoute
   '/api/share/media-catalog': typeof ApiShareMediaCatalogRoute
@@ -252,6 +260,7 @@ export interface FileRoutesById {
   '/api/admin/staff': typeof ApiAdminStaffRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/promo/claim': typeof ApiPromoClaimRoute
+  '/api/rtc': typeof ApiRtcRoute
   '/api/share/award': typeof ApiShareAwardRoute
   '/api/share/balance': typeof ApiShareBalanceRoute
   '/api/share/media-catalog': typeof ApiShareMediaCatalogRoute
@@ -284,6 +293,7 @@ export interface FileRouteTypes {
     | '/api/admin/staff'
     | '/api/auth/$'
     | '/api/promo/claim'
+    | '/api/rtc'
     | '/api/share/award'
     | '/api/share/balance'
     | '/api/share/media-catalog'
@@ -314,6 +324,7 @@ export interface FileRouteTypes {
     | '/api/admin/staff'
     | '/api/auth/$'
     | '/api/promo/claim'
+    | '/api/rtc'
     | '/api/share/award'
     | '/api/share/balance'
     | '/api/share/media-catalog'
@@ -344,6 +355,7 @@ export interface FileRouteTypes {
     | '/api/admin/staff'
     | '/api/auth/$'
     | '/api/promo/claim'
+    | '/api/rtc'
     | '/api/share/award'
     | '/api/share/balance'
     | '/api/share/media-catalog'
@@ -375,6 +387,7 @@ export interface RootRouteChildren {
   ApiAdminStaffRoute: typeof ApiAdminStaffRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiPromoClaimRoute: typeof ApiPromoClaimRoute
+  ApiRtcRoute: typeof ApiRtcRoute
   ApiShareAwardRoute: typeof ApiShareAwardRoute
   ApiShareBalanceRoute: typeof ApiShareBalanceRoute
   ApiShareMediaCatalogRoute: typeof ApiShareMediaCatalogRoute
@@ -471,6 +484,13 @@ declare module '@tanstack/react-router' {
       path: '/api/promo/claim'
       fullPath: '/api/promo/claim'
       preLoaderRoute: typeof ApiPromoClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/rtc': {
+      id: '/api/rtc'
+      path: '/api/rtc'
+      fullPath: '/api/rtc'
+      preLoaderRoute: typeof ApiRtcRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/share/award': {
@@ -607,6 +627,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminStaffRoute: ApiAdminStaffRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiPromoClaimRoute: ApiPromoClaimRoute,
+  ApiRtcRoute: ApiRtcRoute,
   ApiShareAwardRoute: ApiShareAwardRoute,
   ApiShareBalanceRoute: ApiShareBalanceRoute,
   ApiShareMediaCatalogRoute: ApiShareMediaCatalogRoute,
